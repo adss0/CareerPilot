@@ -11,8 +11,8 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | Phase | What gets built | Status |
 |---|---|---|
 | 0 | **Setup & foundations:** project skeleton, backend + frontend, linting, tests, CI | ✅ Done |
-| 1 | **Database:** applications, profile, cover letters and email log stored in SQLite | ⏭️ Next |
-| 2 | **Excel import:** upload a spreadsheet, match columns, skip duplicates, export back to Excel | ☐ Planned |
+| 1 | **Database:** applications, profile, cover letters and email log stored in SQLite | ✅ Done |
+| 2 | **Excel import:** upload a spreadsheet, match columns, skip duplicates, export back to Excel | ⏭️ Next |
 | 3 | **Profile & CV:** upload your CV and turn it into a reusable profile | ☐ Planned |
 | 4 | **AI cover letters:** tailored letters from free AI, tones, versions, PDF/Word export | ☐ Planned |
 | 5 | **User interface:** dashboard, applications table, Kanban board, letter editor | ☐ Planned |
@@ -78,19 +78,26 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 **Goal:** decide *what* we store and store it.
 
-- [ ] 1.1 Design tables (SQLModel):
-  - **Profile**: name, email, phone, location, links (LinkedIn/GitHub/portfolio), summary, skills, cv_text, cv_file_path
-  - **Application**: id, company, role, job_url, job_description, contact_name, contact_email, location, salary, source, **status**, priority, notes, applied_at, last_contact_at, follow_up_at, created_at
+- [x] 1.1 Design tables (SQLModel, in `backend/app/models/tables.py`):
+  - **Profile**: name, email, phone, location, links (LinkedIn/GitHub/portfolio), summary, skills, cv_text, cv_file_path (a single row)
+  - **Application**: id, company, role, job_url, job_description, contact_name, contact_email, location, salary, source, **status**, priority (0–3), notes, import_batch_id, applied_at, last_contact_at, follow_up_at, created_at, updated_at
   - **CoverLetter**: id, application_id, content, tone, model_used, version, created_at
-  - **EmailLog**: id, application_id, to, subject, body, attachments, sent_at, gmail_message_id, thread_id, status (queued/sent/failed/replied)
+  - **EmailLog**: id, application_id, to_address, subject, body, attachments, sent_at, gmail_message_id, thread_id, status (queued/sent/failed/replied)
   - **ImportBatch**: id, filename, rows_total, rows_imported, rows_skipped, created_at
   - **StatusHistory**: application_id, from_status, to_status, changed_at
-- [ ] 1.2 Status enum: `IMPORTED → DRAFTED → READY → SENT → FOLLOWED_UP → INTERVIEW → OFFER / REJECTED / WITHDRAWN`
-- [ ] 1.3 SQLite connection + Alembic migrations
-- [ ] 1.4 CRUD API: `GET/POST/PATCH/DELETE /applications`, `GET/PUT /profile`
-- [ ] 1.5 Unit tests for the CRUD endpoints
+  - Deleting an application also deletes its letters, emails and history (foreign keys with `ON DELETE CASCADE`, enforced in SQLite)
+- [x] 1.2 Status enum: `IMPORTED → DRAFTED → READY → SENT → FOLLOWED_UP → INTERVIEW → OFFER / REJECTED / WITHDRAWN`
+- [x] 1.3 SQLite connection + Alembic migrations. Migrations run automatically when the backend starts. The DB file lives in `backend/` and is git-ignored.
+- [x] 1.4 CRUD API: `GET/POST/PATCH/DELETE /api/applications` (with status filter, search and paging), `GET /api/applications/{id}/history`, `GET/PUT /api/profile`
+  - Changing status records a history row. Moving to `SENT` sets `applied_at`.
+  - The profile API never returns the raw CV text (it returns `has_cv` instead).
+- [x] 1.5 Tests (16 passing): CRUD, validation, filters, paging, status history, cascade delete, 404s, profile, and a check that migrations match the models. All test data is fake (`@example.com`).
 
-**Done when:** you can create, list, update and delete applications via the auto-generated docs at `/docs`.
+**Done when:** you can create, list, update and delete applications via the auto-generated docs at `/docs`. ✅ Verified 2026-11-05 against a real database file.
+
+**Notes from Phase 1:**
+- New dependencies, all with permissive licences compatible with MIT: SQLModel (MIT), SQLAlchemy (MIT), Alembic (MIT), email-validator (Unlicense).
+- Changing a model now needs a migration: `alembic revision --autogenerate -m "..."` in `backend/`. A test fails if you forget.
 
 ---
 
@@ -262,3 +269,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-05 | **Phase 0 done.** FastAPI backend with `/api/health`, React MVVM frontend with sidebar and dashboard, ruff/ESLint/Prettier, pytest + Vitest, GitHub Actions CI (passing). Repo: `adss0/CareerPilot`. |
 | 2026-11-05 | Full development plan moved into the README. |
 | 2026-11-05 | Plan moved to its own `PLAN.md`; the README links to it. |
+| 2026-11-05 | **Phase 1 done.** SQLite database with 6 tables and Alembic migrations, CRUD API for applications (with status history) and profile, 16 backend tests. |
