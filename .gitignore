@@ -19,5 +19,5 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Private build plan (kept in its own private repo)
+# Old local plan folder (the plan now lives in README.md)
 plan/
