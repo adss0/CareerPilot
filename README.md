@@ -2,7 +2,7 @@
 
 **Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
 
-> 🚧 Status: early development. The project skeleton is in place and features are being built.
+> 🚧 Status: early development. Phase 0 (project setup) is done, and Phase 1 (database) is next. See the [roadmap](#roadmap).
 
 ---
 
@@ -80,6 +80,23 @@ backend/app/
   api/ → services/ → repositories/ → models/
                   ↘ integrations/ (AI, Gmail)
 ```
+
+---
+
+## Roadmap
+
+| Phase | What gets built | Status |
+|---|---|---|
+| 0 | **Setup & foundations:** project skeleton, backend + frontend, linting, tests, CI | ✅ Done |
+| 1 | **Database:** applications, profile, cover letters and email log stored in SQLite | ⏭️ Next |
+| 2 | **Excel import:** upload a spreadsheet, match columns, skip duplicates, export back to Excel | ☐ Planned |
+| 3 | **Profile & CV:** upload your CV and turn it into a reusable profile | ☐ Planned |
+| 4 | **AI cover letters:** tailored letters from free AI, tones, versions, PDF/Word export | ☐ Planned |
+| 5 | **User interface:** dashboard, applications table, Kanban board, letter editor | ☐ Planned |
+| 6 | **Sending:** approve-then-send email via Gmail, daily limits, assisted apply for job sites | ☐ Planned |
+| 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ☐ Planned |
+| 8 | **Desktop app:** installable Windows app (Tauri) | ☐ Planned |
+| 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ☐ Planned |
 
 ---
 
