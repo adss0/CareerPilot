@@ -1,0 +1,126 @@
+# CareerPilot ✈️
+
+**Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
+
+> 🚧 Status: early development. The project skeleton is in place and features are being built.
+
+---
+
+## Why CareerPilot?
+
+Applying for jobs is repetitive: copy the job details, rewrite a cover letter, attach your CV, send the email, then try to remember who you applied to and when to follow up. CareerPilot does the boring parts for you, so you can spend your time on the applications that matter.
+
+- 💸 **Completely free.** It uses free AI (Google Gemini's free tier), or a local model on your own PC.
+- 🔒 **Private.** Everything runs on your computer. Your CV and job list never sit on someone else's server.
+- 🛡️ **Safe.** Nothing is ever sent without your approval, and no bots touch LinkedIn or other job sites.
+
+---
+
+## How it works
+
+```
+ 1. Import          2. Profile          3. Write             4. Apply             5. Track
+┌──────────┐      ┌──────────┐      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+│ Excel of │ ──▶  │ Your CV  │ ──▶  │ AI writes a  │ ──▶  │ You approve, │ ──▶  │ Status board │
+│   jobs   │      │ (parsed) │      │ cover letter │      │ app sends    │      │ + follow-ups │
+└──────────┘      └──────────┘      └──────────────┘      └──────────────┘      └──────────────┘
+```
+
+1. **Import your jobs.** Drop in an Excel or CSV file with the jobs you want (company, role, link, contact email, description). CareerPilot recognises the columns, cleans the data, skips duplicates and adds each job to your tracker.
+2. **Add your profile.** Upload your CV (PDF or Word) once. CareerPilot pulls out your skills, experience and projects to reuse for every application.
+3. **Generate cover letters.** For each job, the AI writes a tailored letter that matches your real experience to what the job asks for. It never makes things up. Pick a tone, edit it, regenerate it, or export it as PDF/Word.
+4. **Apply.**
+   - **Email jobs:** CareerPilot writes the email, attaches your letter and CV, and sends it from your own Gmail **after you click approve**. Sends are spaced out and capped each day so you never look like spam.
+   - **Job-site jobs (LinkedIn, Indeed, company portals):** *Assisted apply.* CareerPilot copies your letter, gets your CV ready and opens the job page, then **you** click submit. It's fast and keeps your accounts safe.
+5. **Track everything.** A board and a table show every application: *Imported → Drafted → Ready → Sent → Interview → Offer / Rejected*. CareerPilot notices replies, reminds you to follow up when a company goes quiet, shows your stats, and exports everything back to Excel.
+
+---
+
+## Features
+
+| | Feature |
+|---|---|
+| 📥 | Excel / CSV import with automatic column matching and duplicate detection |
+| 👤 | CV upload and parsing into a reusable profile (multiple CV versions supported) |
+| ✍️ | AI cover letters tailored to each job, with tone options and version history |
+| 📄 | Export letters to PDF and Word |
+| 📤 | Approve-then-send email applications via Gmail, with daily limits |
+| 🧭 | Assisted apply for job portals |
+| 📊 | Dashboard, Kanban board and searchable table |
+| 🔔 | Follow-up reminders and AI-drafted follow-up emails |
+| 📬 | Reply detection from Gmail |
+| 🔁 | Export your tracker to Excel any time |
+| 🖥️ | Installable desktop app for Windows |
+
+---
+
+## Tech stack
+
+| Area | Technology |
+|---|---|
+| AI | Google Gemini (free tier) · Groq (free tier) · Ollama (local, offline) |
+| Frontend | React · TypeScript · Vite · Tailwind CSS · shadcn/ui · TanStack Query / Table |
+| Backend | Python · FastAPI · pandas / openpyxl · SQLModel |
+| Database | SQLite (a single local file) |
+| Email | Gmail API (OAuth) / SMTP |
+| Desktop | Tauri |
+
+### Architecture
+
+- **Frontend: MVVM.** Each screen is split into a **Model** (API calls and types), a **ViewModel** (a React hook holding the screen's state and actions) and a **View** (components that only display things).
+- **Backend: layered.** **Routers** handle HTTP, **services** hold the business logic, **repositories** talk to the database, and **integrations** wrap outside services (AI, Gmail) so they can be swapped.
+
+```
+frontend/src/features/<feature>/
+  api.ts               ← Model
+  use<X>ViewModel.ts   ← ViewModel
+  <X>View.tsx          ← View
+
+backend/app/
+  api/ → services/ → repositories/ → models/
+                  ↘ integrations/ (AI, Gmail)
+```
+
+---
+
+## Getting started (development)
+
+**Requirements:** Python 3.12+ and Node.js 20+
+
+```bash
+# 1. Backend
+cd backend
+py -m venv .venv            # macOS/Linux: python3 -m venv .venv
+.venv\Scripts\activate      # macOS/Linux: source .venv/bin/activate
+pip install -r requirements-dev.txt
+copy .env.example .env      # macOS/Linux: cp .env.example .env
+uvicorn app.main:app --reload
+```
+
+```bash
+# 2. Frontend (in a second terminal)
+cd frontend
+npm install
+npm run dev
+```
+
+Open <http://localhost:5173>. The dashboard shows **Backend: Online** when everything is connected. API docs are at <http://localhost:8000/docs>.
+
+Get a free Gemini API key at <https://aistudio.google.com/apikey> and put it in `backend/.env`.
+
+---
+
+## Responsible use
+
+CareerPilot is built to help you apply **better**, not to spam employers:
+
+- Every email is personalised and needs your approval.
+- Daily send limits and delays protect your email account.
+- There's no automated submitting on LinkedIn, Indeed or other job portals, which ban bots in their terms.
+- The AI only uses facts from your own CV. Always read your letter before sending it.
+
+---
+
+## License
+
+[MIT](LICENSE)
