@@ -1,6 +1,7 @@
+from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Query, Response, status
 
 from app.api.deps import ApplicationServiceDep
 from app.models import ApplicationStatus
@@ -11,6 +12,7 @@ from app.schemas.application import (
     ApplicationUpdate,
     StatusHistoryRead,
 )
+from app.services.excel_export import XLSX_MEDIA_TYPE
 
 router = APIRouter(prefix="/applications", tags=["applications"])
 
@@ -35,6 +37,20 @@ def list_applications(
 @router.post("", response_model=ApplicationRead, status_code=status.HTTP_201_CREATED)
 def create_application(data: ApplicationCreate, service: ApplicationServiceDep):
     return service.create(data)
+
+
+# Declared before "/{application_id}" so "export" isn't read as an id.
+@router.get("/export", response_class=Response)
+def export_applications(
+    service: ApplicationServiceDep,
+    status_filter: Annotated[ApplicationStatus | None, Query(alias="status")] = None,
+) -> Response:
+    filename = f"careerpilot-applications-{date.today().isoformat()}.xlsx"
+    return Response(
+        content=service.export_workbook(status=status_filter),
+        media_type=XLSX_MEDIA_TYPE,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/{application_id}", response_model=ApplicationRead)

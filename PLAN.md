@@ -12,8 +12,8 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 |---|---|---|
 | 0 | **Setup & foundations:** project skeleton, backend + frontend, linting, tests, CI | ✅ Done |
 | 1 | **Database:** applications, profile, cover letters and email log stored in SQLite | ✅ Done |
-| 2 | **Excel import:** upload a spreadsheet, match columns, skip duplicates, export back to Excel | ⏭️ Next |
-| 3 | **Profile & CV:** upload your CV and turn it into a reusable profile | ☐ Planned |
+| 2 | **Excel import:** upload a spreadsheet, match columns, skip duplicates, export back to Excel | ✅ Done |
+| 3 | **Profile & CV:** upload your CV and turn it into a reusable profile | ⏭️ Next |
 | 4 | **AI cover letters:** tailored letters from free AI, tones, versions, PDF/Word export | ☐ Planned |
 | 5 | **User interface:** dashboard, applications table, Kanban board, letter editor | ☐ Planned |
 | 6 | **Sending:** approve-then-send email via Gmail, daily limits, assisted apply for job sites | ☐ Planned |
@@ -105,20 +105,28 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 **Goal:** drop in an Excel file → every job is recorded in the system.
 
-- [ ] 2.1 Endpoint `POST /imports/preview`: upload `.xlsx`/`.xls`/`.csv`, read with **pandas/openpyxl**, return headers + first 10 rows
-- [ ] 2.2 **Smart column mapping**: auto-guess which column is Company, Role, Email, Link, Description… using fuzzy matching on header names (e.g. "Company Name", "Employer" → `company`)
-- [ ] 2.3 Column-mapping screen in the UI so the user can confirm/fix the guesses (save the mapping for next time)
-- [ ] 2.4 Endpoint `POST /imports/commit`: validate and clean the rows:
-  - trim whitespace, validate emails & URLs
-  - skip empty rows
-  - **de-duplicate** (same company + role + URL already exists)
-  - support multiple sheets (choose one)
-- [ ] 2.5 Import summary: "48 imported, 2 duplicates skipped, 1 invalid email", with downloadable error rows
-- [ ] 2.6 **Export** tracker back to `.xlsx` (`GET /applications/export`)
-- [ ] 2.7 Provide `samples/jobs_template.xlsx` so users know the expected format
-- [ ] 2.8 Tests with messy sample files (merged cells, blank rows, odd headers)
+- [x] 2.1 Endpoint `POST /api/imports/preview`: upload `.xlsx`/`.xls`/`.csv` (max 5 MB, 5,000 rows) and get back the headers, the first 10 rows, the sheet list and a suggested mapping
+  - Read with **openpyxl** (`.xlsx`), **xlrd** (`.xls`) and Python's `csv` module (any delimiter, UTF-8 or Windows encoding). This replaced pandas: it's ~30 MB lighter for the desktop installer, and pandas wasn't needed.
+  - Formulas are never run (cached values only), and **defusedxml** protects against malicious Excel files.
+  - Handles blank rows above or inside the table, empty or duplicate header names, numbers and dates.
+- [x] 2.2 **Smart column mapping**: synonyms ("Employer" → company, "E-mail" → contact email), typo-tolerant fuzzy matching ("Compnay"), and a check of cell contents when headers don't help (a column full of emails or links)
+- [x] 2.3 Column-mapping screen in the UI (MVVM: `features/imports/`): upload by drag-and-drop or button → match columns with a live preview → result. The choices are remembered in the browser for the next file with the same layout (column names only, never data).
+- [x] 2.4 Endpoint `POST /api/imports/commit`: validates and cleans the rows:
+  - trims whitespace, validates emails (invalid → left out with a warning), fixes links (`example.com/job` → `https://…`) and drops anything that isn't http(s), such as `javascript:` links
+  - skips empty rows; skips rows missing company or role (reported)
+  - **de-duplicates** case-insensitively on company + role + link, against the tracker *and* within the file
+  - supports multiple sheets (choose one); records an `ImportBatch`, and each new application gets `source = excel` and a status-history row
+- [x] 2.5 Import summary: imported / duplicates / invalid / values fixed, plus a table of rows that need a look, downloadable as CSV
+- [x] 2.6 **Export** the tracker to `.xlsx` (`GET /api/applications/export`, optional `?status=` filter). Styled header, filters and frozen first row. Cell text that could run as a formula is neutralised (formula-injection protection). An exported file can be re-imported without creating duplicates.
+- [x] 2.7 `samples/jobs_template.xlsx` (also downloadable in the app via `GET /api/imports/template`), with fake example rows and a "How to use" sheet
+- [x] 2.8 Tests with messy, fake spreadsheets built in memory: blank rows, odd and duplicate headers, typos, semicolon CSVs, Windows encoding, broken files, size and row limits, bad mappings, duplicates, round-trip export → import. 52 backend + 10 frontend tests.
 
-**Done when:** importing the sample Excel creates the correct applications with no duplicates.
+**Done when:** importing the sample Excel creates the correct applications with no duplicates. ✅ Verified 2026-11-06 in the browser: a messy CSV imported 3 of 5 rows (1 invalid, 1 duplicate, 2 values fixed), and re-importing it added nothing.
+
+**Notes from Phase 2:**
+- New dependencies (all permissive licences): openpyxl (MIT), xlrd (BSD), defusedxml (PSF), python-multipart (Apache-2.0).
+- The dashboard now shows real application counts.
+- Fixed a layout bug where wide tables pushed the page wider than the window.
 
 ---
 
@@ -270,3 +278,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-05 | Full development plan moved into the README. |
 | 2026-11-05 | Plan moved to its own `PLAN.md`; the README links to it. |
 | 2026-11-05 | **Phase 1 done.** SQLite database with 6 tables and Alembic migrations, CRUD API for applications (with status history) and profile, 16 backend tests. |
+| 2026-11-06 | **Phase 2 done.** Excel/CSV import with smart column matching, cleaning and duplicate detection, an import wizard UI, Excel export, a template, and real counts on the dashboard. 52 backend + 10 frontend tests. |
