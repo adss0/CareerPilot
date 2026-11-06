@@ -2,6 +2,7 @@ from app.models.enums import ApplicationStatus, EmailStatus
 from app.models.tables import (
     Application,
     CoverLetter,
+    CvDocument,
     EmailLog,
     ImportBatch,
     Profile,
@@ -9,6 +10,7 @@ from app.models.tables import (
 )
 
 __all__ = [
+    "CvDocument",
     "Application",
     "ApplicationStatus",
     "CoverLetter",

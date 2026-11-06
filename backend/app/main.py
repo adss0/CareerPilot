@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import applications, health, imports, profile
+from app.api import applications, cvs, health, imports, profile
 from app.core.config import get_settings
 from app.core.db import run_migrations
 from app.core.errors import BadRequestError, NotFoundError
@@ -42,6 +42,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router, prefix="/api")
     app.include_router(applications.router, prefix="/api")
     app.include_router(imports.router, prefix="/api")
+    app.include_router(cvs.router, prefix="/api")
     app.include_router(profile.router, prefix="/api")
     return app
 

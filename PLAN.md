@@ -13,8 +13,8 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 0 | **Setup & foundations:** project skeleton, backend + frontend, linting, tests, CI | ✅ Done |
 | 1 | **Database:** applications, profile, cover letters and email log stored in SQLite | ✅ Done |
 | 2 | **Excel import:** upload a spreadsheet, match columns, skip duplicates, export back to Excel | ✅ Done |
-| 3 | **Profile & CV:** upload your CV and turn it into a reusable profile | ⏭️ Next |
-| 4 | **AI cover letters:** tailored letters from free AI, tones, versions, PDF/Word export | ☐ Planned |
+| 3 | **Profile & CV:** upload your CV and turn it into a reusable profile | ✅ Done |
+| 4 | **AI cover letters:** tailored letters from free AI, tones, versions, PDF/Word export | ⏭️ Next |
 | 5 | **User interface:** dashboard, applications table, Kanban board, letter editor | ☐ Planned |
 | 6 | **Sending:** approve-then-send email via Gmail, daily limits, assisted apply for job sites | ☐ Planned |
 | 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ☐ Planned |
@@ -134,13 +134,24 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 **Goal:** the AI knows who you are.
 
-- [ ] 3.1 Upload CV (PDF via **pypdf**, DOCX via **python-docx**) and extract the text
-- [ ] 3.2 Use the AI to turn raw CV text into **structured JSON** (skills, experience, education, projects)
-- [ ] 3.3 Profile page where the user reviews/edits the parsed data
-- [ ] 3.4 Store the original CV file to attach to emails later
-- [ ] 3.5 Support multiple CV versions (e.g. "Frontend CV", "Data CV") and pick one per application
+- [x] 3.1 Upload a CV (`POST /api/cvs`, max 5 MB) and extract the text: PDF via **pypdf** (password-protected PDFs and PDFs over 30 pages rejected), DOCX via **python-docx** (including text inside tables), and `.txt`
+- [x] 3.2 Turn the CV text into **structured JSON** (contact details, summary, skills, experience, education, projects). It works two ways:
+  - **Built-in reader (default, offline, free):** finds contact details and common section headings ("Experience", "Key skills"…) and splits entries by dates. No AI needed.
+  - **AI reader (optional, Gemini):** opt-in per upload, because it sends the CV text to Google. On the free tier, Google may use prompts to improve its products, and the UI says so.
+    - **Guardrails:** the CV is passed as data (prompt-injection safe), and contact details and skills that don't appear in the CV are removed, with a warning.
+    - **Fallback:** if AI fails (no key, rate limit, network), the built-in reader is used and the user is told why.
+    - `GEMINI_MODEL` defaults to `gemini-flash-latest`. ⚠️ Not yet tested against the live Gemini API (no key configured); the request/response handling is covered by mocked tests.
+- [x] 3.3 Profile page (MVVM: `features/profile/`): edit all details, skills as chips, and add/remove experience, education and project entries. Filling from a CV **merges** into the form (it never wipes what you typed) and shows what to check. An unsaved-changes bar and a browser warning stop you losing edits.
+- [x] 3.4 Original CV stored in `backend/data/cvs/` (git-ignored) under a random file name; downloadable with its original name (`GET /api/cvs/{id}/file`)
+- [x] 3.5 Multiple CV versions: rename, make default, delete (the default moves to another CV), and re-fill the profile from any CV. Each application has a `cv_id` (API ready; the picker UI comes with the applications page in Phase 5). Deleting a CV clears it from applications.
 
-**Done when:** uploading a CV fills the profile page correctly.
+**Done when:** uploading a CV fills the profile page correctly. ✅ Verified 2026-11-06 in the browser: a fake CV filled the name, contact details, location, summary, 6 skills, 2 jobs, education and a project correctly. Saved, reloaded and downloaded. Also checked at phone width.
+
+**Notes from Phase 3:**
+- **Data-loss bug caught and fixed:** SQLite migrations that rebuild a table were cascade-deleting related rows (status history etc.). Migrations now run with foreign keys off, and a test upgrades a database containing data to prove nothing is lost.
+- Part of 4.1 (the provider interface plus Gemini) was built early because CV reading needed it. Groq and Ollama come in Phase 4.
+- New dependencies (permissive licences): pypdf (BSD), python-docx (MIT), lxml (BSD), httpx (BSD).
+- The profile no longer stores raw CV text; it lives with each CV in the new `cvdocument` table.
 
 ---
 
@@ -149,7 +160,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 **Goal:** a high-quality, tailored cover letter for each job at $0.
 
 - [ ] 4.1 **Provider interface** `AIProvider.generate(prompt, system, max_tokens)` with implementations:
-  - `GeminiProvider` (default, free tier via Google AI Studio key)
+  - `GeminiProvider` (default, free tier via Google AI Studio key). *Started in Phase 3: `generate_json` + Gemini exist in `backend/app/integrations/ai/`.*
   - `GroqProvider` (optional, free tier)
   - `OllamaProvider` (offline, local)
 - [ ] 4.2 Settings: choose provider + model, test connection button
@@ -279,3 +290,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-05 | Plan moved to its own `PLAN.md`; the README links to it. |
 | 2026-11-05 | **Phase 1 done.** SQLite database with 6 tables and Alembic migrations, CRUD API for applications (with status history) and profile, 16 backend tests. |
 | 2026-11-06 | **Phase 2 done.** Excel/CSV import with smart column matching, cleaning and duplicate detection, an import wizard UI, Excel export, a template, and real counts on the dashboard. 52 backend + 10 frontend tests. |
+| 2026-11-06 | **Phase 3 done.** CV upload (PDF/Word/text) with a built-in offline reader and optional Gemini AI reader with guardrails, multiple CV versions, and a full Profile page. Fixed a migration data-loss bug. 85 backend + 16 frontend tests. |
