@@ -18,15 +18,28 @@ class Settings(BaseSettings):
 
     ai_provider: Literal["gemini", "groq", "ollama"] = "gemini"
     gemini_api_key: str = ""
+    # "gemini-flash-latest" always points at Google's newest Flash model.
+    gemini_model: str = "gemini-flash-latest"
     groq_api_key: str = ""
     ollama_base_url: str = "http://localhost:11434"
+    ai_timeout_seconds: float = 60
 
     db_path: str = "careerpilot.db"
+    # Uploaded CVs and other private files. Git-ignored.
+    data_dir: str = "data"
     cors_origins: str = "http://localhost:5173"
 
     @property
     def db_file(self) -> Path:
-        path = Path(self.db_path)
+        return self._resolve(self.db_path)
+
+    @property
+    def cv_dir(self) -> Path:
+        return self._resolve(self.data_dir) / "cvs"
+
+    @staticmethod
+    def _resolve(value: str) -> Path:
+        path = Path(value)
         return path if path.is_absolute() else BACKEND_DIR / path
 
     @property

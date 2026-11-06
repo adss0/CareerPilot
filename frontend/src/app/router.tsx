@@ -4,6 +4,7 @@ import { AppLayout } from "@/app/layout/AppLayout";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { ImportPage } from "@/features/imports/ImportPage";
 import { ComingSoonView } from "@/features/placeholder/ComingSoonView";
+import { ProfilePage } from "@/features/profile/ProfilePage";
 
 export const router = createBrowserRouter([
   {
@@ -15,7 +16,7 @@ export const router = createBrowserRouter([
         element: <ComingSoonView title="Applications" phase="Phase 5" />,
       },
       { path: "/import", element: <ImportPage /> },
-      { path: "/profile", element: <ComingSoonView title="Profile" phase="Phase 3" /> },
+      { path: "/profile", element: <ProfilePage /> },
       { path: "/settings", element: <ComingSoonView title="Settings" phase="Phase 5" /> },
     ],
   },

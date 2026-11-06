@@ -2,7 +2,7 @@
 
 **Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
 
-> 🚧 Status: early development. Phases 0 (setup), 1 (database) and 2 (Excel import & export) are done, and Phase 3 (profile & CV) is next. See the [plan](PLAN.md).
+> 🚧 Status: early development. Phases 0–3 (setup, database, Excel import & export, profile & CV) are done, and Phase 4 (AI cover letters) is next. See the [plan](PLAN.md).
 
 ---
 
@@ -124,6 +124,8 @@ CareerPilot is built to help you apply **better**, not to spam employers:
 - Daily send limits and delays protect your email account.
 - There's no automated submitting on LinkedIn, Indeed or other job portals, which ban bots in their terms.
 - The AI only uses facts from your own CV. Always read your letter before sending it.
+
+**Your data:** your CVs, profile and applications are stored only on your computer (`backend/data/` and `backend/careerpilot.db`, both git-ignored). Reading a CV with AI is opt-in: it sends the CV's text to the AI provider (on Google's free tier, prompts may be used to improve Google's products). The built-in CV reader works fully offline.
 
 ---
 

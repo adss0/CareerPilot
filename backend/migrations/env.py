@@ -1,11 +1,12 @@
 from logging.config import fileConfig
 
 from alembic import context
+from sqlalchemy import create_engine
 from sqlmodel import SQLModel
 
 import app.models  # noqa: F401  (registers all tables on SQLModel.metadata)
 from app.core.config import get_settings
-from app.core.db import database_url, make_engine
+from app.core.db import database_url
 
 config = context.config
 
@@ -31,7 +32,9 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    engine = make_engine(_url())
+    # Foreign keys stay OFF while migrating: batch mode drops and recreates tables, and with
+    # them ON, dropping a table would cascade-delete rows in related tables.
+    engine = create_engine(_url())
     with engine.connect() as connection:
         context.configure(
             connection=connection,

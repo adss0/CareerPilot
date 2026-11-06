@@ -23,6 +23,7 @@ class ApplicationBase(BaseModel):
     priority: int = Field(default=0, ge=0, le=3)
     notes: str = ""
     follow_up_at: datetime | None = None
+    cv_id: int | None = None  # which CV to send; None = use the default CV
 
     _clean_email = field_validator("contact_email", mode="before")(_blank_to_none)
 
@@ -49,6 +50,7 @@ class ApplicationUpdate(BaseModel):
     applied_at: datetime | None = None
     last_contact_at: datetime | None = None
     follow_up_at: datetime | None = None
+    cv_id: int | None = None
 
     _clean_email = field_validator("contact_email", mode="before")(_blank_to_none)
 
@@ -70,6 +72,7 @@ class ApplicationRead(BaseModel):
     priority: int
     notes: str
     import_batch_id: int | None
+    cv_id: int | None
     applied_at: datetime | None
     last_contact_at: datetime | None
     follow_up_at: datetime | None
