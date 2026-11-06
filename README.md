@@ -2,7 +2,7 @@
 
 **Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
 
-> 🚧 Status: early development. Phases 0 (project setup) and 1 (database) are done, and Phase 2 (Excel import) is next. See the [plan](PLAN.md).
+> 🚧 Status: early development. Phases 0 (setup), 1 (database) and 2 (Excel import & export) are done, and Phase 3 (profile & CV) is next. See the [plan](PLAN.md).
 
 ---
 
@@ -60,7 +60,7 @@ Applying for jobs is repetitive: copy the job details, rewrite a cover letter, a
 |---|---|
 | AI | Google Gemini (free tier) · Groq (free tier) · Ollama (local, offline) |
 | Frontend | React · TypeScript · Vite · Tailwind CSS · shadcn/ui · TanStack Query / Table |
-| Backend | Python · FastAPI · pandas / openpyxl · SQLModel |
+| Backend | Python · FastAPI · openpyxl · SQLModel |
 | Database | SQLite (a single local file) |
 | Email | Gmail API (OAuth) / SMTP |
 | Desktop | Tauri |

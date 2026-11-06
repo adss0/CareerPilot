@@ -5,3 +5,7 @@ class NotFoundError(Exception):
         super().__init__(f"{resource} {resource_id} not found")
         self.resource = resource
         self.resource_id = resource_id
+
+
+class BadRequestError(ValueError):
+    """Raised by services for input that can't be processed; the message is shown to the user."""

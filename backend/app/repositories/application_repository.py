@@ -33,6 +33,24 @@ class ApplicationRepository:
         ).all()
         return list(items), total
 
+    def all(self, *, status: ApplicationStatus | None = None) -> list[Application]:
+        query = select(Application)
+        if status:
+            query = query.where(Application.status == status)
+        return list(
+            self.session.exec(
+                query.order_by(col(Application.created_at).desc(), col(Application.id).desc())
+            ).all()
+        )
+
+    def identity_rows(self) -> list[tuple[str, str, str]]:
+        """(company, role, job_url) for every application, used to spot duplicates."""
+        return list(
+            self.session.exec(
+                select(Application.company, Application.role, Application.job_url)
+            ).all()
+        )
+
     def get(self, application_id: int) -> Application | None:
         return self.session.get(Application, application_id)
 
@@ -40,6 +58,10 @@ class ApplicationRepository:
         self.session.add(application)
         self.session.flush()
         return application
+
+    def add_many(self, applications: list[Application]) -> None:
+        self.session.add_all(applications)
+        self.session.flush()
 
     def delete(self, application: Application) -> None:
         self.session.delete(application)

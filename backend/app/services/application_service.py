@@ -5,6 +5,7 @@ from app.models import Application, ApplicationStatus, StatusHistory
 from app.models.tables import utcnow
 from app.repositories.application_repository import ApplicationRepository
 from app.schemas.application import ApplicationCreate, ApplicationUpdate
+from app.services.excel_export import build_applications_workbook
 
 # Fields that may be cleared with null; null for any other field is ignored.
 NULLABLE_FIELDS = {"contact_email", "applied_at", "last_contact_at", "follow_up_at"}
@@ -17,6 +18,9 @@ class ApplicationService:
 
     def search(self, **filters) -> tuple[list[Application], int]:
         return self.repo.search(**filters)
+
+    def export_workbook(self, *, status: ApplicationStatus | None = None) -> bytes:
+        return build_applications_workbook(self.repo.all(status=status))
 
     def get(self, application_id: int) -> Application:
         application = self.repo.get(application_id)

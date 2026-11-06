@@ -1,19 +1,26 @@
-import { BackendStatus } from "@/features/health/BackendStatus";
+import { FileSpreadsheet } from "lucide-react";
+import { Link } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BackendStatus } from "@/features/health/BackendStatus";
 
-const stats = [
-  { label: "Applications", hint: "Import from Excel in Phase 2" },
-  { label: "Sent", hint: "Email sending in Phase 6" },
-  { label: "Interviews", hint: "Tracking in Phase 7" },
-  { label: "Response rate", hint: "Stats in Phase 7" },
-];
+import type { DashboardViewModel } from "./useDashboardViewModel";
 
-export function DashboardView() {
+export function DashboardView({ stats }: DashboardViewModel) {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground text-sm">Your job search at a glance.</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground text-sm">Your job search at a glance.</p>
+        </div>
+        <Button asChild>
+          <Link to="/import">
+            <FileSpreadsheet />
+            Import jobs
+          </Link>
+        </Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -21,7 +28,7 @@ export function DashboardView() {
           <Card key={stat.label} className="gap-2">
             <CardHeader>
               <CardDescription>{stat.label}</CardDescription>
-              <CardTitle className="text-3xl">0</CardTitle>
+              <CardTitle className="text-3xl tabular-nums">{stat.value ?? "-"}</CardTitle>
               <CardDescription className="text-xs">{stat.hint}</CardDescription>
             </CardHeader>
           </Card>
