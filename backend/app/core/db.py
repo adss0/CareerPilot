@@ -36,9 +36,9 @@ def get_session() -> Iterator[Session]:
         yield session
 
 
-def run_migrations(url: str | None = None) -> None:
+def run_migrations(url: str | None = None, revision: str = "head") -> None:
     """Bring the database schema up to date (creates the file on first run)."""
     config = Config(str(BACKEND_DIR / "alembic.ini"))
     config.set_main_option("script_location", str(BACKEND_DIR / "migrations"))
     config.set_main_option("sqlalchemy.url", url or database_url(str(get_settings().db_file)))
-    command.upgrade(config, "head")
+    command.upgrade(config, revision)

@@ -1,14 +1,14 @@
 from sqlmodel import Session
 
-from app.core.errors import NotFoundError
-from app.models import Application, ApplicationStatus, StatusHistory
+from app.core.errors import BadRequestError, NotFoundError
+from app.models import Application, ApplicationStatus, CvDocument, StatusHistory
 from app.models.tables import utcnow
 from app.repositories.application_repository import ApplicationRepository
 from app.schemas.application import ApplicationCreate, ApplicationUpdate
 from app.services.excel_export import build_applications_workbook
 
 # Fields that may be cleared with null; null for any other field is ignored.
-NULLABLE_FIELDS = {"contact_email", "applied_at", "last_contact_at", "follow_up_at"}
+NULLABLE_FIELDS = {"contact_email", "applied_at", "last_contact_at", "follow_up_at", "cv_id"}
 
 
 class ApplicationService:
@@ -31,6 +31,7 @@ class ApplicationService:
     def create(self, data: ApplicationCreate) -> Application:
         values = data.model_dump()
         values["contact_email"] = values["contact_email"] or ""
+        self._check_cv(values["cv_id"])
         application = self.repo.add(Application(**values))
         self._record_status(application, None, application.status)
         if application.status == ApplicationStatus.SENT:
@@ -48,6 +49,8 @@ class ApplicationService:
         }
         if "contact_email" in changes:
             changes["contact_email"] = changes["contact_email"] or ""
+        if "cv_id" in changes:
+            self._check_cv(changes["cv_id"])
 
         old_status = application.status
         for field, value in changes.items():
@@ -66,6 +69,10 @@ class ApplicationService:
     def delete(self, application_id: int) -> None:
         self.repo.delete(self.get(application_id))
         self.session.commit()
+
+    def _check_cv(self, cv_id: int | None) -> None:
+        if cv_id is not None and self.session.get(CvDocument, cv_id) is None:
+            raise BadRequestError(f"CV {cv_id} not found.")
 
     def history(self, application_id: int) -> list[StatusHistory]:
         self.get(application_id)

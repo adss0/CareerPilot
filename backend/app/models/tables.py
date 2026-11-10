@@ -19,6 +19,10 @@ def _application_fk() -> Column:
     )
 
 
+def _json_list() -> Column:
+    return Column(JSON, nullable=False, server_default="[]")
+
+
 class Profile(SQLModel, table=True):
     """The user's own details. The app keeps a single profile row (id=1)."""
 
@@ -31,11 +35,27 @@ class Profile(SQLModel, table=True):
     github_url: str = Field(default="", max_length=500)
     portfolio_url: str = Field(default="", max_length=500)
     summary: str = ""
-    skills: list[str] = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
-    cv_text: str = ""
-    cv_file_path: str = Field(default="", max_length=1000)
+    skills: list[str] = Field(default_factory=list, sa_column=_json_list())
+    # Lists of small dicts; shapes are defined in app/schemas/profile.py
+    experience: list[dict] = Field(default_factory=list, sa_column=_json_list())
+    education: list[dict] = Field(default_factory=list, sa_column=_json_list())
+    projects: list[dict] = Field(default_factory=list, sa_column=_json_list())
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
+
+
+class CvDocument(SQLModel, table=True):
+    """An uploaded CV. The file lives in the data folder under a random name."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    label: str = Field(max_length=100)
+    original_filename: str = Field(max_length=200)
+    stored_name: str = Field(max_length=100, unique=True)
+    content_type: str = Field(max_length=100)
+    size_bytes: int
+    text: str = ""
+    is_default: bool = False
+    created_at: datetime = Field(default_factory=utcnow)
 
 
 class ImportBatch(SQLModel, table=True):
@@ -62,6 +82,16 @@ class Application(SQLModel, table=True):
     priority: int = Field(default=0, ge=0, le=3)
     notes: str = ""
     import_batch_id: int | None = Field(default=None, foreign_key="importbatch.id")
+    # Which CV to send with this application; cleared if that CV is deleted.
+    cv_id: int | None = Field(
+        default=None,
+        sa_column=Column(
+            Integer,
+            ForeignKey("cvdocument.id", ondelete="SET NULL", name="fk_application_cv_id"),
+            nullable=True,
+            index=True,
+        ),
+    )
     applied_at: datetime | None = None
     last_contact_at: datetime | None = None
     follow_up_at: datetime | None = None
