@@ -27,7 +27,7 @@ def list_applications(
 ) -> ApplicationPage:
     items, total = service.search(status=status_filter, search=search, limit=limit, offset=offset)
     return ApplicationPage(
-        items=[ApplicationRead.model_validate(a) for a in items],
+        items=service.to_read(items),
         total=total,
         limit=limit,
         offset=offset,
@@ -55,7 +55,7 @@ def export_applications(
 
 @router.get("/{application_id}", response_model=ApplicationRead)
 def get_application(application_id: int, service: ApplicationServiceDep):
-    return service.get(application_id)
+    return service.to_read([service.get(application_id)])[0]
 
 
 @router.patch("/{application_id}", response_model=ApplicationRead)

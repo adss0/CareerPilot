@@ -21,8 +21,12 @@ class Settings(BaseSettings):
     # "gemini-flash-latest" always points at Google's newest Flash model.
     gemini_model: str = "gemini-flash-latest"
     groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
     ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "llama3.2"
     ai_timeout_seconds: float = 60
+    # Pause between AI calls in bulk generation, to stay inside free-tier rate limits.
+    ai_request_gap_seconds: float = 4
 
     db_path: str = "careerpilot.db"
     # Uploaded CVs and other private files. Git-ignored.

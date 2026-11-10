@@ -5,10 +5,12 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import applications, cvs, health, imports, profile
+from app.api import applications, cvs, health, imports, letters, profile
+from app.api import settings as settings_api
 from app.core.config import get_settings
 from app.core.db import run_migrations
 from app.core.errors import BadRequestError, NotFoundError
+from app.integrations.ai import AIError, AIRateLimitError
 from app.services.spreadsheet_reader import SpreadsheetError
 
 
@@ -39,11 +41,19 @@ def create_app() -> FastAPI:
     async def bad_request_handler(_request: Request, exc: ValueError) -> JSONResponse:
         return JSONResponse(status_code=400, content={"detail": str(exc)})
 
+    @app.exception_handler(AIError)
+    async def ai_error_handler(_request: Request, exc: AIError) -> JSONResponse:
+        # 429 when a free-tier limit was hit (worth retrying later), 503 for other AI problems.
+        code = 429 if isinstance(exc, AIRateLimitError) else 503
+        return JSONResponse(status_code=code, content={"detail": str(exc)})
+
     app.include_router(health.router, prefix="/api")
     app.include_router(applications.router, prefix="/api")
     app.include_router(imports.router, prefix="/api")
     app.include_router(cvs.router, prefix="/api")
     app.include_router(profile.router, prefix="/api")
+    app.include_router(letters.router, prefix="/api")
+    app.include_router(settings_api.router, prefix="/api")
     return app
 
 

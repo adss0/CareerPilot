@@ -1,23 +1,23 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import { AppLayout } from "@/app/layout/AppLayout";
+import { ApplicationDetailPage } from "@/features/applications/ApplicationDetailPage";
+import { ApplicationsPage } from "@/features/applications/ApplicationsPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { ImportPage } from "@/features/imports/ImportPage";
-import { ComingSoonView } from "@/features/placeholder/ComingSoonView";
 import { ProfilePage } from "@/features/profile/ProfilePage";
+import { SettingsPage } from "@/features/settings/SettingsPage";
 
 export const router = createBrowserRouter([
   {
     element: <AppLayout />,
     children: [
       { path: "/", element: <DashboardPage /> },
-      {
-        path: "/applications",
-        element: <ComingSoonView title="Applications" phase="Phase 5" />,
-      },
+      { path: "/applications", element: <ApplicationsPage /> },
+      { path: "/applications/:id", element: <ApplicationDetailPage /> },
       { path: "/import", element: <ImportPage /> },
       { path: "/profile", element: <ProfilePage /> },
-      { path: "/settings", element: <ComingSoonView title="Settings" phase="Phase 5" /> },
+      { path: "/settings", element: <SettingsPage /> },
     ],
   },
 ]);
