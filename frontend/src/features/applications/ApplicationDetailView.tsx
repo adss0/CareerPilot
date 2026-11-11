@@ -17,9 +17,10 @@ import type { ApplicationDetailViewModel } from "./useApplicationDetailViewModel
 
 export function ApplicationDetailView({
   details,
+  apply,
   ...vm
-}: ApplicationDetailViewModel & { details?: ReactNode }) {
-  const [tab, setTab] = useState<"letter" | "details">("letter");
+}: ApplicationDetailViewModel & { details?: ReactNode; apply?: ReactNode }) {
+  const [tab, setTab] = useState<"letter" | "apply" | "details">("letter");
   if (vm.isLoading) {
     return (
       <p className="text-muted-foreground flex items-center gap-2 text-sm">
@@ -74,6 +75,7 @@ export function ApplicationDetailView({
         {(
           [
             ["letter", "Cover letter"],
+            ["apply", "Apply"],
             ["details", "Details & timeline"],
           ] as const
         ).map(([value, label]) => (
@@ -97,6 +99,8 @@ export function ApplicationDetailView({
 
       {tab === "details" ? (
         details
+      ) : tab === "apply" ? (
+        apply
       ) : (
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="space-y-6">

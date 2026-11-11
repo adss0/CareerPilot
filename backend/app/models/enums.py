@@ -18,3 +18,4 @@ class EmailStatus(StrEnum):
     SENT = "sent"
     FAILED = "failed"
     REPLIED = "replied"
+    CANCELLED = "cancelled"

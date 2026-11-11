@@ -19,12 +19,18 @@ from app.api.deps import (
     get_ai_provider,
     get_ai_settings_service,
     get_cv_storage_dir,
+    get_email_queue,
+    get_email_service,
+    get_email_settings_service,
     get_letter_queue,
 )
 from app.core.config import Settings
 from app.core.db import get_session, make_engine
 from app.main import app
 from app.services.ai_settings_service import AiSettingsService
+from app.services.email_queue import EmailQueue
+from app.services.email_service import EmailService
+from app.services.email_settings_service import EmailSettingsService
 from app.services.letter_queue import LetterQueue
 
 
@@ -45,7 +51,7 @@ def session(engine: Engine) -> Iterator[Session]:
 @pytest.fixture
 def env_settings() -> Settings:
     """App settings for tests: no .env file, no API keys."""
-    return Settings(_env_file=None, gemini_api_key="", groq_api_key="")
+    return Settings(_env_file=None, gemini_api_key="", groq_api_key="", email_password="")
 
 
 @pytest.fixture
@@ -77,12 +83,34 @@ def letter_queue(engine: Engine, ai: dict, sleeps: list[float]) -> LetterQueue:
 
 
 @pytest.fixture
+def sent_emails() -> list:
+    """Emails the queue 'sent' with the fake sender: (settings, password, message)."""
+    return []
+
+
+@pytest.fixture
+def email_queue(
+    engine: Engine, env_settings: Settings, cv_dir: Path, sent_emails: list
+) -> EmailQueue:
+    return EmailQueue(
+        session_factory=lambda: Session(engine),
+        env=env_settings,
+        cv_dir=cv_dir,
+        sender=lambda settings, password, message: sent_emails.append(
+            (settings, password, message)
+        ),
+        gap=lambda low, high: high,
+    )
+
+
+@pytest.fixture
 def client(
     session: Session,
     cv_dir: Path,
     ai: dict,
     env_settings: Settings,
     letter_queue: LetterQueue,
+    email_queue: EmailQueue,
 ) -> Iterator[TestClient]:
     app.dependency_overrides[get_session] = lambda: session
     app.dependency_overrides[get_cv_storage_dir] = lambda: cv_dir
@@ -91,6 +119,13 @@ def client(
         session, env_settings
     )
     app.dependency_overrides[get_letter_queue] = lambda: letter_queue
+    app.dependency_overrides[get_email_settings_service] = lambda: EmailSettingsService(
+        session, env_settings
+    )
+    app.dependency_overrides[get_email_service] = lambda: EmailService(
+        session, env_settings, cv_dir
+    )
+    app.dependency_overrides[get_email_queue] = lambda: email_queue
     # Not used as a context manager, so startup migrations don't run against a real file.
     yield TestClient(app)
     app.dependency_overrides.clear()

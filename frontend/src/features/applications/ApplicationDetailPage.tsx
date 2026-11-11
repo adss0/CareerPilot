@@ -1,5 +1,8 @@
-// Connects the two ViewModels (letters, job details) to the View.
+// Connects the ViewModels (letters, applying, job details) to the View.
 import { useParams } from "react-router-dom";
+
+import { ApplyView } from "@/features/email/ApplyView";
+import { useApplyViewModel } from "@/features/email/useApplyViewModel";
 
 import { ApplicationDetailView } from "./ApplicationDetailView";
 import { JobDetailsView } from "./JobDetailsView";
@@ -11,5 +14,12 @@ export function ApplicationDetailPage() {
   const applicationId = Number(id);
   const vm = useApplicationDetailViewModel(applicationId);
   const details = useJobDetailsViewModel(applicationId);
-  return <ApplicationDetailView {...vm} details={<JobDetailsView {...details} />} />;
+  const apply = useApplyViewModel(applicationId);
+  return (
+    <ApplicationDetailView
+      {...vm}
+      details={<JobDetailsView {...details} />}
+      apply={<ApplyView {...apply} />}
+    />
+  );
 }

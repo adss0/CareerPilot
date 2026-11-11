@@ -135,8 +135,15 @@ class EmailLog(SQLModel, table=True):
     body: str
     attachments: list[str] = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
     status: EmailStatus = Field(default=EmailStatus.QUEUED)
-    gmail_message_id: str = Field(default="", max_length=200)
-    thread_id: str = Field(default="", max_length=200)
+    # "application" or "follow_up"
+    kind: str = Field(
+        default="application", max_length=20, sa_column_kwargs={"server_default": "application"}
+    )
+    # Test mode: sent to the user's own address instead of the employer.
+    is_test: bool = Field(default=False, sa_column_kwargs={"server_default": "0"})
+    message_id: str = Field(default="", max_length=200)  # our Message-ID, to match replies
+    in_reply_to: str = Field(default="", max_length=200)  # for follow-ups in the same thread
+    error: str = Field(default="", max_length=500, sa_column_kwargs={"server_default": ""})
     sent_at: datetime | None = None
     created_at: datetime = Field(default_factory=utcnow)
 

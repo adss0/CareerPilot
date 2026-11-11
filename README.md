@@ -2,7 +2,7 @@
 
 **Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
 
-> 🚧 Status: early development. Phases 0–5 (setup, database, Excel import & export, profile & CV, AI cover letters, full app UI) are done, and Phase 6 (sending) is next. See the [plan](PLAN.md).
+> 🚧 Status: early development. Phases 0–6 (setup, database, Excel import & export, profile & CV, AI cover letters, full app UI, sending) are done, and Phase 7 (tracking & follow-ups) is next. See the [plan](PLAN.md).
 
 ---
 
@@ -30,7 +30,7 @@ Applying for jobs is repetitive: copy the job details, rewrite a cover letter, a
 2. **Add your profile.** Upload your CV (PDF or Word) once. CareerPilot pulls out your skills, experience and projects to reuse for every application.
 3. **Generate cover letters.** For each job, the AI writes a tailored letter that matches your real experience to what the job asks for. It never makes things up. Pick a tone, edit it, regenerate it, or export it as PDF/Word.
 4. **Apply.**
-   - **Email jobs:** CareerPilot writes the email, attaches your letter and CV, and sends it from your own Gmail **after you click approve**. Sends are spaced out and capped each day so you never look like spam.
+   - **Email jobs:** CareerPilot writes the email, attaches your letter and CV, and sends it from your own email account (Gmail, Outlook…) **after you click approve**. Test mode is on until you switch it off, so the first emails come to you. Sends are spaced out and capped each day so you never look like spam.
    - **Job-site jobs (LinkedIn, Indeed, company portals):** *Assisted apply.* CareerPilot copies your letter, gets your CV ready and opens the job page, then **you** click submit. It's fast and keeps your accounts safe.
 5. **Track everything.** A board and a table show every application: *Imported → Drafted → Ready → Sent → Interview → Offer / Rejected*. CareerPilot notices replies, reminds you to follow up when a company goes quiet, shows your stats, and exports everything back to Excel.
 
@@ -62,7 +62,7 @@ Applying for jobs is repetitive: copy the job details, rewrite a cover letter, a
 | Frontend | React · TypeScript · Vite · Tailwind CSS · shadcn/ui · TanStack Query / Table |
 | Backend | Python · FastAPI · openpyxl · SQLModel |
 | Database | SQLite (a single local file) |
-| Email | Gmail API (OAuth) / SMTP |
+| Email | SMTP + IMAP (Gmail/Outlook App Password) |
 | Desktop | Tauri |
 
 ### Architecture
