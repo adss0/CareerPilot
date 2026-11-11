@@ -106,7 +106,25 @@ class CoverLetter(SQLModel, table=True):
     tone: str = Field(default="formal", max_length=50)
     model_used: str = Field(default="", max_length=100)
     version: int = 1
+    email_subject: str = Field(default="", max_length=300, sa_column_kwargs={"server_default": ""})
+    email_body: str = Field(default="", sa_column_kwargs={"server_default": ""})
+    match_score: int | None = None  # 0–100: how well the profile fits the job, per the AI
+    # The AI's reasoning: {"requirements": [...], "matches": [{"requirement", "evidence"}]}
+    analysis: dict = Field(
+        default_factory=dict, sa_column=Column(JSON, nullable=False, server_default="{}")
+    )
+    flags: list[str] = Field(default_factory=list, sa_column=_json_list())  # things to check
+    is_selected: bool = Field(default=False, sa_column_kwargs={"server_default": "0"})
+    edited: bool = Field(default=False, sa_column_kwargs={"server_default": "0"})
     created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime | None = None
+
+
+class AppSetting(SQLModel, table=True):
+    """Small app-wide settings chosen in the UI (never secrets: API keys stay in .env)."""
+
+    key: str = Field(primary_key=True, max_length=50)
+    value: dict = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
 
 
 class EmailLog(SQLModel, table=True):

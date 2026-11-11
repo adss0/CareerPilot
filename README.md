@@ -2,7 +2,7 @@
 
 **Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
 
-> 🚧 Status: early development. Phases 0–3 (setup, database, Excel import & export, profile & CV) are done, and Phase 4 (AI cover letters) is next. See the [plan](PLAN.md).
+> 🚧 Status: early development. Phases 0–4 (setup, database, Excel import & export, profile & CV, AI cover letters) are done, and Phase 5 (full app UI) is next. See the [plan](PLAN.md).
 
 ---
 
@@ -125,7 +125,7 @@ CareerPilot is built to help you apply **better**, not to spam employers:
 - There's no automated submitting on LinkedIn, Indeed or other job portals, which ban bots in their terms.
 - The AI only uses facts from your own CV. Always read your letter before sending it.
 
-**Your data:** your CVs, profile and applications are stored only on your computer (`backend/data/` and `backend/careerpilot.db`, both git-ignored). Reading a CV with AI is opt-in: it sends the CV's text to the AI provider (on Google's free tier, prompts may be used to improve Google's products). The built-in CV reader works fully offline.
+**Your data:** your CVs, profile and applications are stored only on your computer (`backend/data/` and `backend/careerpilot.db`, both git-ignored). Reading a CV with AI is opt-in: it sends the CV's text to the AI provider (on Google's free tier, prompts may be used to improve Google's products). The built-in CV reader works fully offline. Writing a cover letter sends your name, location, summary, skills, experience, education and project summaries plus the job details to the AI provider you choose; your email, phone and links are never sent. Choose **Ollama** in Settings to keep everything on your own computer. API keys live only in `backend/.env`.
 
 ---
 

@@ -78,6 +78,8 @@ class ApplicationRead(BaseModel):
     follow_up_at: datetime | None
     created_at: datetime
     updated_at: datetime
+    letter_count: int = 0
+    match_score: int | None = None  # from the selected cover letter
 
 
 class ApplicationPage(BaseModel):

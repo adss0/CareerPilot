@@ -14,8 +14,8 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 1 | **Database:** applications, profile, cover letters and email log stored in SQLite | ✅ Done |
 | 2 | **Excel import:** upload a spreadsheet, match columns, skip duplicates, export back to Excel | ✅ Done |
 | 3 | **Profile & CV:** upload your CV and turn it into a reusable profile | ✅ Done |
-| 4 | **AI cover letters:** tailored letters from free AI, tones, versions, PDF/Word export | ⏭️ Next |
-| 5 | **User interface:** dashboard, applications table, Kanban board, letter editor | ☐ Planned |
+| 4 | **AI cover letters:** tailored letters from free AI, tones, versions, PDF/Word export | ✅ Done |
+| 5 | **User interface:** dashboard, applications table, Kanban board, letter editor | ⏭️ Next |
 | 6 | **Sending:** approve-then-send email via Gmail, daily limits, assisted apply for job sites | ☐ Planned |
 | 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ☐ Planned |
 | 8 | **Desktop app:** installable Windows app (Tauri) | ☐ Planned |
@@ -159,23 +159,29 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 **Goal:** a high-quality, tailored cover letter for each job at $0.
 
-- [ ] 4.1 **Provider interface** `AIProvider.generate(prompt, system, max_tokens)` with implementations:
-  - `GeminiProvider` (default, free tier via Google AI Studio key). *Started in Phase 3: `generate_json` + Gemini exist in `backend/app/integrations/ai/`.*
-  - `GroqProvider` (optional, free tier)
-  - `OllamaProvider` (offline, local)
-- [ ] 4.2 Settings: choose provider + model, test connection button
-- [ ] 4.3 **Prompt design** (the key to quality):
-  - system prompt: professional writer rules (no clichés, no made-up experience, 250–350 words, specific to the company)
-  - inputs: profile JSON + job description + company + role + tone (formal / friendly / enthusiastic)
-  - step 1: extract top requirements from the job description → step 2: match them to your real experience → step 3: write the letter
-- [ ] 4.4 **Guardrails**: the AI may only use facts from your profile. Flag anything it seems to have invented.
-- [ ] 4.5 Also generate the **email subject + short email body** that accompanies the letter
-- [ ] 4.6 **Bulk generation** with a queue that respects free-tier rate limits (retry with backoff on 429 errors, progress bar)
-- [ ] 4.7 Version history: regenerate, compare and keep the best version
-- [ ] 4.8 Export letter to **PDF and DOCX** with a clean template
-- [ ] 4.9 Optional: "match score" (how well your profile fits the job, 0–100) to help prioritise
+- [x] 4.1 **Provider interface** `AIProvider.generate_json(system, prompt)` in `backend/app/integrations/ai/`, with:
+  - `GeminiProvider` (default, free tier; model `gemini-flash-latest`)
+  - `GroqProvider` (free tier, OpenAI-compatible API; model `llama-3.3-70b-versatile`)
+  - `OllamaProvider` (offline, on your computer; model `llama3.2`)
+  - Shared error handling. A rate limit raises `AIRateLimitError` (HTTP 429, retryable); other problems raise `AIError` (HTTP 503) with a friendly message. API keys are sent in headers, never in URLs.
+- [x] 4.2 **Settings page:** choose the provider and model, plus the pause between bulk letters, with a **Test connection** button. Stored in a new `appsetting` table. **API keys stay in `backend/.env`** and are never stored in the database or shown in the UI.
+- [x] 4.3 **Prompt design:** one call per letter, to save free-tier quota. The AI lists the job's key requirements, matches each to real evidence in the profile, then writes 250–350 words in the chosen tone (formal / friendly / enthusiastic), with no clichés and matching UK/US spelling, plus optional extra instructions (max 500 chars).
+  - **Privacy:** only name, location, summary, skills, experience, education and project summaries are sent. **Email, phone and links are never sent to the AI.**
+  - **Prompt-injection safe:** the profile and job are passed as data in tags, and instructions inside them are ignored.
+- [x] 4.4 **Guardrails:** after writing, every letter is checked for numbers (e.g. "40%", "12 clients") and names, tools or acronyms (e.g. "Kubernetes", "AWS") that appear in neither the profile nor the job, and for leftover [placeholders]. These are shown as **"Check these before sending"** and re-checked after you edit. A missing job description is flagged too.
+- [x] 4.5 **Email subject + short email body** generated with each letter (both editable)
+- [x] 4.6 **Bulk generation** (`POST /api/letters/bulk`, up to 200): a background queue that writes **one letter at a time**, pauses between AI calls (default 4s, set in Settings) and retries rate limits with growing waits (15s → 30s → 60s). It can skip jobs that already have a letter, and you can cancel it. The Applications page shows a live progress bar and the failures. An empty profile or missing AI stops the job with a clear message.
+- [x] 4.7 **Version history:** every "Write letter" adds a new version (v1, v2…). Switch between versions, edit them, choose which one to send (starred), and delete versions.
+- [x] 4.8 **Export to PDF** (reportlab) and **Word** (python-docx): a clean template with your name, contact line and date, saved as "Cover letter - Company - Role".
+- [x] 4.9 **Match score** (0–100) with the matched requirements and evidence, shown on the application and in the list
 
-**Done when:** clicking "Generate" produces a tailored, factual letter in under ~10 seconds, and bulk-generating 20 letters works without hitting errors.
+**Done when:** clicking "Generate" produces a tailored, factual letter in under ~10 seconds, and bulk-generating 20 letters works without hitting errors. ✅ Verified 2026-11-10 in the browser **against a fake Ollama-compatible AI server** (which exercises the real HTTP provider code). The flow worked: Settings → Test connection → write a letter (guardrail flagged an invented "Kubernetes") → edit (flag cleared) → PDF/Word export → bulk-write 3 jobs (1 skipped, 2 written, live progress).
+- ⚠️ **Not yet tested with a real AI model.** No Gemini or Groq key is set and Ollama isn't installed. Letter *quality* and real response times still need checking once a provider is set up.
+
+**Notes from Phase 4:**
+- A basic **Applications list** (search, status filter, paging, multi-select, bulk letters) and an **application page** (job info, letter editor, versions, match card) were built now, because letters need somewhere to live. Phase 5 upgrades them (sorting, Kanban, timeline, notes).
+- Fixed an old test that used the real local database; tests now never read `backend/.env` or call a real AI.
+- New dependency: reportlab (BSD).
 
 ---
 
@@ -183,13 +189,13 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 **Goal:** a clean, pleasant app to use every day.
 
-- [ ] 5.1 Layout: sidebar (Dashboard, Applications, Import, Profile, Settings) + top bar
-- [ ] 5.2 **Dashboard**: totals by status, applications this week, response rate, upcoming follow-ups (Recharts)
-- [ ] 5.3 **Applications table** (TanStack Table): search, filter by status, sort, multi-select bulk actions (generate letters, send, change status, delete)
+- [x] 5.1 Layout: sidebar (Dashboard, Applications, Import, Profile, Settings). *(Done in Phase 0; every page is now real.)*
+- [ ] 5.2 **Dashboard**: totals by status, applications this week, response rate, upcoming follow-ups (Recharts). *(Real counts exist since Phase 2.)*
+- [ ] 5.3 **Applications table** (TanStack Table): search, filter by status, sort, multi-select bulk actions (generate letters, send, change status, delete). *(Search, filter, paging, multi-select and bulk letters done in Phase 4. Still to do: sorting, change status, delete.)*
 - [ ] 5.4 **Kanban board** (dnd-kit): drag cards between statuses
-- [ ] 5.5 **Application detail page**: job info, cover letter editor (rich text), email preview, timeline/history, notes
-- [ ] 5.6 **Import wizard**: upload → map columns → preview → confirm → summary
-- [ ] 5.7 **Profile & Settings** pages (AI provider, Gmail connection, send limits, follow-up days, signature)
+- [ ] 5.5 **Application detail page**: job info, cover letter editor (rich text), email preview, timeline/history, notes. *(Job info, letter editor, versions and match card done in Phase 4. Still to do: editing job details, timeline, notes, CV picker.)*
+- [x] 5.6 **Import wizard**: upload → map columns → preview → confirm → summary. *(Done in Phase 2.)*
+- [ ] 5.7 **Profile & Settings** pages (AI provider, Gmail connection, send limits, follow-up days, signature). *(Profile done in Phase 3; AI settings done in Phase 4.)*
 - [ ] 5.8 Data fetching with **TanStack Query**, toasts for success/errors, loading skeletons
 - [ ] 5.9 Dark mode + responsive layout
 
@@ -291,3 +297,5 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-05 | **Phase 1 done.** SQLite database with 6 tables and Alembic migrations, CRUD API for applications (with status history) and profile, 16 backend tests. |
 | 2026-11-06 | **Phase 2 done.** Excel/CSV import with smart column matching, cleaning and duplicate detection, an import wizard UI, Excel export, a template, and real counts on the dashboard. 52 backend + 10 frontend tests. |
 | 2026-11-06 | **Phase 3 done.** CV upload (PDF/Word/text) with a built-in offline reader and optional Gemini AI reader with guardrails, multiple CV versions, and a full Profile page. Fixed a migration data-loss bug. 85 backend + 16 frontend tests. |
+| 2026-11-10 | Phase 3 landed on the Phase 2 branch instead of `main` (stacked PR). Fixed with a new PR into `main`. |
+| 2026-11-10 | **Phase 4 done.** Cover letters with Gemini, Groq or Ollama; settings page with connection test; guardrail flags; email subject and body; versions; PDF and Word export; match score; background bulk writing with rate-limit retries; applications list and application page. 118 backend + 24 frontend tests. Not yet tried with a real AI model. |

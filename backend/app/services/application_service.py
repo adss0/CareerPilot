@@ -4,7 +4,8 @@ from app.core.errors import BadRequestError, NotFoundError
 from app.models import Application, ApplicationStatus, CvDocument, StatusHistory
 from app.models.tables import utcnow
 from app.repositories.application_repository import ApplicationRepository
-from app.schemas.application import ApplicationCreate, ApplicationUpdate
+from app.repositories.letter_repository import LetterRepository
+from app.schemas.application import ApplicationCreate, ApplicationRead, ApplicationUpdate
 from app.services.excel_export import build_applications_workbook
 
 # Fields that may be cleared with null; null for any other field is ignored.
@@ -18,6 +19,16 @@ class ApplicationService:
 
     def search(self, **filters) -> tuple[list[Application], int]:
         return self.repo.search(**filters)
+
+    def to_read(self, applications: list[Application]) -> list[ApplicationRead]:
+        """Read models including each application's letter count and match score."""
+        summaries = LetterRepository(self.session).summaries([a.id for a in applications])
+        reads = []
+        for application in applications:
+            count, score = summaries.get(application.id, (0, None))
+            read = ApplicationRead.model_validate(application)
+            reads.append(read.model_copy(update={"letter_count": count, "match_score": score}))
+        return reads
 
     def export_workbook(self, *, status: ApplicationStatus | None = None) -> bytes:
         return build_applications_workbook(self.repo.all(status=status))
