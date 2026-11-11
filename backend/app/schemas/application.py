@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from app.models.enums import ApplicationStatus
 
@@ -95,3 +96,20 @@ class StatusHistoryRead(BaseModel):
     from_status: ApplicationStatus | None
     to_status: ApplicationStatus
     changed_at: datetime
+
+
+class BulkApplicationAction(BaseModel):
+    application_ids: list[int] = Field(min_length=1, max_length=500)
+    action: Literal["set_status", "delete"]
+    status: ApplicationStatus | None = None
+
+    @model_validator(mode="after")
+    def _status_needed(self):
+        if self.action == "set_status" and self.status is None:
+            raise ValueError("status is required for set_status")
+        return self
+
+
+class BulkApplicationResult(BaseModel):
+    affected: int
+    missing: list[int]

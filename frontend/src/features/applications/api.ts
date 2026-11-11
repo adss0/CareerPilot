@@ -10,19 +10,64 @@ import type {
   Tone,
 } from "./types";
 
+export type SortKey = "created_at" | "updated_at" | "company" | "role" | "status" | "priority";
+export type Sort = SortKey | `-${SortKey}`;
+
 export function listApplications(params: {
   status?: ApplicationStatus | "";
   search?: string;
+  sort?: Sort;
   limit: number;
   offset: number;
 }): Promise<ApplicationPage> {
   const query = new URLSearchParams({ limit: String(params.limit), offset: String(params.offset) });
   if (params.status) query.set("status", params.status);
   if (params.search?.trim()) query.set("search", params.search.trim());
+  if (params.sort) query.set("sort", params.sort);
   return apiGet<ApplicationPage>(`/applications?${query}`);
 }
 
 export const getApplication = (id: number) => apiGet<Application>(`/applications/${id}`);
+
+export type ApplicationInput = Partial<
+  Pick<
+    Application,
+    | "company"
+    | "role"
+    | "job_url"
+    | "job_description"
+    | "contact_name"
+    | "contact_email"
+    | "location"
+    | "salary"
+    | "priority"
+    | "notes"
+    | "status"
+    | "cv_id"
+  >
+>;
+
+export const createApplication = (data: ApplicationInput) =>
+  apiSend<Application>("POST", "/applications", { source: "manual", ...data });
+
+export const updateApplication = (id: number, changes: ApplicationInput) =>
+  apiSend<Application>("PATCH", `/applications/${id}`, changes);
+
+export const deleteApplication = (id: number) => apiSend<null>("DELETE", `/applications/${id}`);
+
+export const bulkApplications = (
+  body:
+    | { application_ids: number[]; action: "delete" }
+    | { application_ids: number[]; action: "set_status"; status: ApplicationStatus },
+) => apiSend<{ affected: number; missing: number[] }>("POST", "/applications/bulk", body);
+
+export interface HistoryEntry {
+  from_status: ApplicationStatus | null;
+  to_status: ApplicationStatus;
+  changed_at: string;
+}
+
+export const getHistory = (id: number) => apiGet<HistoryEntry[]>(`/applications/${id}/history`);
 
 export const listLetters = (applicationId: number) =>
   apiGet<Letter[]>(`/applications/${applicationId}/letters`);

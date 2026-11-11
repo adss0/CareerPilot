@@ -86,7 +86,7 @@ export function LetterEditorView({
         {letter.flags.length > 0 && (
           <div
             role="alert"
-            className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            className="rounded-lg border border-warning-border bg-warning text-warning-foreground px-4 py-3 text-sm"
           >
             <p className="flex items-center gap-2 font-medium">
               <AlertTriangle className="size-4" />

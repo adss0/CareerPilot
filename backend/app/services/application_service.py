@@ -5,7 +5,13 @@ from app.models import Application, ApplicationStatus, CvDocument, StatusHistory
 from app.models.tables import utcnow
 from app.repositories.application_repository import ApplicationRepository
 from app.repositories.letter_repository import LetterRepository
-from app.schemas.application import ApplicationCreate, ApplicationRead, ApplicationUpdate
+from app.schemas.application import (
+    ApplicationCreate,
+    ApplicationRead,
+    ApplicationUpdate,
+    BulkApplicationAction,
+    BulkApplicationResult,
+)
 from app.services.excel_export import build_applications_workbook
 
 # Fields that may be cleared with null; null for any other field is ignored.
@@ -76,6 +82,19 @@ class ApplicationService:
         self.session.commit()
         self.session.refresh(application)
         return application
+
+    def bulk(self, data: BulkApplicationAction) -> BulkApplicationResult:
+        affected, missing = 0, []
+        for application_id in dict.fromkeys(data.application_ids):
+            try:
+                if data.action == "delete":
+                    self.delete(application_id)
+                else:
+                    self.update(application_id, ApplicationUpdate(status=data.status))
+                affected += 1
+            except NotFoundError:
+                missing.append(application_id)
+        return BulkApplicationResult(affected=affected, missing=missing)
 
     def delete(self, application_id: int) -> None:
         self.repo.delete(self.get(application_id))
