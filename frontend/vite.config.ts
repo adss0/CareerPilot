@@ -12,11 +12,13 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/api": "http://localhost:8000",
+      // The end-to-end tests run their own backend on another port.
+      "/api": process.env.VITE_PROXY_TARGET ?? "http://localhost:8000",
     },
   },
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
+    exclude: ["e2e/**", "node_modules/**"],
   },
 });

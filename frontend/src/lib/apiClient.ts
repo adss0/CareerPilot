@@ -28,8 +28,11 @@ async function errorMessage(response: Response, fallback: string): Promise<strin
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
+  // The backend refuses changes without this header; other websites can't add it
+  // (see backend/app/core/security.py).
+  const headers = { "X-CareerPilot": "1", ...(init?.headers as Record<string, string>) };
   try {
-    response = await fetch(`${API_BASE}${path}`, init);
+    response = await fetch(`${API_BASE}${path}`, { ...init, headers });
   } catch {
     throw new ApiError(0, "Can't reach the CareerPilot backend. Is it running?");
   }

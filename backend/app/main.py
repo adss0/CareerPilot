@@ -5,19 +5,33 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import applications, cvs, emails, health, imports, letters, profile, stats, tracking
+from app.api import (
+    applications,
+    backup,
+    cvs,
+    emails,
+    health,
+    imports,
+    letters,
+    profile,
+    stats,
+    tracking,
+)
 from app.api import settings as settings_api
 from app.api.deps import get_email_queue, get_reply_checker
 from app.core.config import get_settings
 from app.core.db import run_migrations
 from app.core.errors import BadRequestError, NotFoundError
+from app.core.security import LocalSecurityMiddleware
 from app.integrations.ai import AIError, AIRateLimitError
 from app.services.spreadsheet_reader import SpreadsheetError
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    run_migrations()
+    get_settings().db_file.parent.mkdir(parents=True, exist_ok=True)  # first run: no folder yet
+    backup.get_backup_service().apply_pending()  # a restore staged before the restart
+    run_migrations()  # also upgrades a backup made by an older version
     email_queue = get_email_queue()
     email_queue.start()  # sends approved emails in the background
     reply_checker = get_reply_checker()
@@ -31,12 +45,15 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(title=settings.app_name, version=settings.version, lifespan=lifespan)
 
+    # Added first, so it runs after CORS: pre-flight requests are answered before the checks.
+    app.add_middleware(LocalSecurityMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+        allow_headers=["Content-Type", "X-CareerPilot"],
+        expose_headers=["Content-Disposition"],
     )
 
     @app.exception_handler(NotFoundError)
@@ -63,6 +80,7 @@ def create_app() -> FastAPI:
     app.include_router(stats.router, prefix="/api")
     app.include_router(emails.router, prefix="/api")
     app.include_router(tracking.router, prefix="/api")
+    app.include_router(backup.router, prefix="/api")
     app.include_router(settings_api.router, prefix="/api")
     return app
 

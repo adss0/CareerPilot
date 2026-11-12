@@ -19,7 +19,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 6 | **Sending:** approve-then-send email via Gmail, daily limits, assisted apply for job sites | ✅ Done |
 | 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ✅ Done |
 | 8 | **Desktop app:** installable Windows app (Tauri) | ✅ Done |
-| 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ⏭️ Next |
+| 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ✅ Done (tag & publish left to you) |
 
 *Rough estimates: each phase is about 1–7 days for one person working part-time.*
 
@@ -268,7 +268,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 - [x] 8.2 **Backend bundled with PyInstaller** into one `careerpilot-server.exe` (`backend/careerpilot-server.spec`, ~39 MB), started by the app as a **sidecar** on `127.0.0.1` only and stopped when the app closes.
   - **Bug found and fixed:** a one-file bundle runs as two processes, and killing the launcher left the server running and holding the port. The server now watches the app's process ID and exits within 2 seconds if the app goes away (even after a crash).
   - **Bug found and fixed:** with no console, logging crashed at start-up behind an invisible "Unhandled exception" dialog. Output now goes to `careerpilot-server.log` in the data folder.
-- [x] 8.3 Database, CVs, `.env` and the log live in the app-data folder (`%APPDATA%pp.careerpilot.desktop`), set via `CAREERPILOT_HOME`. Development still uses `backend/`.
+- [x] 8.3 Database, CVs, `.env` and the log live in the app-data folder (`%APPDATA%\app.careerpilot.desktop`), set via `CAREERPILOT_HOME`. Development still uses `backend/`.
 - [x] 8.4 App name, icon (generated from `desktop/app-icon.png`) and window size. *No tray icon: reminders and notifications come from the open app window (Phase 7). A tray icon to keep it running in the background is a future idea.*
 - [x] 8.5 **Windows installer built by GitHub Actions** (`.github/workflows/desktop.yml`) on `windows-latest`: build backend exe → **smoke-test it** → build desktop frontend → `tauri build` (NSIS `.exe` + `.msi`, per-user install). The installer is attached to the run as an artifact; pushing a tag like `v1.0.0` also creates a **draft GitHub Release**. *Built in CI because Rust isn't installed on this PC. macOS/Linux builds are possible later.*
 - [ ] 8.6 Auto-update via Tauri updater + GitHub Releases (optional). *Not done: it needs a signing key pair; the plan is to add it after v1.0.*
@@ -281,12 +281,12 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 ## Phase 9: Polish, testing & release
 
-- [ ] 9.1 Backend test coverage ≥ 70% (pytest): Excel import, AI provider mocks, email building
-- [ ] 9.2 End-to-end test (Playwright): import → generate → approve → (mock) send
-- [ ] 9.3 Security pass: no secrets in the repo, tokens in the keyring, validated inputs, file-size limits on uploads
-- [ ] 9.4 Backup/restore of the database + "export all my data"
-- [ ] 9.5 Docs: user guide with screenshots, how to get a free Gemini key, how to connect Gmail
-- [ ] 9.6 Tag **v1.0.0** and publish the installer on GitHub Releases
+- [x] 9.1 Backend test coverage ≥ 70% (pytest): Excel import, AI provider mocks, email building. *174 tests at 95% coverage; CI now fails if coverage drops below 85%.*
+- [x] 9.2 End-to-end test (Playwright): import → generate → approve → (mock) send. *Runs in CI against the real backend, a fake AI and a local test mail server; it caught a stale-preview bug on the Apply tab, now fixed.*
+- [x] 9.3 Security pass: no secrets in the repo, validated inputs, file-size limits on uploads. *Added a required `X-CareerPilot` header on changes (stops other websites from using the local server), a local-host-only check (DNS rebinding), security headers and a strict CORS list; upgraded Starlette, FastAPI, python-multipart, React Router, Vite and dev tools (pip-audit and npm audit clean). Secrets stay in the `.env` file rather than the OS keyring: they never reach the database, UI, logs or backups.*
+- [x] 9.4 Backup/restore of the database + "export all my data". *One `.zip` with the database and CVs (never `.env`); restore is checked (size, file names, integrity) and applied on restart, after moving current data to `backups/`.*
+- [x] 9.5 Docs: user guide, how to get a free Gemini key, how to connect Gmail. *[docs/USER_GUIDE.md](docs/USER_GUIDE.md) and [CHANGELOG.md](CHANGELOG.md). Screenshots still to add.*
+- [ ] 9.6 Tag **v1.0.0** and publish the installer on GitHub Releases. *Version is 1.0.0 everywhere. Left to you: after merging, push the `v1.0.0` tag; the Desktop app workflow builds the installer and creates a draft Release to check and publish.*
 
 ---
 
@@ -331,3 +331,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-11 | **Phase 6 done.** Approve-then-send email over SMTP (App Password), test mode on by default, review screen, bulk send, background queue with random gaps and a daily limit, retry and cancel, assisted apply, email settings page. 139 backend + 40 frontend tests. Gmail OAuth deliberately skipped (see 6.1). |
 | 2026-11-12 | **Phase 7 done.** Follow-ups (AI or template, threaded, approved), IMAP reply detection with suggested classification, Replied status, interview dates, calendar, insights by tone and CV, desktop notifications. 154 backend + 47 frontend tests. |
 | 2026-11-12 | **Phase 8 done.** Tauri desktop shell, backend bundled with PyInstaller as a sidecar (fixed orphaned-process and no-console crash bugs), app-data folder, icons, Windows installer built and smoke-tested in GitHub Actions, draft Release on version tags. |
+| 2026-11-12 | **Phase 9 done.** Security pass (CSRF header, local-host check, security headers, dependency upgrades with clean audits), backup and restore, Playwright end-to-end test in CI, coverage gate, user guide, changelog, version 1.0.0. 174 backend + 52 frontend tests + 1 E2E. Tagging v1.0.0 is left to the owner. |
