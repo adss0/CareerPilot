@@ -10,6 +10,7 @@ import {
   PenLine,
   Plus,
   Search,
+  Send,
   Table2,
   Trash2,
 } from "lucide-react";
@@ -21,6 +22,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { QueueBannerView } from "@/features/email/QueueBannerView";
 import { formatDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
@@ -99,6 +101,7 @@ export function ApplicationsView(vm: ApplicationsViewModel) {
       )}
 
       {vm.job && <BulkJobView job={vm.job} onCancel={vm.cancelJob} onDismiss={vm.dismissJob} />}
+      <QueueBannerView status={vm.queue} />
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative min-w-48 flex-1">
@@ -208,6 +211,23 @@ export function ApplicationsView(vm: ApplicationsViewModel) {
                   ))}
                 </NativeSelect>
               </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="bg-background"
+                disabled={vm.isSending}
+                onClick={() => {
+                  const where = vm.queue?.test_mode ? "to you (test mode)" : "to the employers";
+                  const noun = count === 1 ? "email" : "emails";
+                  const question = `Approve and send ${count} application ${noun} ${where}? Each uses its starred cover letter.`;
+                  if (window.confirm(question)) {
+                    vm.sendSelected();
+                  }
+                }}
+              >
+                <Send />
+                Send emails
+              </Button>
               <Button
                 size="sm"
                 variant="ghost"

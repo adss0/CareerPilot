@@ -3,6 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { getQueueStatus, sendMany, type QueueStatus } from "@/features/email/api";
 import { errorText } from "@/lib/apiClient";
 
 import {
@@ -44,6 +45,8 @@ export interface ApplicationsViewModel {
   job: LetterJob | null;
   isStarting: boolean;
   isBulkBusy: boolean;
+  queue: QueueStatus | null;
+  isSending: boolean;
   setView: (view: ViewMode) => void;
   setSearch: (value: string) => void;
   setStatus: (value: ApplicationStatus | "") => void;
@@ -57,6 +60,7 @@ export interface ApplicationsViewModel {
   writeLetters: () => void;
   setSelectedStatus: (status: ApplicationStatus) => void;
   deleteSelected: () => void;
+  sendSelected: () => void;
   moveCard: (id: number, status: ApplicationStatus) => void;
   cancelJob: () => void;
   dismissJob: () => void;
@@ -145,6 +149,29 @@ export function useApplicationsViewModel(): ApplicationsViewModel {
     onError,
   });
 
+  const queueQuery = useQuery({
+    queryKey: ["email-queue"],
+    queryFn: getQueueStatus,
+    refetchInterval: (q) => ((q.state.data?.queued ?? 0) > 0 ? 10_000 : false),
+  });
+
+  const sendMutation = useMutation({
+    mutationFn: sendMany,
+    onSuccess: (result) => {
+      setSelected(new Set());
+      void queryClient.invalidateQueries({ queryKey: ["email-queue"] });
+      void queryClient.invalidateQueries({ queryKey: ["emails"] });
+      if (result.queued) {
+        const noun = result.queued === 1 ? "email" : "emails";
+        toast.success(`Approved ${result.queued} ${noun}. They'll be sent one at a time.`);
+      }
+      if (result.skipped.length) {
+        toast.warning(`Skipped ${result.skipped.length}: ${result.skipped[0].reason}`);
+      }
+    },
+    onError,
+  });
+
   const moveMutation = useMutation({
     mutationFn: ({ id, status: next }: { id: number; status: ApplicationStatus }) =>
       updateApplication(id, { status: next }),
@@ -191,6 +218,8 @@ export function useApplicationsViewModel(): ApplicationsViewModel {
     job,
     isStarting: startMutation.isPending,
     isBulkBusy: bulkMutation.isPending,
+    queue: queueQuery.data ?? null,
+    isSending: sendMutation.isPending,
     setView: (next) => {
       setViewState(next);
       try {
@@ -246,6 +275,9 @@ export function useApplicationsViewModel(): ApplicationsViewModel {
     },
     deleteSelected: () => {
       if (ids.length) bulkMutation.mutate({ application_ids: ids, action: "delete" });
+    },
+    sendSelected: () => {
+      if (ids.length) sendMutation.mutate(ids);
     },
     moveCard: (id, next) => moveMutation.mutate({ id, status: next }),
     cancelJob: () => {

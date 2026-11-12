@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     # Pause between AI calls in bulk generation, to stay inside free-tier rate limits.
     ai_request_gap_seconds: float = 4
 
+    # Email (SMTP/IMAP) password, e.g. a Gmail App Password. Never stored in the database.
+    email_password: str = ""
+    # How often the send queue checks for emails to send (seconds).
+    email_queue_interval_seconds: float = 15
+
     db_path: str = "careerpilot.db"
     # Uploaded CVs and other private files. Git-ignored.
     data_dir: str = "data"

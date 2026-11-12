@@ -16,8 +16,8 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 3 | **Profile & CV:** upload your CV and turn it into a reusable profile | ✅ Done |
 | 4 | **AI cover letters:** tailored letters from free AI, tones, versions, PDF/Word export | ✅ Done |
 | 5 | **User interface:** dashboard, applications table, Kanban board, letter editor | ✅ Done |
-| 6 | **Sending:** approve-then-send email via Gmail, daily limits, assisted apply for job sites | ⏭️ Next |
-| 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ☐ Planned |
+| 6 | **Sending:** approve-then-send email via Gmail, daily limits, assisted apply for job sites | ✅ Done |
+| 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ⏭️ Next |
 | 8 | **Desktop app:** installable Windows app (Tauri) | ☐ Planned |
 | 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ☐ Planned |
 
@@ -195,7 +195,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 - [x] 5.4 **Kanban board** (dnd-kit): a column per status; drag a card to change its status, saved instantly with automatic rollback on error. Works with **mouse, touch and keyboard** (space to pick up, one arrow press = one column, space to drop). Mouse drops land exactly under the pointer. Shows the 200 most recently updated jobs. Table/Board choice is remembered.
 - [x] 5.5 **Application page:** tabs for *Cover letter* (from Phase 4) and *Details & timeline*: edit every job field with validation (http(s) links only, email format), status, priority, **notes**, **which CV to send**, a **status timeline**, and delete the job. **Add job** page for one-off jobs (`/applications/new`). *The letter editor is plain text, not rich text: letters go out as plain text or PDF/Word, so formatting would get lost.* The email preview comes with sending in Phase 6.
 - [x] 5.6 **Import wizard**: upload → map columns → preview → confirm → summary. *(Done in Phase 2.)*
-- [ ] 5.7 **Profile & Settings** pages (AI provider, Gmail connection, send limits, follow-up days, signature). *(Profile done in Phase 3; AI settings done in Phase 4; email settings come in Phase 6 and follow-up settings in Phase 7.)*
+- [x] 5.7 **Profile & Settings** pages (AI provider, email connection, send limits, follow-up days, signature). *(Profile: Phase 3. AI: Phase 4. Email, limits, signature and follow-up days: Phase 6.)*
 - [x] 5.8 Data fetching with **TanStack Query**, **toasts** (sonner) for success and errors, **loading skeletons** on the dashboard and lists
 - [x] 5.9 **Dark mode** (light / dark / system, remembered, applied before the first paint so there's no white flash) + responsive layout (every page checked at 375px phone width)
 
@@ -211,17 +211,26 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 **Goal:** send real applications safely.
 
-- [ ] 6.1 **Gmail OAuth** connection (Google Cloud project, free; scopes `gmail.send` + `gmail.readonly`). Store tokens in the OS keyring.
-- [ ] 6.2 SMTP + Gmail App Password as a simpler alternative mode
-- [ ] 6.3 Build the email: subject, body, cover letter (PDF) + CV attached, signature
-- [ ] 6.4 **Review & approve** screen: nothing is sent without clicking "Approve & Send" (single or bulk)
-- [ ] 6.5 **Send queue** with rate limit (e.g. max 20/day, a random 1–3 min gap between sends) to protect your account's reputation
-- [ ] 6.6 Log every email in `EmailLog`, set status → `SENT`, record `applied_at`
-- [ ] 6.7 Handle failures (bounced/invalid address) → status `FAILED` with a retry option
-- [ ] 6.8 **Portal jobs** (no email): "Assisted apply" button that opens the job link, copies the letter to your clipboard, opens the CV folder, then asks "Did you submit?" → marks `SENT`
-- [ ] 6.9 Test mode: send everything to your own address first
+- [ ] 6.1 **Gmail OAuth** connection. *Not built, on purpose: it would make every user create a Google Cloud project, consent screen and client secret before sending anything. 6.2 does the same job with a 2-minute App Password setup, and also works with Outlook and other providers. Gmail OAuth stays an optional future idea.*
+- [x] 6.2 **SMTP + App Password** (main path): STARTTLS / SSL; unencrypted is only allowed to `localhost`. The password lives in `backend/.env` as `EMAIL_PASSWORD` and is never stored in the database or shown in the UI. Settings page: Gmail/Outlook presets, App Password guide, **Test connection**. IMAP server settings are stored for reply detection (Phase 7).
+- [x] 6.3 Build the email: subject + short email from the starred letter, your **signature**, the **cover letter as PDF** and **your CV** (the job's chosen CV, or the default) attached. Unique Message-ID per email (for matching replies later). Header injection blocked.
+- [x] 6.4 **Review & approve:** the job page's new **Apply** tab shows exactly what will be sent (to, subject, message, attachments, warnings). Nothing is queued without ticking *"I've read it"* and clicking **Approve & send**; the API also requires `confirm: true`. **Bulk:** select jobs → *Send emails* → confirm (skipped jobs are listed with the reason).
+- [x] 6.5 **Send queue:** a background worker sends **one email at a time**, with a **random pause** (default 60–180s) and a **daily limit** (default 20). The Applications page shows a queue banner (waiting, sent today, next send, test mode).
+- [x] 6.6 Every email is logged (`emaillog`). On a real send the job moves to **Sent** (recorded in the timeline) with `applied_at` and `last_contact_at`.
+- [x] 6.7 Failures (bad password, can't connect, refused address) are logged with a friendly reason; **Retry** and **Cancel** buttons.
+- [x] 6.8 **Assisted apply** for website-only jobs: copy letter → download CV → open the posting (http(s) links only, opened safely) → *"I've submitted it"* marks the job as Sent.
+- [x] 6.9 **Test mode, ON by default:** every email goes to your own (or a test) address with `[TEST]` in the subject, and jobs don't change status, until you switch it off in Settings.
 
-**Done when:** an approved application arrives in a real inbox with correct attachments and is logged as sent.
+**Done when:** an approved application arrives in a real inbox with correct attachments and is logged as sent. ✅ Verified 2026-11-11 against a **local test mail server** (real SMTP, nothing left the computer):
+- Settings → Test connection said "Connected".
+- Approve & send in test mode delivered to the test address with `[TEST]`, the PDF letter and the CV attached, and the job didn't change status.
+- With test mode off, a bulk send delivered 2 emails to the employers' addresses, both jobs moved to Sent, and the portal-only job was skipped with a reason.
+- Assisted apply marked a job as Sent.
+- ⚠️ Not yet sent through a real Gmail/Outlook account (no `EMAIL_PASSWORD` set).
+
+**Notes from Phase 6:**
+- New test-only dependency: aiosmtpd (Apache-2.0), a local mail server that lets the tests do a real SMTP round trip.
+- `emaillog` gained kind, test flag, Message-ID, In-Reply-To and error fields (migration with safe defaults).
 
 ---
 
@@ -304,3 +313,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-10 | Phase 3 landed on the Phase 2 branch instead of `main` (stacked PR). Fixed with a new PR into `main`. |
 | 2026-11-10 | **Phase 4 done.** Cover letters with Gemini, Groq or Ollama; settings page with connection test; guardrail flags; email subject and body; versions; PDF and Word export; match score; background bulk writing with rate-limit retries; applications list and application page. 118 backend + 24 frontend tests. Not yet tried with a real AI model. |
 | 2026-11-11 | **Phase 5 done.** Dashboard charts and stats, sorting, bulk status and delete, Kanban board (mouse, touch, keyboard), add/edit job, notes, CV picker, timeline, toasts, skeletons, dark mode. 123 backend + 32 frontend tests. |
+| 2026-11-11 | **Phase 6 done.** Approve-then-send email over SMTP (App Password), test mode on by default, review screen, bulk send, background queue with random gaps and a daily limit, retry and cancel, assisted apply, email settings page. 139 backend + 40 frontend tests. Gmail OAuth deliberately skipped (see 6.1). |
