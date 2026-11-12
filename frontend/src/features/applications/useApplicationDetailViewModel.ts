@@ -1,6 +1,7 @@
 // ViewModel: one application and its cover letters (write, edit, versions, export).
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { fetchHealth } from "@/features/health/api";
 import { errorText } from "@/lib/apiClient";
@@ -97,6 +98,7 @@ export function useApplicationDetailViewModel(applicationId: number): Applicatio
       setDraft(null);
       setViewingId(created.id);
       refresh();
+      toast.success(`Version ${created.version} written.`);
     },
     onError,
   });
@@ -107,6 +109,7 @@ export function useApplicationDetailViewModel(applicationId: number): Applicatio
       setError(null);
       setDraft(null);
       refresh();
+      toast.success("Letter saved.");
     },
     onError,
   });

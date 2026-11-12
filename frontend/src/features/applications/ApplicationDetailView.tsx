@@ -1,5 +1,6 @@
 // View: one job, its cover letters, and how well the profile matches it.
 import { ArrowLeft, ExternalLink, Loader2, PenLine, Sparkles } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
@@ -7,13 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
+import { cn } from "@/lib/utils";
 
 import { STATUS_LABELS, TONE_LABELS, scoreLabel, statusVariant } from "./labels";
 import { LetterEditorView } from "./LetterEditorView";
 import type { Tone } from "./types";
 import type { ApplicationDetailViewModel } from "./useApplicationDetailViewModel";
 
-export function ApplicationDetailView(vm: ApplicationDetailViewModel) {
+export function ApplicationDetailView({
+  details,
+  ...vm
+}: ApplicationDetailViewModel & { details?: ReactNode }) {
+  const [tab, setTab] = useState<"letter" | "details">("letter");
   if (vm.isLoading) {
     return (
       <p className="text-muted-foreground flex items-center gap-2 text-sm">
@@ -64,139 +70,170 @@ export function ApplicationDetailView(vm: ApplicationDetailViewModel) {
         </div>
       )}
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="text-primary size-4" />
-                {vm.letters.length ? "Write a new version" : "Write the cover letter"}
-              </CardTitle>
-              <CardDescription>
-                The AI uses only facts from your profile, tailored to this job's description.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {!vm.aiConfigured && (
-                <p className="text-sm">
-                  AI isn't set up yet.{" "}
-                  <Link to="/settings" className="text-primary underline">
-                    Choose a provider in Settings
-                  </Link>
-                  .
-                </p>
-              )}
-              <div className="flex flex-wrap gap-3">
-                <div className="w-44">
-                  <NativeSelect
-                    value={vm.tone}
-                    aria-label="Tone"
-                    onChange={(e) => vm.setTone(e.target.value as Tone)}
-                  >
-                    {Object.entries(TONE_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label} tone
-                      </option>
-                    ))}
-                  </NativeSelect>
-                </div>
-                <Input
-                  className="min-w-56 flex-1"
-                  value={vm.instructions}
-                  maxLength={500}
-                  aria-label="Extra instructions"
-                  placeholder="Optional: e.g. mention I can start in June"
-                  onChange={(e) => vm.setInstructions(e.target.value)}
-                />
-                <Button onClick={vm.generate} disabled={vm.isGenerating || !vm.aiConfigured}>
-                  {vm.isGenerating ? <Loader2 className="animate-spin" /> : <PenLine />}
-                  {vm.isGenerating ? "Writing…" : "Write letter"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+      <div role="tablist" aria-label="Sections" className="flex gap-1 border-b">
+        {(
+          [
+            ["letter", "Cover letter"],
+            ["details", "Details & timeline"],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            role="tab"
+            aria-selected={tab === value}
+            onClick={() => setTab(value)}
+            className={cn(
+              "-mb-px border-b-2 px-3 py-2 text-sm font-medium",
+              tab === value
+                ? "border-primary text-foreground"
+                : "text-muted-foreground border-transparent hover:text-foreground",
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
-          {vm.letter && vm.form ? (
-            <LetterEditorView
-              letters={vm.letters}
-              letter={vm.letter}
-              form={vm.form}
-              isDirty={vm.isDirty}
-              isSaving={vm.isSaving}
-              copied={vm.copied}
-              onViewVersion={vm.viewVersion}
-              onEdit={vm.edit}
-              onSave={vm.save}
-              onDiscard={vm.discard}
-              onUseVersion={vm.useVersion}
-              onDeleteVersion={vm.deleteVersion}
-              onCopy={vm.copyLetter}
-            />
-          ) : (
-            <p className="text-muted-foreground rounded-xl border border-dashed p-8 text-center text-sm">
-              No cover letter yet.
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          {vm.letter && (
+      {tab === "details" ? (
+        details
+      ) : (
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>How well you match</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="text-primary size-4" />
+                  {vm.letters.length ? "Write a new version" : "Write the cover letter"}
+                </CardTitle>
                 <CardDescription>
-                  The AI's view of this job. Use it to decide where to focus.
+                  The AI uses only facts from your profile, tailored to this job's description.
                 </CardDescription>
               </CardHeader>
+              <CardContent className="space-y-3">
+                {!vm.aiConfigured && (
+                  <p className="text-sm">
+                    AI isn't set up yet.{" "}
+                    <Link to="/settings" className="text-primary underline">
+                      Choose a provider in Settings
+                    </Link>
+                    .
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-3">
+                  <div className="w-44">
+                    <NativeSelect
+                      value={vm.tone}
+                      aria-label="Tone"
+                      onChange={(e) => vm.setTone(e.target.value as Tone)}
+                    >
+                      {Object.entries(TONE_LABELS).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label} tone
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </div>
+                  <Input
+                    className="min-w-56 flex-1"
+                    value={vm.instructions}
+                    maxLength={500}
+                    aria-label="Extra instructions"
+                    placeholder="Optional: e.g. mention I can start in June"
+                    onChange={(e) => vm.setInstructions(e.target.value)}
+                  />
+                  <Button onClick={vm.generate} disabled={vm.isGenerating || !vm.aiConfigured}>
+                    {vm.isGenerating ? <Loader2 className="animate-spin" /> : <PenLine />}
+                    {vm.isGenerating ? "Writing…" : "Write letter"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {vm.letter && vm.form ? (
+              <LetterEditorView
+                letters={vm.letters}
+                letter={vm.letter}
+                form={vm.form}
+                isDirty={vm.isDirty}
+                isSaving={vm.isSaving}
+                copied={vm.copied}
+                onViewVersion={vm.viewVersion}
+                onEdit={vm.edit}
+                onSave={vm.save}
+                onDiscard={vm.discard}
+                onUseVersion={vm.useVersion}
+                onDeleteVersion={vm.deleteVersion}
+                onCopy={vm.copyLetter}
+              />
+            ) : (
+              <p className="text-muted-foreground rounded-xl border border-dashed p-8 text-center text-sm">
+                No cover letter yet.
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-6">
+            {vm.letter && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>How well you match</CardTitle>
+                  <CardDescription>
+                    The AI's view of this job. Use it to decide where to focus.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                  <p className="text-3xl font-semibold tabular-nums">
+                    {scoreLabel(vm.letter.match_score)}
+                  </p>
+                  {vm.letter.matches.length > 0 && (
+                    <ul className="space-y-2">
+                      {vm.letter.matches.map((m) => (
+                        <li key={m.requirement}>
+                          <span className="font-medium">{m.requirement}</span>
+                          <span className="text-muted-foreground block">{m.evidence}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle>The job</CardTitle>
+              </CardHeader>
               <CardContent className="space-y-3 text-sm">
-                <p className="text-3xl font-semibold tabular-nums">
-                  {scoreLabel(vm.letter.match_score)}
-                </p>
-                {vm.letter.matches.length > 0 && (
-                  <ul className="space-y-2">
-                    {vm.letter.matches.map((m) => (
-                      <li key={m.requirement}>
-                        <span className="font-medium">{m.requirement}</span>
-                        <span className="text-muted-foreground block">{m.evidence}</span>
-                      </li>
-                    ))}
-                  </ul>
+                {safeLink && (
+                  <a
+                    href={safeLink}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="text-primary inline-flex items-center gap-1 underline"
+                  >
+                    Open job posting <ExternalLink className="size-3.5" />
+                  </a>
+                )}
+                {(a.contact_name || a.contact_email) && (
+                  <p>
+                    Contact: {a.contact_name} {a.contact_email && `<${a.contact_email}>`}
+                  </p>
+                )}
+                {a.job_description ? (
+                  <p className="max-h-96 overflow-y-auto whitespace-pre-wrap">
+                    {a.job_description}
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground">
+                    No job description. Add one for a better-tailored letter.
+                  </p>
                 )}
               </CardContent>
             </Card>
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle>The job</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              {safeLink && (
-                <a
-                  href={safeLink}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="text-primary inline-flex items-center gap-1 underline"
-                >
-                  Open job posting <ExternalLink className="size-3.5" />
-                </a>
-              )}
-              {(a.contact_name || a.contact_email) && (
-                <p>
-                  Contact: {a.contact_name} {a.contact_email && `<${a.contact_email}>`}
-                </p>
-              )}
-              {a.job_description ? (
-                <p className="max-h-96 overflow-y-auto whitespace-pre-wrap">{a.job_description}</p>
-              ) : (
-                <p className="text-muted-foreground">
-                  No job description. Add one for a better-tailored letter.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

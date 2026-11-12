@@ -3,6 +3,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { AppLayout } from "@/app/layout/AppLayout";
 import { ApplicationDetailPage } from "@/features/applications/ApplicationDetailPage";
 import { ApplicationsPage } from "@/features/applications/ApplicationsPage";
+import { NewApplicationPage } from "@/features/applications/NewApplicationPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { ImportPage } from "@/features/imports/ImportPage";
 import { ProfilePage } from "@/features/profile/ProfilePage";
@@ -14,6 +15,7 @@ export const router = createBrowserRouter([
     children: [
       { path: "/", element: <DashboardPage /> },
       { path: "/applications", element: <ApplicationsPage /> },
+      { path: "/applications/new", element: <NewApplicationPage /> },
       { path: "/applications/:id", element: <ApplicationDetailPage /> },
       { path: "/import", element: <ImportPage /> },
       { path: "/profile", element: <ProfilePage /> },

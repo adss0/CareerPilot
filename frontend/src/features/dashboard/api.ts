@@ -1,13 +1,23 @@
-// Model: dashboard numbers come from the applications list totals.
+// Model: dashboard numbers (backend/app/schemas/stats.py).
+import type { ApplicationStatus } from "@/features/applications/types";
 import { apiGet } from "@/lib/apiClient";
 
-interface ApplicationPage {
+export interface Stats {
   total: number;
+  by_status: Record<ApplicationStatus, number>;
+  added_this_week: number;
+  sent: number;
+  responses: number;
+  interviews: number;
+  response_rate: number | null;
+  added_per_week: { week_start: string; count: number }[];
+  follow_ups_due: {
+    id: number;
+    company: string;
+    role: string;
+    follow_up_at: string;
+    overdue: boolean;
+  }[];
 }
 
-export async function fetchApplicationCount(status?: string): Promise<number> {
-  const params = new URLSearchParams({ limit: "1" });
-  if (status) params.set("status", status);
-  const page = await apiGet<ApplicationPage>(`/applications?${params}`);
-  return page.total;
-}
+export const fetchStats = () => apiGet<Stats>("/stats");

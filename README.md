@@ -2,7 +2,7 @@
 
 **Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
 
-> 🚧 Status: early development. Phases 0–4 (setup, database, Excel import & export, profile & CV, AI cover letters) are done, and Phase 5 (full app UI) is next. See the [plan](PLAN.md).
+> 🚧 Status: early development. Phases 0–5 (setup, database, Excel import & export, profile & CV, AI cover letters, full app UI) are done, and Phase 6 (sending) is next. See the [plan](PLAN.md).
 
 ---
 

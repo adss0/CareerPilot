@@ -15,8 +15,8 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2 | **Excel import:** upload a spreadsheet, match columns, skip duplicates, export back to Excel | ✅ Done |
 | 3 | **Profile & CV:** upload your CV and turn it into a reusable profile | ✅ Done |
 | 4 | **AI cover letters:** tailored letters from free AI, tones, versions, PDF/Word export | ✅ Done |
-| 5 | **User interface:** dashboard, applications table, Kanban board, letter editor | ⏭️ Next |
-| 6 | **Sending:** approve-then-send email via Gmail, daily limits, assisted apply for job sites | ☐ Planned |
+| 5 | **User interface:** dashboard, applications table, Kanban board, letter editor | ✅ Done |
+| 6 | **Sending:** approve-then-send email via Gmail, daily limits, assisted apply for job sites | ⏭️ Next |
 | 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ☐ Planned |
 | 8 | **Desktop app:** installable Windows app (Tauri) | ☐ Planned |
 | 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ☐ Planned |
@@ -190,16 +190,20 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 **Goal:** a clean, pleasant app to use every day.
 
 - [x] 5.1 Layout: sidebar (Dashboard, Applications, Import, Profile, Settings). *(Done in Phase 0; every page is now real.)*
-- [ ] 5.2 **Dashboard**: totals by status, applications this week, response rate, upcoming follow-ups (Recharts). *(Real counts exist since Phase 2.)*
-- [ ] 5.3 **Applications table** (TanStack Table): search, filter by status, sort, multi-select bulk actions (generate letters, send, change status, delete). *(Search, filter, paging, multi-select and bulk letters done in Phase 4. Still to do: sorting, change status, delete.)*
-- [ ] 5.4 **Kanban board** (dnd-kit): drag cards between statuses
-- [ ] 5.5 **Application detail page**: job info, cover letter editor (rich text), email preview, timeline/history, notes. *(Job info, letter editor, versions and match card done in Phase 4. Still to do: editing job details, timeline, notes, CV picker.)*
+- [x] 5.2 **Dashboard** (`GET /api/stats`): tiles for total, sent, interviews and response rate; bar charts by status and jobs added per week (Recharts, theme-aware colours); follow-ups due in the next 7 days (overdue highlighted).
+- [x] 5.3 **Applications table:** search, status filter, **sorting** (job, status, added; a whitelist so only known columns can be sorted), paging, multi-select, and bulk actions: write letters, **move to a status** (recorded in history), **delete** (with confirmation). Bulk endpoint: `POST /api/applications/bulk`. *Used a hand-built table instead of TanStack Table: sorting is done on the server, so the extra library wasn't needed.*
+- [x] 5.4 **Kanban board** (dnd-kit): a column per status; drag a card to change its status, saved instantly with automatic rollback on error. Works with **mouse, touch and keyboard** (space to pick up, one arrow press = one column, space to drop). Mouse drops land exactly under the pointer. Shows the 200 most recently updated jobs. Table/Board choice is remembered.
+- [x] 5.5 **Application page:** tabs for *Cover letter* (from Phase 4) and *Details & timeline*: edit every job field with validation (http(s) links only, email format), status, priority, **notes**, **which CV to send**, a **status timeline**, and delete the job. **Add job** page for one-off jobs (`/applications/new`). *The letter editor is plain text, not rich text: letters go out as plain text or PDF/Word, so formatting would get lost.* The email preview comes with sending in Phase 6.
 - [x] 5.6 **Import wizard**: upload → map columns → preview → confirm → summary. *(Done in Phase 2.)*
-- [ ] 5.7 **Profile & Settings** pages (AI provider, Gmail connection, send limits, follow-up days, signature). *(Profile done in Phase 3; AI settings done in Phase 4.)*
-- [ ] 5.8 Data fetching with **TanStack Query**, toasts for success/errors, loading skeletons
-- [ ] 5.9 Dark mode + responsive layout
+- [ ] 5.7 **Profile & Settings** pages (AI provider, Gmail connection, send limits, follow-up days, signature). *(Profile done in Phase 3; AI settings done in Phase 4; email settings come in Phase 6 and follow-up settings in Phase 7.)*
+- [x] 5.8 Data fetching with **TanStack Query**, **toasts** (sonner) for success and errors, **loading skeletons** on the dashboard and lists
+- [x] 5.9 **Dark mode** (light / dark / system, remembered, applied before the first paint so there's no white flash) + responsive layout (every page checked at 375px phone width)
 
-**Done when:** the full flow (import → generate → review) can be done in the UI without touching `/docs`.
+**Done when:** the full flow (import → generate → review) can be done in the UI without touching `/docs`. ✅ Verified 2026-11-11 in the browser: dashboard tiles and charts, sorting both ways, Kanban moves by keyboard and by mouse (both saved), edit details with validation and a timeline entry, add job, bulk delete, dark mode, and every page at phone width.
+
+**Notes from Phase 5:**
+- Bugs found and fixed while testing: chart bars were invisible (SVG attributes can't use CSS variables, so charts now read the theme's real colours); keyboard moves on the board only shifted 25px per press (now one column per press); mouse drops could land one column off (now uses the pointer position).
+- New frontend dependencies (all MIT): recharts, @dnd-kit/core, sonner.
 
 ---
 
@@ -299,3 +303,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-06 | **Phase 3 done.** CV upload (PDF/Word/text) with a built-in offline reader and optional Gemini AI reader with guardrails, multiple CV versions, and a full Profile page. Fixed a migration data-loss bug. 85 backend + 16 frontend tests. |
 | 2026-11-10 | Phase 3 landed on the Phase 2 branch instead of `main` (stacked PR). Fixed with a new PR into `main`. |
 | 2026-11-10 | **Phase 4 done.** Cover letters with Gemini, Groq or Ollama; settings page with connection test; guardrail flags; email subject and body; versions; PDF and Word export; match score; background bulk writing with rate-limit retries; applications list and application page. 118 backend + 24 frontend tests. Not yet tried with a real AI model. |
+| 2026-11-11 | **Phase 5 done.** Dashboard charts and stats, sorting, bulk status and delete, Kanban board (mouse, touch, keyboard), add/edit job, notes, CV picker, timeline, toasts, skeletons, dark mode. 123 backend + 32 frontend tests. |

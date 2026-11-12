@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import applications, cvs, health, imports, letters, profile
+from app.api import applications, cvs, health, imports, letters, profile, stats
 from app.api import settings as settings_api
 from app.core.config import get_settings
 from app.core.db import run_migrations
@@ -53,6 +53,7 @@ def create_app() -> FastAPI:
     app.include_router(cvs.router, prefix="/api")
     app.include_router(profile.router, prefix="/api")
     app.include_router(letters.router, prefix="/api")
+    app.include_router(stats.router, prefix="/api")
     app.include_router(settings_api.router, prefix="/api")
     return app
 
