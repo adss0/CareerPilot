@@ -24,6 +24,7 @@ from app.api.deps import (
     get_email_settings_service,
     get_letter_queue,
 )
+from app.api.tracking import get_tracking_service
 from app.core.config import Settings
 from app.core.db import get_session, make_engine
 from app.main import app
@@ -32,6 +33,7 @@ from app.services.email_queue import EmailQueue
 from app.services.email_service import EmailService
 from app.services.email_settings_service import EmailSettingsService
 from app.services.letter_queue import LetterQueue
+from app.services.tracking_service import TrackingService
 
 
 @pytest.fixture
@@ -126,6 +128,9 @@ def client(
         session, env_settings, cv_dir
     )
     app.dependency_overrides[get_email_queue] = lambda: email_queue
+    app.dependency_overrides[get_tracking_service] = lambda: TrackingService(
+        session, env_settings, ai["provider"]
+    )
     # Not used as a context manager, so startup migrations don't run against a real file.
     yield TestClient(app)
     app.dependency_overrides.clear()

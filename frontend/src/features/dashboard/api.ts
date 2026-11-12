@@ -2,6 +2,13 @@
 import type { ApplicationStatus } from "@/features/applications/types";
 import { apiGet } from "@/lib/apiClient";
 
+export interface Breakdown {
+  label: string;
+  sent: number;
+  responses: number;
+  rate: number | null;
+}
+
 export interface Stats {
   total: number;
   by_status: Record<ApplicationStatus, number>;
@@ -18,6 +25,9 @@ export interface Stats {
     follow_up_at: string;
     overdue: boolean;
   }[];
+  avg_days_to_reply: number | null;
+  by_tone: Breakdown[];
+  by_cv: Breakdown[];
 }
 
 export const fetchStats = () => apiGet<Stats>("/stats");

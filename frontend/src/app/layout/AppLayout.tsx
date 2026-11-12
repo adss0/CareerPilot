@@ -1,5 +1,6 @@
 import {
   Briefcase,
+  CalendarDays,
   FileSpreadsheet,
   LayoutDashboard,
   Monitor,
@@ -12,11 +13,13 @@ import {
 import { NavLink, Outlet } from "react-router-dom";
 
 import { useTheme, type ThemeChoice } from "@/app/themeContext";
+import { useDesktopNotifications } from "@/features/tracking/useDesktopNotifications";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/applications", label: "Applications", icon: Briefcase },
+  { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/import", label: "Import", icon: FileSpreadsheet },
   { to: "/profile", label: "Profile", icon: User },
   { to: "/settings", label: "Settings", icon: Settings },
@@ -56,6 +59,8 @@ function ThemeToggle() {
 }
 
 export function AppLayout() {
+  const notifications = useDesktopNotifications();
+  const unseen = notifications?.unseen_replies ?? 0;
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <aside className="bg-card flex flex-col border-b md:sticky md:top-0 md:h-screen md:w-60 md:shrink-0 md:border-r md:border-b-0">
@@ -85,6 +90,14 @@ export function AppLayout() {
             >
               <Icon className="size-4" />
               {label}
+              {to === "/applications" && unseen > 0 && (
+                <span
+                  className="bg-primary text-primary-foreground ml-auto rounded-full px-1.5 text-xs tabular-nums"
+                  aria-label={`${unseen} new replies`}
+                >
+                  {unseen}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

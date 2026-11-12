@@ -18,6 +18,7 @@ from app.services.import_service import ImportService
 from app.services.letter_queue import LetterQueue
 from app.services.letter_service import LetterService
 from app.services.profile_service import ProfileService
+from app.services.tracking_service import ReplyChecker
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
@@ -88,6 +89,11 @@ def get_email_service(
 def get_email_queue() -> EmailQueue:
     """One send queue for the whole app (started when the server starts)."""
     return EmailQueue(lambda: Session(get_engine()), get_settings(), get_settings().cv_dir)
+
+
+@lru_cache
+def get_reply_checker() -> ReplyChecker:
+    return ReplyChecker(lambda: Session(get_engine()), get_settings(), get_settings().cv_dir)
 
 
 ApplicationServiceDep = Annotated[ApplicationService, Depends(get_application_service)]

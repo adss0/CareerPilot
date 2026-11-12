@@ -6,6 +6,7 @@ export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   ready: "Ready",
   sent: "Sent",
   followed_up: "Followed up",
+  replied: "Replied",
   interview: "Interview",
   offer: "Offer",
   rejected: "Rejected",
@@ -19,7 +20,8 @@ export const TONE_LABELS: Record<Tone, string> = {
 };
 
 export function statusVariant(status: ApplicationStatus) {
-  if (status === "offer" || status === "interview") return "success" as const;
+  if (status === "offer" || status === "interview" || status === "replied")
+    return "success" as const;
   if (status === "rejected" || status === "withdrawn") return "destructive" as const;
   if (status === "imported") return "outline" as const;
   return "secondary" as const;

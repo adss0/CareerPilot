@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     email_password: str = ""
     # How often the send queue checks for emails to send (seconds).
     email_queue_interval_seconds: float = 15
+    # How often to check the inbox for replies (minutes).
+    reply_check_minutes: float = 30
 
     db_path: str = "careerpilot.db"
     # Uploaded CVs and other private files. Git-ignored.

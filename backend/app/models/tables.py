@@ -95,6 +95,7 @@ class Application(SQLModel, table=True):
     applied_at: datetime | None = None
     last_contact_at: datetime | None = None
     follow_up_at: datetime | None = None
+    interview_at: datetime | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
 
@@ -118,6 +119,23 @@ class CoverLetter(SQLModel, table=True):
     edited: bool = Field(default=False, sa_column_kwargs={"server_default": "0"})
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime | None = None
+
+
+class InboxReply(SQLModel, table=True):
+    """A reply found in the user's inbox that answers one of their application emails."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    application_id: int = Field(sa_column=_application_fk())
+    email_log_id: int | None = Field(default=None, foreign_key="emaillog.id")
+    message_id: str = Field(max_length=300, unique=True)  # the reply's own Message-ID
+    from_address: str = Field(max_length=320)
+    subject: str = Field(default="", max_length=500)
+    snippet: str = Field(default="", max_length=1000)  # start of the reply, kept on this computer
+    received_at: datetime
+    # "interview", "rejection" or "other": a suggestion only; the user decides the status
+    classification: str = Field(default="other", max_length=20)
+    seen: bool = False
+    created_at: datetime = Field(default_factory=utcnow)
 
 
 class AppSetting(SQLModel, table=True):

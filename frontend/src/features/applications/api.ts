@@ -44,6 +44,7 @@ export type ApplicationInput = Partial<
     | "notes"
     | "status"
     | "cv_id"
+    | "interview_at"
   >
 >;
 

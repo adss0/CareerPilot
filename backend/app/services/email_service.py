@@ -1,5 +1,6 @@
 """Approve-then-send applications: preview, queue, cancel, retry, and assisted apply."""
 
+from datetime import timedelta
 from email.message import EmailMessage
 from pathlib import Path
 
@@ -183,8 +184,15 @@ class EmailService:
         if not log.is_test:
             application = self.applications.get(log.application_id)
             changes = ApplicationUpdate(last_contact_at=now)
-            if log.kind == "application" and application.status in NOT_YET_SENT:
-                changes.status = ApplicationStatus.SENT
+            if log.kind == "application":
+                if application.status in NOT_YET_SENT:
+                    changes.status = ApplicationStatus.SENT
+                days = self.settings_service.settings().follow_up_days
+                changes.follow_up_at = now + timedelta(days=days)
+            elif log.kind == "follow_up":
+                if application.status == ApplicationStatus.SENT:
+                    changes.status = ApplicationStatus.FOLLOWED_UP
+                changes.follow_up_at = None
             self.applications.update(log.application_id, changes)
 
     def mark_failed(self, log: EmailLog, error: str) -> None:

@@ -7,6 +7,7 @@ class ApplicationStatus(StrEnum):
     READY = "ready"
     SENT = "sent"
     FOLLOWED_UP = "followed_up"
+    REPLIED = "replied"
     INTERVIEW = "interview"
     OFFER = "offer"
     REJECTED = "rejected"

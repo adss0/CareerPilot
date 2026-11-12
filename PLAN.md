@@ -17,8 +17,8 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 4 | **AI cover letters:** tailored letters from free AI, tones, versions, PDF/Word export | ✅ Done |
 | 5 | **User interface:** dashboard, applications table, Kanban board, letter editor | ✅ Done |
 | 6 | **Sending:** approve-then-send email via Gmail, daily limits, assisted apply for job sites | ✅ Done |
-| 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ⏭️ Next |
-| 8 | **Desktop app:** installable Windows app (Tauri) | ☐ Planned |
+| 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ✅ Done |
+| 8 | **Desktop app:** installable Windows app (Tauri) | ⏭️ Next |
 | 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ☐ Planned |
 
 *Rough estimates: each phase is about 1–7 days for one person working part-time.*
@@ -238,14 +238,25 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 **Goal:** never lose track of an application.
 
-- [ ] 7.1 Status history recorded on every change (timeline on the detail page)
-- [ ] 7.2 **Follow-up rules**: if `SENT` and no reply after N days (default 7) → reminder + AI-drafted polite follow-up email (still requires approval)
-- [ ] 7.3 **Reply detection**: poll Gmail threads (APScheduler, every 30 min) and mark `REPLIED`. Optionally ask the AI to classify the reply as interview / rejection / other.
-- [ ] 7.4 Desktop notifications for follow-ups and replies
-- [ ] 7.5 Stats: response rate, interview rate, average days to reply, best-performing tone/CV version
-- [ ] 7.6 Calendar-style view of interviews and follow-ups
+- [x] 7.1 Status history recorded on every change, shown as a timeline on the job page *(Phase 5)*. New **Replied** status, plus an **interview date** on each job.
+- [x] 7.2 **Follow-ups:** a real send sets the follow-up date (default 7 days, set in Settings). The job's Apply tab offers **Draft a follow-up**: written by AI if it's set up, otherwise by a free built-in template (greets the contact by name, mentions the role, company and send date). Editable, needs approval, and goes through the same queue **as a reply in the same email thread** (In-Reply-To / References). Sending it moves the job to *Followed up*.
+- [x] 7.3 **Reply detection over IMAP** (same App Password), **read-only** (nothing is marked as read):
+  - checks every 30 minutes, plus **Check replies now** on the dashboard
+  - matches replies by **thread** (In-Reply-To/References to our Message-IDs) or by **sender** = the employer you emailed (only after you sent, only for real sends)
+  - ignores your own sent copies and never counts the same reply twice
+  - a matched reply moves the job to **Replied**, clears its follow-up and records `last_contact_at`
+  - each reply is **classified** (interview / rejection / other) with keywords, as a **suggestion only**: buttons let *you* mark the job as Interview or Rejected
+  - the start of each reply is kept locally so you can read it in the app
+- [x] 7.4 **Desktop notifications** (browser Notification API, opt-in in Settings) when new replies arrive or follow-ups become due, plus an unread-replies badge in the sidebar. *Native OS notifications come with the desktop app (Phase 8).*
+- [x] 7.5 **Insights** on the dashboard: average days until employers reply, and response rate **by letter tone** and **by CV**. *Replied* now counts as a response.
+- [x] 7.6 **Calendar** page: month grid (Monday first) of interviews (with time) and follow-ups due, linking to each job; a simple list on phones.
 
-**Done when:** a sent application with no reply automatically surfaces as "Follow up today" after N days.
+**Done when:** a sent application with no reply automatically surfaces as "Follow up today" after N days. ✅ Verified 2026-11-12 in the browser:
+- A real send (to a local test mail server) set the follow-up date 7 days ahead.
+- Draft a follow-up gave a correct template, sent as "Re: …" with no attachments, and the job moved to *Followed up*.
+- The interview date showed on the calendar.
+- The dashboard insights showed rates by tone and CV, and "Check replies now" gave a friendly error when the inbox can't be reached.
+- ⚠️ Reply detection was tested with a fake inbox and a fake IMAP server in the automated tests, not against a real Gmail/Outlook inbox (no `EMAIL_PASSWORD` set).
 
 ---
 
@@ -314,3 +325,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-10 | **Phase 4 done.** Cover letters with Gemini, Groq or Ollama; settings page with connection test; guardrail flags; email subject and body; versions; PDF and Word export; match score; background bulk writing with rate-limit retries; applications list and application page. 118 backend + 24 frontend tests. Not yet tried with a real AI model. |
 | 2026-11-11 | **Phase 5 done.** Dashboard charts and stats, sorting, bulk status and delete, Kanban board (mouse, touch, keyboard), add/edit job, notes, CV picker, timeline, toasts, skeletons, dark mode. 123 backend + 32 frontend tests. |
 | 2026-11-11 | **Phase 6 done.** Approve-then-send email over SMTP (App Password), test mode on by default, review screen, bulk send, background queue with random gaps and a daily limit, retry and cancel, assisted apply, email settings page. 139 backend + 40 frontend tests. Gmail OAuth deliberately skipped (see 6.1). |
+| 2026-11-12 | **Phase 7 done.** Follow-ups (AI or template, threaded, approved), IMAP reply detection with suggested classification, Replied status, interview dates, calendar, insights by tone and CV, desktop notifications. 154 backend + 47 frontend tests. |
