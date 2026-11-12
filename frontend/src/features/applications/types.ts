@@ -5,6 +5,7 @@ export type ApplicationStatus =
   | "ready"
   | "sent"
   | "followed_up"
+  | "replied"
   | "interview"
   | "offer"
   | "rejected"
@@ -25,6 +26,9 @@ export interface Application {
   priority: number;
   notes: string;
   cv_id: number | null;
+  interview_at: string | null;
+  follow_up_at: string | null;
+  applied_at: string | null;
   created_at: string;
   updated_at: string;
   letter_count: number;

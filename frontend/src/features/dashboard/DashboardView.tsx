@@ -1,4 +1,4 @@
-import { AlarmClock, FileSpreadsheet } from "lucide-react";
+import { AlarmClock, FileSpreadsheet, Inbox, Lightbulb, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -8,8 +8,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { BackendStatus } from "@/features/health/BackendStatus";
 import { useChartColors } from "@/lib/chartColors";
+import { formatDateTime } from "@/lib/dates";
 
+import type { Breakdown } from "./api";
 import type { DashboardViewModel } from "./useDashboardViewModel";
+
+function BreakdownList({ title, rows }: { title: string; rows: Breakdown[] }) {
+  if (rows.length === 0) return null;
+  return (
+    <div className="space-y-1">
+      <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">{title}</p>
+      <ul className="space-y-1">
+        {rows.map((r) => (
+          <li key={r.label} className="flex items-center justify-between gap-3">
+            <span className="truncate">{r.label}</span>
+            <span className="text-muted-foreground tabular-nums">
+              {r.rate === null ? "-" : `${Math.round(r.rate * 100)}%`} of {r.sent}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 const tooltip = {
   contentStyle: {
@@ -151,7 +172,55 @@ export function DashboardView(vm: DashboardViewModel) {
             )}
           </CardContent>
         </Card>
-        <BackendStatus />
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Inbox className="size-4" /> Replies
+              </CardTitle>
+              <CardDescription>
+                CareerPilot checks your inbox every 30 minutes.{" "}
+                {vm.lastReplyCheck
+                  ? `Last checked ${formatDateTime(vm.lastReplyCheck)}.`
+                  : "Not checked yet."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={vm.checkReplies}
+                disabled={vm.isChecking}
+              >
+                {vm.isChecking ? <Loader2 className="animate-spin" /> : <Inbox />}
+                Check replies now
+              </Button>
+            </CardContent>
+          </Card>
+          {(vm.avgDaysToReply !== null || vm.byTone.length > 0 || vm.byCv.length > 0) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lightbulb className="size-4" /> What's working
+                </CardTitle>
+                <CardDescription>
+                  Response rates from applications that have gone out.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm">
+                {vm.avgDaysToReply !== null && (
+                  <p>
+                    Employers reply in{" "}
+                    <span className="font-semibold">{vm.avgDaysToReply} days</span> on average.
+                  </p>
+                )}
+                <BreakdownList title="By letter tone" rows={vm.byTone} />
+                <BreakdownList title="By CV" rows={vm.byCv} />
+              </CardContent>
+            </Card>
+          )}
+          <BackendStatus />
+        </div>
       </div>
     </div>
   );

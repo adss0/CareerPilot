@@ -1,6 +1,7 @@
 // Connects the ViewModels (AI provider, email) to their Views.
 import { EmailSettingsView } from "@/features/email/EmailSettingsView";
 import { useEmailSettingsViewModel } from "@/features/email/useEmailSettingsViewModel";
+import { NotificationSettingsView } from "@/features/tracking/NotificationSettingsView";
 
 import { SettingsView } from "./SettingsView";
 import { useSettingsViewModel } from "./useSettingsViewModel";
@@ -12,6 +13,7 @@ export function SettingsPage() {
     <div className="max-w-3xl space-y-6">
       <SettingsView {...vm} />
       <EmailSettingsView {...email} />
+      <NotificationSettingsView />
     </div>
   );
 }

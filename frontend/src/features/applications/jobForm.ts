@@ -1,3 +1,5 @@
+import { parseServerDate } from "@/lib/dates";
+
 import type { ApplicationInput } from "./api";
 import type { Application, ApplicationStatus } from "./types";
 
@@ -14,6 +16,7 @@ export interface JobFormValues {
   status: ApplicationStatus;
   priority: number;
   cv_id: string; // "" = use the default CV
+  interview_at: string; // datetime-local value, "" = none
 }
 
 export const EMPTY_JOB: JobFormValues = {
@@ -29,7 +32,15 @@ export const EMPTY_JOB: JobFormValues = {
   status: "imported",
   priority: 0,
   cv_id: "",
+  interview_at: "",
 };
+
+/** Server UTC time → the local "YYYY-MM-DDTHH:mm" a datetime-local input expects. */
+export function toLocalInput(value: string): string {
+  const d = parseServerDate(value);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export function toJobValues(a: Application): JobFormValues {
   return {
@@ -45,6 +56,7 @@ export function toJobValues(a: Application): JobFormValues {
     status: a.status,
     priority: a.priority,
     cv_id: a.cv_id === null ? "" : String(a.cv_id),
+    interview_at: a.interview_at ? toLocalInput(a.interview_at) : "",
   };
 }
 
@@ -56,6 +68,7 @@ export function toJobInput(values: JobFormValues): ApplicationInput {
     job_url: values.job_url.trim(),
     contact_email: values.contact_email.trim(),
     cv_id: values.cv_id ? Number(values.cv_id) : null,
+    interview_at: values.interview_at ? new Date(values.interview_at).toISOString() : null,
   };
 }
 

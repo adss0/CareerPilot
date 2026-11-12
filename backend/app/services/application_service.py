@@ -15,7 +15,14 @@ from app.schemas.application import (
 from app.services.excel_export import build_applications_workbook
 
 # Fields that may be cleared with null; null for any other field is ignored.
-NULLABLE_FIELDS = {"contact_email", "applied_at", "last_contact_at", "follow_up_at", "cv_id"}
+NULLABLE_FIELDS = {
+    "contact_email",
+    "applied_at",
+    "last_contact_at",
+    "follow_up_at",
+    "interview_at",
+    "cv_id",
+}
 
 
 class ApplicationService:

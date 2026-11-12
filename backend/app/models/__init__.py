@@ -6,6 +6,7 @@ from app.models.tables import (
     CvDocument,
     EmailLog,
     ImportBatch,
+    InboxReply,
     Profile,
     StatusHistory,
 )
@@ -19,6 +20,7 @@ __all__ = [
     "EmailLog",
     "EmailStatus",
     "ImportBatch",
+    "InboxReply",
     "Profile",
     "StatusHistory",
 ]

@@ -93,6 +93,13 @@ export function JobFormView({ values, problems, cvs, onChange }: JobFormViewProp
           ))}
         </NativeSelect>
       </Field>
+      <Field label="Interview">
+        <Input
+          type="datetime-local"
+          value={values.interview_at}
+          onChange={(e) => onChange({ interview_at: e.target.value })}
+        />
+      </Field>
       <Field label="Job description" wide>
         <Textarea
           rows={8}

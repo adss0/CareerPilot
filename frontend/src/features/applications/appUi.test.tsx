@@ -30,6 +30,9 @@ const app = (
   priority: 0,
   notes: "",
   cv_id: null,
+  interview_at: null,
+  follow_up_at: null,
+  applied_at: null,
   created_at: "2026-11-10T09:00:00",
   updated_at: "2026-11-10T09:00:00",
   letter_count: 0,
@@ -42,7 +45,7 @@ describe("board", () => {
     expect(groups.sent.map((a) => a.id)).toEqual([1, 2]);
     expect(groups.offer).toHaveLength(1);
     expect(groups.imported).toEqual([]);
-    expect(Object.keys(groups)).toHaveLength(9);
+    expect(Object.keys(groups)).toHaveLength(10);
   });
 
   it("renders a column per status with counts and draggable cards", () => {
@@ -119,6 +122,7 @@ describe("dashboard", () => {
         ready: 0,
         sent: 3,
         followed_up: 0,
+        replied: 0,
         interview: 1,
         offer: 0,
         rejected: 1,
@@ -131,10 +135,15 @@ describe("dashboard", () => {
       response_rate: 0.4,
       added_per_week: [{ week_start: "2026-11-09", count: 2 }],
       follow_ups_due: [],
+      avg_days_to_reply: 3.5,
+      by_tone: [{ label: "Friendly", sent: 2, responses: 1, rate: 0.5 }],
+      by_cv: [],
     });
     expect(vm.stats.map((s) => s.value)).toEqual(["10", "5", "1", "40%"]);
     expect(vm.statusChart.find((c) => c.status === "sent")?.count).toBe(3);
     expect(vm.weeklyChart).toHaveLength(1);
+    expect(vm.avgDaysToReply).toBe(3.5);
+    expect(vm.byTone[0].label).toBe("Friendly");
   });
 });
 
@@ -154,12 +163,15 @@ describe("theme toggle", () => {
     window.matchMedia ??= vi
       .fn()
       .mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() });
+    const { QueryClient, QueryClientProvider } = await import("@tanstack/react-query");
     render(
-      <ThemeProvider>
-        <MemoryRouter>
-          <AppLayout />
-        </MemoryRouter>
-      </ThemeProvider>,
+      <QueryClientProvider client={new QueryClient()}>
+        <ThemeProvider>
+          <MemoryRouter>
+            <AppLayout />
+          </MemoryRouter>
+        </ThemeProvider>
+      </QueryClientProvider>,
     );
     fireEvent.click(screen.getAllByRole("radio", { name: "Dark theme" })[0]);
     expect(document.documentElement.classList.contains("dark")).toBe(true);

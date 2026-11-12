@@ -8,6 +8,7 @@ import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { ImportPage } from "@/features/imports/ImportPage";
 import { ProfilePage } from "@/features/profile/ProfilePage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
+import { CalendarPage } from "@/features/tracking/CalendarPage";
 
 export const router = createBrowserRouter([
   {
@@ -17,6 +18,7 @@ export const router = createBrowserRouter([
       { path: "/applications", element: <ApplicationsPage /> },
       { path: "/applications/new", element: <NewApplicationPage /> },
       { path: "/applications/:id", element: <ApplicationDetailPage /> },
+      { path: "/calendar", element: <CalendarPage /> },
       { path: "/import", element: <ImportPage /> },
       { path: "/profile", element: <ProfilePage /> },
       { path: "/settings", element: <SettingsPage /> },

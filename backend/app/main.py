@@ -5,9 +5,9 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import applications, cvs, emails, health, imports, letters, profile, stats
+from app.api import applications, cvs, emails, health, imports, letters, profile, stats, tracking
 from app.api import settings as settings_api
-from app.api.deps import get_email_queue
+from app.api.deps import get_email_queue, get_reply_checker
 from app.core.config import get_settings
 from app.core.db import run_migrations
 from app.core.errors import BadRequestError, NotFoundError
@@ -20,8 +20,11 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     run_migrations()
     email_queue = get_email_queue()
     email_queue.start()  # sends approved emails in the background
+    reply_checker = get_reply_checker()
+    reply_checker.start()  # looks for replies in your inbox every 30 minutes
     yield
     email_queue.stop()
+    reply_checker.stop()
 
 
 def create_app() -> FastAPI:
@@ -59,6 +62,7 @@ def create_app() -> FastAPI:
     app.include_router(letters.router, prefix="/api")
     app.include_router(stats.router, prefix="/api")
     app.include_router(emails.router, prefix="/api")
+    app.include_router(tracking.router, prefix="/api")
     app.include_router(settings_api.router, prefix="/api")
     return app
 

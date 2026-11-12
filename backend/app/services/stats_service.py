@@ -1,13 +1,14 @@
 from datetime import UTC, datetime, timedelta
 
-from sqlmodel import Session
+from sqlmodel import Session, col, select
 
+from app.models import Application, CoverLetter, CvDocument, EmailLog, InboxReply
 from app.models import ApplicationStatus as S
 from app.repositories.application_repository import ApplicationRepository
-from app.schemas.stats import FollowUpDue, StatsRead, WeekCount
+from app.schemas.stats import Breakdown, FollowUpDue, StatsRead, WeekCount
 
-SENT_OR_LATER = [S.SENT, S.FOLLOWED_UP, S.INTERVIEW, S.OFFER, S.REJECTED]
-RESPONDED = [S.INTERVIEW, S.OFFER, S.REJECTED]
+SENT_OR_LATER = [S.SENT, S.FOLLOWED_UP, S.REPLIED, S.INTERVIEW, S.OFFER, S.REJECTED]
+RESPONDED = [S.REPLIED, S.INTERVIEW, S.OFFER, S.REJECTED]
 AWAITING_REPLY = [S.SENT, S.FOLLOWED_UP]
 WEEKS = 8
 
@@ -19,6 +20,7 @@ def _naive(value: datetime) -> datetime:
 
 class StatsService:
     def __init__(self, session: Session, now: datetime | None = None):
+        self.session = session
         self.repo = ApplicationRepository(session)
         self.now = _naive(now or datetime.now(UTC))
 
@@ -51,6 +53,9 @@ class StatsService:
                 WeekCount(week_start=(first_week + timedelta(weeks=i)).date().isoformat(), count=c)
                 for i, c in enumerate(weekly)
             ],
+            avg_days_to_reply=self._avg_days_to_reply(),
+            by_tone=self._breakdown("tone"),
+            by_cv=self._breakdown("cv"),
             follow_ups_due=[
                 FollowUpDue(
                     id=a.id,
@@ -61,4 +66,52 @@ class StatsService:
                 )
                 for a in due
             ],
+        )
+
+    def _avg_days_to_reply(self) -> float | None:
+        rows = self.session.exec(
+            select(InboxReply.received_at, EmailLog.sent_at)
+            .join(EmailLog, col(InboxReply.email_log_id) == col(EmailLog.id))
+            .where(col(EmailLog.is_test).is_(False), col(EmailLog.sent_at).is_not(None))
+        ).all()
+        days = [(_naive(r) - _naive(s)).total_seconds() / 86400 for r, s in rows]
+        return round(sum(days) / len(days), 1) if days else None
+
+    def _breakdown(self, by: str) -> list[Breakdown]:
+        """Response rate per letter tone or per CV, over applications that have gone out."""
+        applications = self.session.exec(
+            select(Application).where(col(Application.status).in_(SENT_OR_LATER))
+        ).all()
+        if not applications:
+            return []
+        cvs = {cv.id: cv for cv in self.session.exec(select(CvDocument)).all()}
+        default_cv = next((cv.label for cv in cvs.values() if cv.is_default), "No CV")
+        tones = dict(
+            self.session.exec(
+                select(CoverLetter.application_id, CoverLetter.tone).where(
+                    col(CoverLetter.is_selected).is_(True)
+                )
+            ).all()
+        )
+        groups: dict[str, list[bool]] = {}
+        for a in applications:
+            if by == "tone":
+                label = tones.get(a.id)
+                if label is None:
+                    continue  # applied without a CareerPilot letter
+                label = label.capitalize()
+            else:
+                label = cvs[a.cv_id].label if a.cv_id in cvs else default_cv
+            groups.setdefault(label, []).append(a.status in RESPONDED)
+        return sorted(
+            (
+                Breakdown(
+                    label=label,
+                    sent=len(results),
+                    responses=sum(results),
+                    rate=round(sum(results) / len(results), 3),
+                )
+                for label, results in groups.items()
+            ),
+            key=lambda b: (-b.sent, b.label),
         )

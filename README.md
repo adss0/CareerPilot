@@ -2,7 +2,7 @@
 
 **Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
 
-> 🚧 Status: early development. Phases 0–6 (setup, database, Excel import & export, profile & CV, AI cover letters, full app UI, sending) are done, and Phase 7 (tracking & follow-ups) is next. See the [plan](PLAN.md).
+> 🚧 Status: early development. Phases 0–7 (setup, database, Excel import & export, profile & CV, AI cover letters, full app UI, sending, tracking & follow-ups) are done, and Phase 8 (desktop app) is next. See the [plan](PLAN.md).
 
 ---
 
@@ -32,7 +32,7 @@ Applying for jobs is repetitive: copy the job details, rewrite a cover letter, a
 4. **Apply.**
    - **Email jobs:** CareerPilot writes the email, attaches your letter and CV, and sends it from your own email account (Gmail, Outlook…) **after you click approve**. Test mode is on until you switch it off, so the first emails come to you. Sends are spaced out and capped each day so you never look like spam.
    - **Job-site jobs (LinkedIn, Indeed, company portals):** *Assisted apply.* CareerPilot copies your letter, gets your CV ready and opens the job page, then **you** click submit. It's fast and keeps your accounts safe.
-5. **Track everything.** A board and a table show every application: *Imported → Drafted → Ready → Sent → Interview → Offer / Rejected*. CareerPilot notices replies, reminds you to follow up when a company goes quiet, shows your stats, and exports everything back to Excel.
+5. **Track everything.** A board, a table and a calendar show every application: *Imported → Drafted → Ready → Sent → Followed up → Replied → Interview → Offer / Rejected*. CareerPilot notices replies, reminds you to follow up when a company goes quiet, shows your stats, and exports everything back to Excel.
 
 ---
 
