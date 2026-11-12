@@ -57,6 +57,8 @@ export function useJobDetailsViewModel(applicationId: number): JobDetailsViewMod
       setDraft(null);
       setShowProblems(false);
       void queryClient.invalidateQueries({ queryKey: ["applications"] });
+      // The contact email and chosen CV change what the Apply tab will send.
+      void queryClient.invalidateQueries({ queryKey: ["email-preview", applicationId] });
       toast.success("Job details saved.");
     },
     onError: (e) => toast.error(errorText(e)),

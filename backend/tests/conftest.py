@@ -132,7 +132,8 @@ def client(
         session, env_settings, ai["provider"]
     )
     # Not used as a context manager, so startup migrations don't run against a real file.
-    yield TestClient(app)
+    # Like the real frontend, every request carries the X-CareerPilot header.
+    yield TestClient(app, headers={"X-CareerPilot": "1"})
     app.dependency_overrides.clear()
 
 

@@ -32,3 +32,8 @@ plan/
 .build/
 desktop/src-tauri/target/
 desktop/src-tauri/binaries/
+
+# Test coverage data
+.coverage
+coverage.xml
+htmlcov/

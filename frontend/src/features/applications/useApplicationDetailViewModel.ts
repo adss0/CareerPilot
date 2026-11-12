@@ -88,6 +88,8 @@ export function useApplicationDetailViewModel(applicationId: number): Applicatio
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: ["letters", applicationId] });
     void queryClient.invalidateQueries({ queryKey: ["applications"] });
+    // The Apply tab's preview shows the starred letter's subject and message.
+    void queryClient.invalidateQueries({ queryKey: ["email-preview", applicationId] });
   };
   const onError = (e: unknown) => setError(errorText(e));
 
