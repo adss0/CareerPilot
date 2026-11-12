@@ -27,3 +27,8 @@ Thumbs.db
 
 # Old local plan folder (the plan now lives in README.md)
 plan/
+
+# Desktop build output
+.build/
+desktop/src-tauri/target/
+desktop/src-tauri/binaries/

@@ -1,16 +1,28 @@
+import os
+import sys
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-BACKEND_DIR = Path(__file__).resolve().parents[2]
+# Where the code and its bundled files (alembic.ini, migrations) live. In the desktop app the
+# backend is a PyInstaller bundle that unpacks to sys._MEIPASS.
+BACKEND_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
+
+# Where the user's data lives: the desktop app sets CAREERPILOT_HOME to the Windows app-data
+# folder; in development it's backend/.
+HOME_DIR = (
+    Path(os.environ["CAREERPILOT_HOME"]) if os.environ.get("CAREERPILOT_HOME") else BACKEND_DIR
+)
+if not os.environ.get("CAREERPILOT_HOME") and getattr(sys, "frozen", False):
+    HOME_DIR = Path(sys.executable).parent  # a bundle run by hand: keep data next to it
 
 
 class Settings(BaseSettings):
-    # Paths are relative to backend/, whichever folder the server is started from.
+    # The .env file and relative paths are inside the home folder, wherever the server starts.
     model_config = SettingsConfigDict(
-        env_file=BACKEND_DIR / ".env", env_file_encoding="utf-8", extra="ignore"
+        env_file=HOME_DIR / ".env", env_file_encoding="utf-8", extra="ignore"
     )
 
     app_name: str = "CareerPilot"
@@ -51,7 +63,7 @@ class Settings(BaseSettings):
     @staticmethod
     def _resolve(value: str) -> Path:
         path = Path(value)
-        return path if path.is_absolute() else BACKEND_DIR / path
+        return path if path.is_absolute() else HOME_DIR / path
 
     @property
     def cors_origin_list(self) -> list[str]:

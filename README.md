@@ -2,7 +2,7 @@
 
 **Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
 
-> 🚧 Status: early development. Phases 0–7 (setup, database, Excel import & export, profile & CV, AI cover letters, full app UI, sending, tracking & follow-ups) are done, and Phase 8 (desktop app) is next. See the [plan](PLAN.md).
+> 🚧 Status: early development. Phases 0–8 are done (everything up to the Windows desktop app), and Phase 9 (polish and the v1.0 release) is next. See the [plan](PLAN.md).
 
 ---
 
@@ -86,6 +86,18 @@ backend/app/
 ## Development plan
 
 The roadmap, every development phase step by step, and the progress log are in **[PLAN.md](PLAN.md)**.
+
+---
+
+## Desktop app (Windows)
+
+CareerPilot installs like a normal Windows app. Nothing else (Python, Node) is needed.
+
+1. Download the installer: from a [GitHub Release](https://github.com/adss0/CareerPilot/releases), or from the latest **Desktop app** run on the [Actions tab](https://github.com/adss0/CareerPilot/actions/workflows/desktop.yml) (artifact *CareerPilot-windows-installer*).
+2. Run `CareerPilot_x.y.z_x64-setup.exe`. It installs for your user only; no admin rights are needed.
+3. Your data (database, CVs, settings) lives in `%APPDATA%pp.careerpilot.desktop`. Put your keys in a `.env` file there (same format as `backend/.env.example`) and restart the app.
+
+**Building it yourself** needs Rust and Node: build the backend with `pyinstaller careerpilot-server.spec` in `backend/`, copy it to `desktop/src-tauri/binaries/careerpilot-server-x86_64-pc-windows-msvc.exe`, run `npm run build:desktop` in `frontend/`, then `npx tauri build` in `desktop/`. The [workflow](.github/workflows/desktop.yml) does exactly this.
 
 ---
 
