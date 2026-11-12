@@ -18,8 +18,8 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 5 | **User interface:** dashboard, applications table, Kanban board, letter editor | ✅ Done |
 | 6 | **Sending:** approve-then-send email via Gmail, daily limits, assisted apply for job sites | ✅ Done |
 | 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ✅ Done |
-| 8 | **Desktop app:** installable Windows app (Tauri) | ⏭️ Next |
-| 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ☐ Planned |
+| 8 | **Desktop app:** installable Windows app (Tauri) | ✅ Done |
+| 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ⏭️ Next |
 
 *Rough estimates: each phase is about 1–7 days for one person working part-time.*
 
@@ -264,14 +264,18 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 **Goal:** a real installable app.
 
-- [ ] 8.1 Add **Tauri 2** around the built React frontend
-- [ ] 8.2 Bundle the Python backend with **PyInstaller** as a Tauri **sidecar** that starts and stops with the app
-- [ ] 8.3 Store the DB and files in the OS app-data folder (e.g. `%APPDATA%/CareerPilot`)
-- [ ] 8.4 App icon, name and window settings; system-tray icon for background reminders
-- [ ] 8.5 Build a Windows installer (`.msi`/`.exe`); macOS/Linux builds optional via GitHub Actions
-- [ ] 8.6 Auto-update via Tauri updater + GitHub Releases (optional)
+- [x] 8.1 **Tauri 2** project in `desktop/`: a window around the built frontend (`npm run build:desktop`: talks to `127.0.0.1:8765`, uses `#/` routes). Web links open in your normal browser (opener plugin). Downloads are saved directly. Only one copy can run at a time (single-instance plugin). Strict content security policy.
+- [x] 8.2 **Backend bundled with PyInstaller** into one `careerpilot-server.exe` (`backend/careerpilot-server.spec`, ~39 MB), started by the app as a **sidecar** on `127.0.0.1` only and stopped when the app closes.
+  - **Bug found and fixed:** a one-file bundle runs as two processes, and killing the launcher left the server running and holding the port. The server now watches the app's process ID and exits within 2 seconds if the app goes away (even after a crash).
+  - **Bug found and fixed:** with no console, logging crashed at start-up behind an invisible "Unhandled exception" dialog. Output now goes to `careerpilot-server.log` in the data folder.
+- [x] 8.3 Database, CVs, `.env` and the log live in the app-data folder (`%APPDATA%pp.careerpilot.desktop`), set via `CAREERPILOT_HOME`. Development still uses `backend/`.
+- [x] 8.4 App name, icon (generated from `desktop/app-icon.png`) and window size. *No tray icon: reminders and notifications come from the open app window (Phase 7). A tray icon to keep it running in the background is a future idea.*
+- [x] 8.5 **Windows installer built by GitHub Actions** (`.github/workflows/desktop.yml`) on `windows-latest`: build backend exe → **smoke-test it** → build desktop frontend → `tauri build` (NSIS `.exe` + `.msi`, per-user install). The installer is attached to the run as an artifact; pushing a tag like `v1.0.0` also creates a **draft GitHub Release**. *Built in CI because Rust isn't installed on this PC. macOS/Linux builds are possible later.*
+- [ ] 8.6 Auto-update via Tauri updater + GitHub Releases (optional). *Not done: it needs a signing key pair; the plan is to add it after v1.0.*
 
 **Done when:** installing the `.exe` on a clean PC works without Python or Node installed.
+- ✅ Verified 2026-11-12: the bundled `careerpilot-server.exe` runs **without Python**: it started with a fresh data folder, ran migrations, imported Excel, read a Word CV, and exported a letter as PDF and Word. With no console it starts cleanly and logs to a file, and it exits within 4 seconds once its parent app closes.
+- ⚠️ The full installer is built and smoke-tested by GitHub Actions. Installing it on a clean PC is part of the release check in Phase 9.
 
 ---
 
@@ -326,3 +330,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-11 | **Phase 5 done.** Dashboard charts and stats, sorting, bulk status and delete, Kanban board (mouse, touch, keyboard), add/edit job, notes, CV picker, timeline, toasts, skeletons, dark mode. 123 backend + 32 frontend tests. |
 | 2026-11-11 | **Phase 6 done.** Approve-then-send email over SMTP (App Password), test mode on by default, review screen, bulk send, background queue with random gaps and a daily limit, retry and cancel, assisted apply, email settings page. 139 backend + 40 frontend tests. Gmail OAuth deliberately skipped (see 6.1). |
 | 2026-11-12 | **Phase 7 done.** Follow-ups (AI or template, threaded, approved), IMAP reply detection with suggested classification, Replied status, interview dates, calendar, insights by tone and CV, desktop notifications. 154 backend + 47 frontend tests. |
+| 2026-11-12 | **Phase 8 done.** Tauri desktop shell, backend bundled with PyInstaller as a sidecar (fixed orphaned-process and no-console crash bugs), app-data folder, icons, Windows installer built and smoke-tested in GitHub Actions, draft Release on version tags. |

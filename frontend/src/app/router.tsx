@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, createHashRouter } from "react-router-dom";
 
 import { AppLayout } from "@/app/layout/AppLayout";
 import { ApplicationDetailPage } from "@/features/applications/ApplicationDetailPage";
@@ -10,7 +10,10 @@ import { ProfilePage } from "@/features/profile/ProfilePage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { CalendarPage } from "@/features/tracking/CalendarPage";
 
-export const router = createBrowserRouter([
+// The desktop app has no web server to send deep links back to index.html, so it uses #/ URLs.
+const createRouter = import.meta.env.VITE_DESKTOP === "1" ? createHashRouter : createBrowserRouter;
+
+export const router = createRouter([
   {
     element: <AppLayout />,
     children: [
