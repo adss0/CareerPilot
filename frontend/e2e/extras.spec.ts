@@ -68,10 +68,17 @@ test("add a job from any site, then see it due on the dashboard and tracker", as
 
   await page.goto("/");
   await expect(page.getByText("Due this week")).toBeVisible();
-  await expect(page.getByText("Online test due tomorrow")).toBeVisible();
+  // The "Coming up" banner on every page, and the stage on the calendar.
+  const comingUp = page.getByRole("status").filter({ hasText: "Coming up" });
+  await expect(comingUp.getByText("Online test due tomorrow")).toBeVisible();
+  await page.goto("/calendar");
+  if (new Date(Date.now() + 86_400_000).getMonth() !== new Date().getMonth()) {
+    await page.getByRole("button", { name: "Next month" }).click();
+  }
+  await expect(page.getByRole("link", { name: /Online test · Umbrella/ })).toBeVisible();
 
   await page.goto("/applications");
-  await expect(page.getByText("Online test due tomorrow")).toBeVisible();
+  await expect(page.getByRole("cell").getByText("Online test due tomorrow")).toBeVisible();
   await expect(page.getByRole("button", { name: "Hooli", exact: true })).toBeVisible();
   await page.getByLabel("Hide closed").check();
   await expect(page.getByRole("button", { name: "Hooli", exact: true })).toHaveCount(0);

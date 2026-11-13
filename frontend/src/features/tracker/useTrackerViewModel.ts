@@ -183,7 +183,7 @@ export function useTrackerViewModel(): TrackerViewModel {
     items,
     total: listQuery.data?.total ?? 0,
     summary: summaryQuery.data ?? null,
-    isLoading: listQuery.isPending,
+    isLoading: !listQuery.isSuccess,
     error: error ?? (listQuery.error ? errorText(listQuery.error) : null),
     search,
     status,

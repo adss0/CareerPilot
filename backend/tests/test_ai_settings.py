@@ -4,7 +4,7 @@ from tests.test_ai import FakeAI
 def test_defaults_come_from_env_settings(client):
     body = client.get("/api/settings/ai").json()
     assert body["provider"] == "gemini"
-    assert body["model"] == "gemini-flash-latest"
+    assert body["model"] == "gemini-3-flash-preview"
     assert body["request_gap_seconds"] == 4
     providers = {p["name"]: p for p in body["providers"]}
     assert providers["gemini"]["configured"] is False  # no key in tests

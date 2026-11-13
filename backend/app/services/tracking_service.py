@@ -3,7 +3,7 @@
 import re
 import threading
 from collections.abc import Callable
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
 
 from sqlmodel import Session, col, func, select
@@ -28,7 +28,9 @@ from app.schemas.tracking import (
 from app.services.application_service import ApplicationService
 from app.services.email_builder import clean_header, new_message_id, with_signature
 from app.services.email_settings_service import EmailSettingsService
+from app.services.import_service import parse_day
 from app.services.profile_service import ProfileService
+from app.services.tracker import NOT_APPLIED, due_items, stage_name, stages
 
 TRACKING_KEY = "tracking"
 LOOKBACK_DAYS = 90
@@ -66,6 +68,9 @@ def _naive(value: datetime) -> datetime:
 
 def _strip_test(subject: str) -> str:
     return re.sub(r"^(\[TEST\]\s*)+", "", subject).strip()
+
+
+UPCOMING_DAYS = 3  # tests and interviews worth a reminder
 
 
 class TrackingService:
@@ -336,7 +341,13 @@ class TrackingService:
                 col(Application.interview_at) <= now + timedelta(days=7),
             )
         ).one()
+        upcoming = [
+            item
+            for item in due_items(self.session.exec(select(Application)).all(), days=UPCOMING_DAYS)
+            if item.kind == "stage" and item.days_left >= 0
+        ]
         return NotificationSummary(
+            upcoming=upcoming,
             unseen_replies=unseen,
             follow_ups_due=due,
             interviews_soon=interviews,
@@ -365,6 +376,38 @@ class TrackingService:
                         role=a.role,
                     )
                 )
+        # Every dated interview stage, and closing dates for jobs not applied to yet.
+        for a in self.session.exec(select(Application)).all():
+            for stage in stages(a):
+                if stage.date is None:
+                    continue
+                when = datetime.combine(stage.date, time(9))
+                if start <= when < end:
+                    events.append(
+                        CalendarEvent(
+                            date=when,
+                            kind="stage",
+                            application_id=a.id,
+                            company=a.company,
+                            role=a.role,
+                            label=stage_name(stage),
+                            result=stage.result,
+                        )
+                    )
+            closes = parse_day(a.application_deadline)
+            if closes and a.status in NOT_APPLIED:
+                when = datetime.combine(closes, time(9))
+                if start <= when < end:
+                    events.append(
+                        CalendarEvent(
+                            date=when,
+                            kind="deadline",
+                            application_id=a.id,
+                            company=a.company,
+                            role=a.role,
+                            label="Closing date",
+                        )
+                    )
         return sorted(events, key=lambda e: e.date)
 
 

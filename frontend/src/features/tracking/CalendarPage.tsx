@@ -12,20 +12,38 @@ import { useCalendarViewModel, type CalendarViewModel } from "./useCalendarViewM
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+const KIND_TONE: Record<CalendarEvent["kind"], string> = {
+  interview: "bg-success/15 text-success",
+  stage: "bg-info/12 text-info",
+  deadline: "bg-destructive/10 text-destructive",
+  follow_up: "bg-warning text-warning-foreground",
+};
+
+function eventName(event: CalendarEvent): string {
+  if (event.kind === "interview") return "Interview";
+  if (event.kind === "follow_up") return "Follow up";
+  return event.label || "Stage";
+}
+
 function EventChip({ event }: { event: CalendarEvent }) {
-  const interview = event.kind === "interview";
+  const done = event.kind === "stage" && event.result && event.result !== "upcoming";
   return (
     <Link
       to={`/applications/${event.application_id}`}
-      title={`${interview ? "Interview" : "Follow up"}: ${event.company}, ${event.role}`}
+      title={`${eventName(event)}: ${event.company}, ${event.role}`}
       className={cn(
         "block truncate rounded px-1.5 py-0.5 text-xs hover:underline",
-        interview ? "bg-success/15 text-success" : "bg-warning text-warning-foreground",
+        KIND_TONE[event.kind],
+        done && "opacity-60",
       )}
     >
-      {interview &&
+      {event.kind === "interview" &&
         `${parseServerDate(event.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} `}
+      {event.kind === "stage" && `${event.label} · `}
+      {event.kind === "deadline" && "Closes · "}
       {event.company}
+      {event.result === "passed" && " ✓"}
+      {event.result === "failed" && " ✗"}
     </Link>
   );
 }
@@ -37,7 +55,8 @@ export function CalendarView(vm: CalendarViewModel) {
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">Calendar</h1>
           <p className="text-muted-foreground text-sm">
-            Interviews (green) and follow-ups due (amber).
+            Tests and interview stages (blue), interviews (green), closing dates (red) and
+            follow-ups (amber). Add a stage with a date in the sheet and it appears here.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -113,7 +132,8 @@ export function CalendarView(vm: CalendarViewModel) {
       </Card>
       {!vm.isLoading && vm.events.length === 0 && (
         <p className="text-muted-foreground hidden text-sm md:block">
-          No interviews or follow-ups this month. Add an interview date on a job's Details tab.
+          Nothing this month. Add a stage with a date (an online test, an interview…) in your sheet
+          and it shows up here.
         </p>
       )}
     </div>

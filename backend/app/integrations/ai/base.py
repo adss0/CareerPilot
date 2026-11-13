@@ -12,6 +12,10 @@ class AIRateLimitError(AIError):
     """The provider's (free-tier) rate limit was hit; waiting and retrying may work."""
 
 
+class AIModelUnavailableError(AIError):
+    """This model is busy, too slow, or retired right now; another model may still work."""
+
+
 class AIProvider(Protocol):
     name: str
     model: str
@@ -22,13 +26,25 @@ class AIProvider(Protocol):
 
 
 def post_json(
-    client: httpx.Client, url: str, body: dict, *, label: str, key_hint: str, model: str
+    client: httpx.Client,
+    url: str,
+    body: dict,
+    *,
+    label: str,
+    key_hint: str,
+    model: str,
+    timeout: float | None = None,
 ) -> dict:
     """POSTs to an AI API and turns HTTP problems into friendly AIErrors."""
     try:
-        response = client.post(url, json=body)
+        if timeout is None:
+            response = client.post(url, json=body)
+        else:
+            response = client.post(url, json=body, timeout=timeout)
     except httpx.TimeoutException as exc:
-        raise AIError(f"{label} took too long to answer. Try again.") from exc
+        raise AIModelUnavailableError(
+            f"{label} took too long to answer. Try again in a minute."
+        ) from exc
     except httpx.HTTPError as exc:
         raise AIError(f"Couldn't reach {label}. Check your internet connection.") from exc
 
@@ -39,7 +55,13 @@ def post_json(
     if response.status_code in (401, 403):
         raise AIError(f"{label} rejected the API key. Paste it again in Settings.")
     if response.status_code == 404:
-        raise AIError(f"{label} model '{model}' wasn't found. Check the model name in Settings.")
+        raise AIModelUnavailableError(
+            f"{label} model '{model}' wasn't found. Check the model name in Settings."
+        )
+    if response.status_code >= 500:
+        raise AIModelUnavailableError(
+            f"{label} is busy right now (its servers are overloaded). Try again in a minute."
+        )
     if response.status_code >= 400:
         raise AIError(f"{label} returned an error ({response.status_code}).")
     try:
