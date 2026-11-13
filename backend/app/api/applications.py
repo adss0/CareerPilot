@@ -3,6 +3,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Query, Response, status
 
+from app.api.backup import BackupDep
 from app.api.deps import ApplicationServiceDep
 from app.models import ApplicationStatus
 from app.schemas.application import (
@@ -12,6 +13,8 @@ from app.schemas.application import (
     ApplicationUpdate,
     BulkApplicationAction,
     BulkApplicationResult,
+    DeleteAll,
+    DeleteAllResult,
     DueItem,
     StatusHistoryRead,
     TrackerSummary,
@@ -77,6 +80,15 @@ def get_due(
 ) -> list[DueItem]:
     """Applications closing and assessments due in the next few days (and overdue ones)."""
     return due_items(service.repo.all(), days=days)
+
+
+@router.post("/delete-all", response_model=DeleteAllResult)
+def delete_all_applications(
+    data: DeleteAll, service: ApplicationServiceDep, backups: BackupDep
+) -> DeleteAllResult:
+    """Moves every job to the recycle bin, after saving a full backup."""
+    path = backups.save_backup("before-delete-all")
+    return DeleteAllResult(deleted=service.delete_all(), backup=str(path))
 
 
 @router.get("/export", response_class=Response)

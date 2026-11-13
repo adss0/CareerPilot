@@ -16,6 +16,7 @@ from app.api import (
     jobs,
     letters,
     profile,
+    recycle_bin,
     stats,
     tracking,
 )
@@ -85,6 +86,7 @@ def create_app() -> FastAPI:
     app.include_router(backup.router, prefix="/api")
     app.include_router(documents.router, prefix="/api")
     app.include_router(jobs.router, prefix="/api")
+    app.include_router(recycle_bin.router, prefix="/api")
     app.include_router(settings_api.router, prefix="/api")
     return app
 

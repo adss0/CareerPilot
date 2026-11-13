@@ -17,6 +17,8 @@ import { useTheme, type ThemeChoice } from "@/app/themeContext";
 import { useDesktopNotifications } from "@/features/tracking/useDesktopNotifications";
 import { cn } from "@/lib/utils";
 
+import { UpdateNotifier } from "./UpdateNotifier";
+
 const navGroups = [
   {
     label: "Job hunt",
@@ -90,6 +92,7 @@ export function AppLayout() {
   const unseen = notifications?.unseen_replies ?? 0;
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
+      <UpdateNotifier />
       <aside className="bg-sidebar text-sidebar-foreground flex flex-col md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0">
         <div className="flex items-center justify-between gap-2 px-5 py-5">
           <Logo />

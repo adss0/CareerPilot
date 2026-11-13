@@ -1,5 +1,4 @@
 import json
-from datetime import date
 
 import pytest
 from sqlmodel import Session, select
@@ -241,10 +240,14 @@ def test_imports_tracker_status_and_keeps_other_columns_in_notes(client, session
     assert apps["Initech"].status == "interview"
     assert apps["Umbrella"].status == "imported"
     acme = apps["Acme Ltd"]
-    assert (acme.application_deadline, acme.assessment) == ("Rolling", "done")
-    assert acme.assessment_due == date(2026, 11, 25)
+    assert acme.application_deadline == "Rolling"
+    # The tracker's pre-assessment becomes an "Online test" stage.
+    assert acme.stages == [
+        {"kind": "online_test", "date": "2026-11-25", "result": "passed", "note": ""}
+    ]
     assert acme.notes == ""
-    assert apps["Initech"].assessment == "pending"
+    assert apps["Initech"].stages[0]["result"] == "upcoming"
+    assert apps["Globex"].stages == []
     assert apps["Umbrella"].application_deadline == "31/12/2026"
     # What doesn't fit a field is kept in the notes.
     assert apps["Umbrella"].notes == "Pre-assessment: Maybe\nAssessment deadline: soon"

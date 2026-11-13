@@ -34,8 +34,7 @@ export interface Application {
   letter_count: number;
   match_score: number | null;
   application_deadline: string;
-  assessment: Assessment;
-  assessment_due: string | null; // yyyy-mm-dd
+  stages: Stage[];
   external_id: string;
   job_summary: Partial<JobSummary>;
   next_step: string;
@@ -47,13 +46,38 @@ export interface DueItem {
   application_id: number;
   company: string;
   role: string;
-  kind: "deadline" | "assessment";
+  kind: "deadline" | "stage";
   date: string;
   days_left: number;
   label: string;
 }
 
-export type Assessment = "" | "pending" | "done";
+export type StageKind =
+  | "online_test"
+  | "video"
+  | "phone"
+  | "technical"
+  | "assessment_centre"
+  | "final"
+  | "other";
+export type StageResult = "upcoming" | "passed" | "failed";
+
+/** One step of the hiring process (backend/app/schemas/application.py). */
+export interface Stage {
+  kind: StageKind;
+  date: string | null; // yyyy-mm-dd
+  result: StageResult;
+  note: string;
+}
+
+export interface BinItem {
+  id: number;
+  company: string;
+  role: string;
+  status: string;
+  deleted_at: string;
+  expires_at: string;
+}
 
 // The AI's plain-English summary of a job (backend/app/schemas/jobs.py).
 export interface JobSummary {

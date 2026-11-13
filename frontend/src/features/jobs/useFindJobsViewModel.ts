@@ -184,8 +184,8 @@ export function useFindJobsViewModel(): FindJobsViewModel {
     toggleStar: (job) => starMutation.mutate(job),
     setPaste: (changes) => setPasteState((p) => ({ ...p, ...changes })),
     addPasted: () => {
-      if (paste.text.trim().length < 20) {
-        setError("Paste the job ad's text (at least a couple of sentences).");
+      if (!paste.url.trim() && paste.text.trim().length < 20) {
+        setError("Paste the job's link (or the text of the ad).");
         return;
       }
       pasteMutation.mutate();

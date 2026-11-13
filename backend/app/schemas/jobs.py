@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class JobSummary(BaseModel):
@@ -41,9 +41,16 @@ class PastedJob(BaseModel):
     """A job from any website (Gradcracker, The Trackr, a company's careers page...)."""
 
     url: str = Field(default="", max_length=1000)
-    text: str = Field(min_length=20, max_length=30_000)  # the job ad, copied from the page
+    # The job ad, copied from the page. Leave it empty to have the page read from the link.
+    text: str = Field(default="", max_length=30_000)
     company: str = Field(default="", max_length=200)  # needed when AI isn't set up
     role: str = Field(default="", max_length=200)
+
+    @model_validator(mode="after")
+    def _link_or_text(self):
+        if not self.url.strip() and len(self.text.strip()) < 20:
+            raise ValueError("Paste the job's link, or the text of the ad.")
+        return self
 
 
 class JobDetailsRead(JobListingRead):

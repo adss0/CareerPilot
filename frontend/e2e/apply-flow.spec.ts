@@ -46,7 +46,7 @@ test("import a spreadsheet → write a letter → approve → send", async ({ pa
 
   // 2. Write the cover letter
   await page.getByRole("link", { name: "Applications" }).click();
-  await page.getByRole("button", { name: "Acme Ltd" }).click();
+  await page.getByRole("button", { name: "Acme Ltd", exact: true }).click();
   await page.getByRole("link", { name: "All details" }).click();
   await page.getByRole("button", { name: "Write letter" }).click();
   await expect(page.locator("textarea").first()).toHaveValue(/Junior Developer role at Acme Ltd/);

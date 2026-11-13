@@ -73,3 +73,27 @@ describe("desktop link handling", () => {
     uninstall();
   });
 });
+
+describe("links win over other click handlers", () => {
+  it("opens the link even when another handler would cancel the click", async () => {
+    const invoke = vi.fn().mockResolvedValue(undefined);
+    (window as unknown as { __TAURI_INTERNALS__: unknown }).__TAURI_INTERNALS__ = { invoke };
+    // Like Tauri's shell plugin: a bubbling handler that cancels clicks on links.
+    const other = vi.fn((e: Event) => e.preventDefault());
+    document.addEventListener("click", other);
+    const uninstall = installDesktopLinkHandling(vi.fn());
+    const a = document.createElement("a");
+    a.href = "https://example.com/apply";
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    expect(invoke).toHaveBeenCalledWith("plugin:opener|open_url", {
+      url: "https://example.com/apply",
+    });
+    expect(other).not.toHaveBeenCalled();
+    uninstall();
+    document.removeEventListener("click", other);
+    a.remove();
+    delete (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__;
+  });
+});

@@ -58,8 +58,7 @@ test("add a job from any site, then see it due on the dashboard and tracker", as
       company: "Umbrella",
       role: "Tech Graduate",
       status: "sent",
-      assessment: "pending",
-      assessment_due: tomorrow,
+      stages: [{ kind: "online_test", date: tomorrow }],
     },
   });
   await request.post("/api/applications", {
@@ -69,14 +68,14 @@ test("add a job from any site, then see it due on the dashboard and tracker", as
 
   await page.goto("/");
   await expect(page.getByText("Due this week")).toBeVisible();
-  await expect(page.getByText("Assessment due tomorrow")).toBeVisible();
+  await expect(page.getByText("Online test due tomorrow")).toBeVisible();
 
   await page.goto("/applications");
-  await expect(page.getByText("Assessment due tomorrow")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Hooli" })).toBeVisible();
+  await expect(page.getByText("Online test due tomorrow")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Hooli", exact: true })).toBeVisible();
   await page.getByLabel("Hide closed").check();
-  await expect(page.getByRole("button", { name: "Hooli" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Umbrella" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Hooli", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Umbrella", exact: true })).toBeVisible();
   await page.getByLabel("Hide closed").uncheck();
 });
 
@@ -100,4 +99,40 @@ test("every page opens without errors", async ({ page }) => {
   await page.goto("/settings");
   await expect(page.getByLabel("Jooble API key")).toBeVisible();
   expect(errors).toEqual([]);
+});
+
+test("delete selected jobs, restore one from the bin, and delete everything", async ({
+  page,
+  request,
+}) => {
+  for (const company of ["Bin Co A", "Bin Co B"]) {
+    await request.post("/api/applications", {
+      headers: API,
+      data: { company, role: "Engineer" },
+    });
+  }
+  await page.goto("/applications");
+  page.on("dialog", (d) => d.accept());
+  await page.getByLabel("Select Bin Co A – Engineer").check();
+  await page.getByLabel("Select Bin Co B – Engineer").check();
+  await expect(page.getByText("2 selected")).toBeVisible();
+  await page.getByRole("button", { name: "Delete selected" }).click();
+  await expect(page.getByRole("button", { name: "Bin Co A", exact: true })).toHaveCount(0);
+
+  await page.getByRole("button", { name: /^Bin/ }).click();
+  const bin = page.getByRole("region", { name: "Recycle bin" });
+  await expect(bin.getByText("Bin Co A")).toBeVisible();
+  await bin
+    .getByRole("listitem")
+    .filter({ hasText: "Bin Co A" })
+    .getByRole("button", { name: "Restore" })
+    .click();
+  await expect(page.getByRole("button", { name: "Bin Co A", exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Delete all" }).click();
+  await page.getByLabel("Type DELETE to confirm").fill("DELETE");
+  await page.getByRole("button", { name: "Delete everything" }).click();
+  await expect(page.getByText("Your tracker is empty.")).toBeVisible();
+  const leftInBin = await request.get("/api/bin", { headers: API });
+  expect((await leftInBin.json()).length).toBeGreaterThanOrEqual(2);
 });

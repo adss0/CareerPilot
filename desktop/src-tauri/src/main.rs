@@ -23,7 +23,16 @@ fn main() {
         }))
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
+            // Updates (GitHub Releases, signed). On Windows the installer replaces the files, so
+            // the backend must stop first or its .exe would still be in use.
+            let handle = app.handle().clone();
+            app.handle().plugin(
+                tauri_plugin_updater::Builder::new()
+                    .on_before_exit(move || stop_backend(&handle))
+                    .build(),
+            )?;
             // %APPDATA%\app.careerpilot.desktop: database, CVs, .env and logs live here.
             let home = app.path().app_data_dir()?;
             std::fs::create_dir_all(&home)?;
@@ -42,9 +51,15 @@ fn main() {
         .expect("error while starting CareerPilot")
         .run(|app, event| {
             if let RunEvent::Exit = event {
-                if let Some(child) = app.state::<Backend>().0.lock().unwrap().take() {
-                    let _ = child.kill();
-                }
+                stop_backend(app);
             }
         });
+}
+
+fn stop_backend(app: &tauri::AppHandle) {
+    if let Some(backend) = app.try_state::<Backend>() {
+        if let Some(child) = backend.0.lock().unwrap().take() {
+            let _ = child.kill();
+        }
+    }
 }

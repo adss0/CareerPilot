@@ -80,15 +80,27 @@ jobs:
 
       - name: Build the installer (Tauri)
         working-directory: desktop
+        shell: bash
+        env:
+          # Signs the update so installed apps trust it. Without the secret (e.g. a fork) the
+          # installer is still built, just without the update files.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         run: |
           npm ci
-          npx tauri build
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            npx tauri build
+          else
+            echo "No signing key: building without update files."
+            npx tauri build --config '{"bundle":{"createUpdaterArtifacts":false}}'
+          fi
 
       - uses: actions/upload-artifact@v4
         with:
           name: CareerPilot-windows-installer
           path: |
             desktop/src-tauri/target/release/bundle/nsis/*.exe
+            desktop/src-tauri/target/release/bundle/nsis/*.exe.sig
             desktop/src-tauri/target/release/bundle/msi/*.msi
           if-no-files-found: error
 
@@ -103,6 +115,35 @@ jobs:
         with:
           name: CareerPilot-windows-installer
           path: installer
+      # latest.json tells installed apps there's a new version (only when the build was signed).
+      - name: Write latest.json for auto-updates
+        shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          sig=$(ls installer/nsis/*-setup.exe.sig 2>/dev/null | head -1 || true)
+          if [ -z "$sig" ]; then echo "Unsigned build: no latest.json."; exit 0; fi
+          exe=$(basename "${sig%.sig}")
+          python3 - "$sig" "$exe" <<'PY'
+          import json, os, sys
+          from datetime import datetime, timezone
+          sig, exe = sys.argv[1], sys.argv[2]
+          tag, repo = os.environ["TAG"], os.environ["REPO"]
+          manifest = {
+              "version": tag.lstrip("v"),
+              "notes": f"CareerPilot {tag}: see the release notes on GitHub.",
+              "pub_date": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "platforms": {
+                  "windows-x86_64": {
+                      "signature": open(sig).read().strip(),
+                      "url": f"https://github.com/{repo}/releases/download/{tag}/{exe}",
+                  }
+              },
+          }
+          json.dump(manifest, open("installer/latest.json", "w"), indent=2)
+          PY
+          cat installer/latest.json
       - uses: softprops/action-gh-release@v2
         with:
           draft: true

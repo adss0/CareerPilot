@@ -9,6 +9,7 @@ from sqlmodel import Session, select
 from app.core.config import Settings
 from app.core.errors import BadRequestError, NotFoundError
 from app.integrations.ai import AIProvider
+from app.integrations.job_page import JobPageError, fetch_job_page
 from app.integrations.jobs import (
     AdzunaBoard,
     JobBoard,
@@ -84,6 +85,7 @@ class JobService:
         self.boards = boards
         self.ai = ai
         self.cache = cache
+        self.fetch_page = fetch_job_page  # replaced in tests
 
     def search(self, query: str, location: str, graduate: bool, page: int) -> JobSearchResult:
         if not self.boards:
@@ -210,10 +212,19 @@ class JobService:
         if url is None:
             raise BadRequestError("That link isn't a web address. Copy it from the browser.")
         company, role = job.company.strip(), job.role.strip()
+        text = job.text.strip()
         found: dict = {}
+        if len(text) < 20:  # just a link: read the page (one page, like opening it)
+            try:
+                page = self.fetch_page(url)
+            except JobPageError as exc:
+                raise BadRequestError(str(exc)) from exc
+            text, found = page.text, dict(page.found)
         summary: JobSummary | None = None
         if self.ai is not None:
-            found, summary = extract_job(self.ai, load_profile(self.session), job.text, url)
+            ai_found, summary = extract_job(self.ai, load_profile(self.session), text, url)
+            # The page's own job record wins over the AI's reading of it.
+            found = {**{k: v for k, v in ai_found.items() if v}, **found}
         company = company or found.get("company", "")
         role = role or found.get("role", "")
         if not company or not role:
@@ -225,7 +236,7 @@ class JobService:
             company=company[:200],
             role=role[:200],
             job_url=url[:1000],
-            job_description=job.text.strip(),
+            job_description=text,
             location=(found.get("location") or "")[:200],
             salary=(found.get("salary") or "")[:100],
             application_deadline=(found.get("deadline") or "")[:100],

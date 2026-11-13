@@ -108,10 +108,9 @@ function PasteJob({ vm }: { vm: FindJobsViewModel }) {
           <ClipboardPaste className="text-primary size-4" /> Add a job from any site
         </CardTitle>
         <CardDescription className="text-xs">
-          Gradcracker, The Trackr, a company's careers page… Paste the link and the job ad.
-          {vm.aiConfigured
-            ? " AI fills in the company, role, salary and closing date."
-            : " Type the company and role too (AI isn't set up)."}
+          Gradcracker, The Trackr, a company's careers page… Paste the job's link and CareerPilot
+          reads the page and fills in the company, role, salary and closing date. If a site needs a
+          login (like LinkedIn), paste the ad's text too.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2 px-4">
@@ -123,8 +122,8 @@ function PasteJob({ vm }: { vm: FindJobsViewModel }) {
         />
         <Textarea
           aria-label="Job ad text"
-          rows={4}
-          placeholder="Paste the job ad here"
+          rows={3}
+          placeholder="Optional: the job ad's text (if the site can't be read)"
           value={vm.paste.text}
           onChange={(e) => vm.setPaste({ text: e.target.value })}
         />

@@ -47,14 +47,19 @@ export function installDesktopLinkHandling(onError: (message: string) => void): 
     const apiBase = new URL(API_BASE, window.location.href).href;
     if (link.hasAttribute("download") && href.startsWith(apiBase)) {
       event.preventDefault();
+      event.stopImmediatePropagation();
       saveApiFile(href).catch((e: Error) => onError(e.message));
     } else if (link.target === "_blank" && /^https?:\/\//i.test(href)) {
+      // Stop Tauri's shell plugin from handling the click too: its "shell open" isn't
+      // allowed, and it cancelled the click so web links did nothing.
       event.preventDefault();
+      event.stopImmediatePropagation();
       app
         .invoke("plugin:opener|open_url", { url: href })
         .catch(() => onError("Couldn't open the link."));
     }
   };
-  document.addEventListener("click", onClick);
-  return () => document.removeEventListener("click", onClick);
+  // Capture phase: runs before any other click handler on the page.
+  window.addEventListener("click", onClick, true);
+  return () => window.removeEventListener("click", onClick, true);
 }

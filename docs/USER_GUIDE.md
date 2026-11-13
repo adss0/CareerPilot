@@ -90,7 +90,7 @@ Check every field and correct anything that's wrong. Letters only use facts from
 4. Click a job: a side panel shows an AI summary (what the job is, salary, must-haves, your match, why you fit and the gaps). Click **Apply** to save it to your tracker and go straight to the Apply page.
 5. Click the ☆ on a job to **shortlist** it for later, without adding it to your tracker. The **Shortlist** tab keeps it, even after a restart.
 
-**Gradcracker, The Trackr, Bright Network, Prospects and TARGETjobs** have no public API. Under **Search on other sites**, one click searches the site for your keywords. Found a job there? Use **Add a job from any site**: paste its link and the text of the ad, and CareerPilot (with AI) fills in the company, role, salary, location and closing date and opens the Apply page.
+**Gradcracker, The Trackr, Bright Network, Prospects and TARGETjobs** have no public API. Under **Search on other sites**, one click searches the site for your keywords. Found a job there? Use **Add a job from any site**: paste its link and CareerPilot reads that page and fills in the company, role, salary, location, closing date and the ad, then opens the Apply page. If the site needs a login (LinkedIn, for example), paste the ad's text as well.
 
 **Import your own tracker:** you can also bring in your existing spreadsheet.
 
@@ -150,12 +150,17 @@ Nothing is ever sent without your approval.
 ## 8. Track your applications
 
 - **Dashboard:** counts, a chart by status and jobs added per week.
-- **Applications:** your tracker, laid out like a job-hunt spreadsheet: totals at the top, then Company, Role, Application deadline, Status, Pre-assessment, Assessment deadline and **Next step**. Change any cell and it saves. Jobs closing in the next 7 days, and assessments due, get an amber chip (red when overdue); the Dashboard lists them under **Due this week**. Tick **Hide closed** to hide rejected and withdrawn jobs. Click a company for a side panel with the job's summary and an **Apply** button. Switch to **Board** to drag cards between statuses.
+- **Applications:** your tracker, laid out like a job-hunt spreadsheet: totals at the top, then Company, Role, Application deadline, Status, Pre-assessment, Assessment deadline and **Next step**. Change any cell and it saves. The **Stages** column shows each hiring stage as a chip (Online test, Video interview, Assessment centre, Final…): green ✓ passed, red ✗ didn't pass, amber upcoming with its date. Click **+** to add one (it suggests the next likely stage) or a chip to change it. Jobs closing in the next 7 days, and stages coming up, get an amber chip (red when overdue); the Dashboard lists them under **Due this week**. Tick **Hide closed** to hide rejected and withdrawn jobs. Click a company for a side panel with the job's summary and an **Apply** button. Switch to **Board** to drag cards between statuses.
 - **Replies:** CareerPilot checks your inbox for replies to applications it sent and suggests a status (interview, rejection, and so on). You confirm it. It checks every 30 minutes, or click **Check replies now** on the Dashboard.
 - **Follow-ups:** when a job has had no reply for the number of days you set, it's marked as due. Click **Draft a follow-up** (AI or template), review it and send it in the same email thread.
 - **Calendar:** interview dates and follow-ups.
 - **Insights** (on the Dashboard): how quickly employers reply, and which tone and which CV get the most replies.
 - **Notifications:** turn on desktop notifications in **Settings** to hear about new replies and due follow-ups.
+
+### Deleting jobs
+
+- Tick rows and click **Delete selected**, or **Delete all** to start fresh (type DELETE; a full backup is saved first).
+- Deleted jobs go to the **Bin** for 30 days, with their letters, tailored CV and history. Click **Restore** to bring one back.
 
 ## 9. Back up and restore
 
@@ -166,12 +171,18 @@ In **Settings → Backup & restore**:
 
 Backups from an older version of CareerPilot are upgraded automatically when restored.
 
+### Updates
+
+The desktop app checks for a new version a few seconds after it starts. When there is one, click **Update**: it downloads, installs and restarts. Updates are signed, so the app only installs ones published from the CareerPilot repository.
+
 ## 10. Troubleshooting
 
 | Problem | What to do |
 |---|---|
 | My CV reads as `U/n.sc/i.sc…` or projects are missing | Fixed in 1.2: open **Profile** and read your CV again. |
 | Find jobs shows "Connect a job board" | Paste a free Reed key, an Adzuna App ID and App Key, or a Jooble key in **Settings → Keys & passwords**. |
+| "Gemini rejected the API key" and your key starts with **AQ.** | Some Google accounts are only given the new "AQ." keys, and Google currently rejects them for the Gemini API (`ACCESS_TOKEN_TYPE_UNSUPPORTED`). Create a key in another Google Cloud project, or use a free **Groq** key in Settings instead. |
+| "Gemini returned an error (503)" | Google's servers are busy. Wait a minute and try again, or switch to Groq. |
 | "AI isn't set up" | Paste your key again in **Settings → Keys & passwords**, then use **Test connection**. |
 | "Rate limit reached" | The free tier allows a limited number of requests per minute and day. Wait a minute, or switch provider in Settings. |
 | Test email fails with a login error | Use an App Password, not your normal password, and check that 2-Step Verification is on. |

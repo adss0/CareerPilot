@@ -2,6 +2,23 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-11-13
+
+### Added
+
+- **Interview stages:** one **Stages** column in the sheet with small chips (Online test, Video interview, Phone screen, Technical, Assessment centre, Final, or your own), each with a date and upcoming / passed / didn't pass. **+** suggests the next likely stage. Next step, Due this week and the totals follow the stages. Existing pre-assessments became "Online test" stages automatically.
+- **Deleting:** tick rows and **Delete selected**; **Delete all** (type DELETE; a full backup is saved first); and a **Recycle bin** that keeps deleted jobs, with their letters, tailored CV and history, for 30 days, so you can restore them.
+- **Add a job from just its link:** CareerPilot reads that one page (using the site's standard job data when it has it) and fills in the company, role, salary, location, closing date and the ad. Sites that need a login (like LinkedIn) still need the text pasted.
+- **Auto-updates:** the desktop app checks GitHub Releases for a new signed version and installs it with one click.
+
+### Fixed
+
+- Job links didn't open in the desktop app: Tauri's shell plugin caught the click first and wasn't allowed to open it. Links now open in your browser.
+
+### Changed
+
+- The sheet's Pre-assessment and Assessment deadline columns are replaced by Stages; the Excel export has a Stages column.
+
 ## [1.3.0] - 2026-11-13
 
 ### Added
@@ -85,6 +102,7 @@ The first full release.
 
 - 174 backend tests (95% coverage; CI fails under 85%), 52 frontend tests, and an end-to-end browser test of import → letter → approve → send against a fake AI and a local test mail server.
 
+[1.4.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.4.0
 [1.3.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.3.0
 [1.2.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.2.0
 [1.1.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.1.0
