@@ -9,7 +9,7 @@ from openpyxl.styles import Font, PatternFill
 from openpyxl.worksheet.worksheet import Worksheet
 
 from app.models import Application
-from app.services.tracker import next_step
+from app.services.tracker import next_step, stage_name, stages
 
 # The words a job hunter uses in their own tracker.
 STATUS_LABELS = {"imported": "To apply", "sent": "Applied", "followed_up": "Followed up"}
@@ -25,8 +25,7 @@ EXPORT_COLUMNS: list[tuple[str, str, int]] = [
     ("Role", "role", 28),
     ("Application deadline", "application_deadline", 18),
     ("Status", "status", 13),
-    ("Pre-assessment", "assessment", 15),
-    ("Assessment deadline", "assessment_due", 18),
+    ("Stages", "stages", 40),
     ("Next step", "next_step", 30),
     ("Job URL", "job_url", 40),
     ("Contact name", "contact_name", 20),
@@ -102,6 +101,18 @@ def safe_cell(value: object) -> object:
     return value
 
 
+RESULT_MARKS = {"passed": " ✓", "failed": " ✗", "upcoming": ""}
+
+
+def stages_text(application: Application) -> str:
+    """e.g. "Online test ✓ · Video interview ✓ · Assessment centre (12 Dec)"."""
+    parts = []
+    for stage in stages(application):
+        when = f" ({stage.date.day} {stage.date:%b})" if stage.date else ""
+        parts.append(f"{stage_name(stage)}{RESULT_MARKS[stage.result]}{when}")
+    return " · ".join(parts)
+
+
 def build_applications_workbook(applications: list[Application]) -> bytes:
     workbook = Workbook()
     sheet = workbook.active
@@ -117,8 +128,8 @@ def build_applications_workbook(applications: list[Application]) -> bytes:
                 value = getattr(application, attribute)
             if attribute == "status":
                 value = STATUS_LABELS.get(value.value, value.value.replace("_", " ").capitalize())
-            elif attribute == "assessment":
-                value = value.capitalize()
+            elif attribute == "stages":
+                value = stages_text(application)
             row.append(safe_cell(value))
         sheet.append(row)
 

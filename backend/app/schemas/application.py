@@ -1,11 +1,32 @@
 from datetime import date, datetime
+from datetime import date as Day
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from app.models.enums import ApplicationStatus
 
-Assessment = Literal["", "pending", "done"]
+StageKind = Literal[
+    "online_test", "video", "phone", "technical", "assessment_centre", "final", "other"
+]
+STAGE_LABELS: dict[str, str] = {
+    "online_test": "Online test",
+    "video": "Video interview",
+    "phone": "Phone screen",
+    "technical": "Technical interview",
+    "assessment_centre": "Assessment centre",
+    "final": "Final interview",
+    "other": "Other",
+}
+
+
+class Stage(BaseModel):
+    """One step of the hiring process, e.g. an online test or an assessment centre."""
+
+    kind: StageKind
+    date: Day | None = None  # (the field is called date, so the type is aliased)
+    result: Literal["upcoming", "passed", "failed"] = "upcoming"
+    note: str = Field(default="", max_length=100)  # e.g. a name for "other", or a time
 
 
 def _blank_to_none(value):
@@ -29,8 +50,7 @@ class ApplicationBase(BaseModel):
     interview_at: datetime | None = None
     cv_id: int | None = None  # which CV to send; None = use the default CV
     application_deadline: str = Field(default="", max_length=100)
-    assessment: Assessment = ""
-    assessment_due: date | None = None
+    stages: list[Stage] = Field(default_factory=list, max_length=20)
 
     _clean_email = field_validator("contact_email", mode="before")(_blank_to_none)
 
@@ -60,8 +80,7 @@ class ApplicationUpdate(BaseModel):
     interview_at: datetime | None = None
     cv_id: int | None = None
     application_deadline: str | None = Field(default=None, max_length=100)
-    assessment: Assessment | None = None
-    assessment_due: date | None = None
+    stages: list[Stage] | None = Field(default=None, max_length=20)
 
     _clean_email = field_validator("contact_email", mode="before")(_blank_to_none)
 
@@ -91,8 +110,7 @@ class ApplicationRead(BaseModel):
     created_at: datetime
     updated_at: datetime
     application_deadline: str
-    assessment: str
-    assessment_due: date | None
+    stages: list[Stage]
     external_id: str
     job_summary: dict
     letter_count: int = 0
@@ -102,11 +120,29 @@ class ApplicationRead(BaseModel):
     due_level: Literal["", "soon", "overdue"] = ""
 
 
+class BinItem(BaseModel):
+    id: int
+    company: str
+    role: str
+    status: str
+    deleted_at: datetime
+    expires_at: datetime  # removed for good after this
+
+
+class DeleteAll(BaseModel):
+    confirm: Literal["DELETE"]  # typed by the user, so it can't happen by accident
+
+
+class DeleteAllResult(BaseModel):
+    deleted: int
+    backup: str  # the backup made first
+
+
 class DueItem(BaseModel):
     application_id: int
     company: str
     role: str
-    kind: Literal["deadline", "assessment"]
+    kind: Literal["deadline", "stage"]
     date: date
     days_left: int  # negative: overdue
     label: str

@@ -23,7 +23,7 @@ export function DueThisWeekView({ items }: { items: DueItem[] }) {
         ) : (
           <ul className="divide-y text-sm">
             {items.map((item) => {
-              const Icon = item.kind === "assessment" ? ClipboardCheck : CalendarClock;
+              const Icon = item.kind === "stage" ? ClipboardCheck : CalendarClock;
               return (
                 <li
                   key={`${item.application_id}-${item.kind}`}

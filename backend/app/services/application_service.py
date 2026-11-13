@@ -11,15 +11,16 @@ from app.schemas.application import (
     ApplicationUpdate,
     BulkApplicationAction,
     BulkApplicationResult,
+    Stage,
     TrackerSummary,
 )
 from app.services.excel_export import build_applications_workbook
+from app.services.recycle_bin import RecycleBin
 from app.services.tracker import due_label, next_step, tracker_summary
 
 # Fields that may be cleared with null; null for any other field is ignored.
 NULLABLE_FIELDS = {
     "contact_email",
-    "assessment_due",
     "applied_at",
     "last_contact_at",
     "follow_up_at",
@@ -69,6 +70,7 @@ class ApplicationService:
     def create(self, data: ApplicationCreate) -> Application:
         values = data.model_dump()
         values["contact_email"] = values["contact_email"] or ""
+        values["stages"] = [stage.model_dump(mode="json") for stage in data.stages]
         self._check_cv(values["cv_id"])
         application = self.repo.add(Application(**values))
         self._record_status(application, None, application.status)
@@ -87,6 +89,10 @@ class ApplicationService:
         }
         if "contact_email" in changes:
             changes["contact_email"] = changes["contact_email"] or ""
+        if "stages" in changes:
+            changes["stages"] = [
+                Stage.model_validate(s).model_dump(mode="json") for s in changes["stages"]
+            ]
         if "cv_id" in changes:
             self._check_cv(changes["cv_id"])
 
@@ -118,8 +124,17 @@ class ApplicationService:
         return BulkApplicationResult(affected=affected, missing=missing)
 
     def delete(self, application_id: int) -> None:
-        self.repo.delete(self.get(application_id))
+        """Moves the job to the recycle bin (kept for 30 days)."""
+        RecycleBin(self.session).throw_away(self.get(application_id))
         self.session.commit()
+
+    def delete_all(self) -> int:
+        bin_ = RecycleBin(self.session)
+        applications = self.repo.all()
+        for application in applications:
+            bin_.throw_away(application)
+        self.session.commit()
+        return len(applications)
 
     def _check_cv(self, cv_id: int | None) -> None:
         if cv_id is not None and self.session.get(CvDocument, cv_id) is None:

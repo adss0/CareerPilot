@@ -4,7 +4,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import {
+  bulkApplications,
+  deleteAllApplications,
   deleteApplication,
+  deleteFromBin,
+  emptyBin,
+  listBin,
+  restoreFromBin,
   getTrackerSummary,
   listApplications,
   summarizeApplication,
@@ -12,7 +18,12 @@ import {
   type ApplicationInput,
   type Sort,
 } from "@/features/applications/api";
-import type { Application, ApplicationStatus, TrackerSummary } from "@/features/applications/types";
+import type {
+  Application,
+  ApplicationStatus,
+  BinItem,
+  TrackerSummary,
+} from "@/features/applications/types";
 import { errorText } from "@/lib/apiClient";
 
 export const TRACKER_LIMIT = 200;
@@ -43,6 +54,19 @@ export interface TrackerViewModel {
   update: (id: number, changes: ApplicationInput) => void;
   summarize: () => void;
   remove: (id: number) => void;
+  // Deleting: tick rows, delete everything, and the recycle bin (30 days).
+  checked: Set<number>;
+  toggleChecked: (id: number) => void;
+  toggleAllChecked: () => void;
+  clearChecked: () => void;
+  deleteChecked: () => void;
+  deleteEverything: (typed: string) => Promise<boolean>;
+  bin: BinItem[];
+  showBin: boolean;
+  setShowBin: (show: boolean) => void;
+  restore: (id: number) => void;
+  deleteForever: (id: number) => void;
+  emptyTheBin: () => void;
 }
 
 function readHide(): boolean {
@@ -106,12 +130,49 @@ export function useTrackerViewModel(): TrackerViewModel {
     onError: (e) => setError(errorText(e)),
   });
 
+  const [checked, setChecked] = useState<Set<number>>(new Set());
+  const [showBin, setShowBin] = useState(false);
+  const binQuery = useQuery({ queryKey: ["applications", "bin"], queryFn: listBin });
+
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteApplication(id),
     onSuccess: () => {
       setSelectedId(null);
       refresh();
-      toast.success("Job removed from your tracker.");
+      toast.success("Moved to the recycle bin. You can restore it for 30 days.");
+    },
+    onError: (e) => setError(errorText(e)),
+  });
+
+  const bulkDelete = useMutation({
+    mutationFn: (ids: number[]) => bulkApplications({ application_ids: ids, action: "delete" }),
+    onSuccess: (result) => {
+      setChecked(new Set());
+      setSelectedId(null);
+      refresh();
+      toast.success(
+        `${result.affected} ${result.affected === 1 ? "job" : "jobs"} moved to the recycle bin.`,
+      );
+    },
+    onError: (e) => setError(errorText(e)),
+  });
+
+  const binAction = useMutation({
+    mutationFn: ({ kind, id }: { kind: "restore" | "forever" | "empty"; id?: number }) =>
+      kind === "restore"
+        ? restoreFromBin(id!)
+        : kind === "forever"
+          ? deleteFromBin(id!)
+          : emptyBin(),
+    onSuccess: (_result, { kind }) => {
+      refresh();
+      toast.success(
+        kind === "restore"
+          ? "Restored to your tracker."
+          : kind === "empty"
+            ? "Recycle bin emptied."
+            : "Deleted for good.",
+      );
     },
     onError: (e) => setError(errorText(e)),
   });
@@ -156,8 +217,65 @@ export function useTrackerViewModel(): TrackerViewModel {
     },
     remove: (id) => {
       const job = items.find((a) => a.id === id);
-      if (job && window.confirm(`Remove ${job.role} at ${job.company} from your tracker?`)) {
+      if (job && window.confirm(`Move ${job.role} at ${job.company} to the recycle bin?`)) {
         deleteMutation.mutate(id);
+      }
+    },
+    checked,
+    toggleChecked: (id) =>
+      setChecked((current) => {
+        const next = new Set(current);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      }),
+    toggleAllChecked: () =>
+      setChecked((current) =>
+        items.length > 0 && items.every((a) => current.has(a.id))
+          ? new Set()
+          : new Set(items.map((a) => a.id)),
+      ),
+    clearChecked: () => setChecked(new Set()),
+    deleteChecked: () => {
+      const ids = [...checked];
+      if (
+        ids.length &&
+        window.confirm(
+          `Move ${ids.length} ${ids.length === 1 ? "job" : "jobs"} to the recycle bin? ` +
+            "You can restore them for 30 days.",
+        )
+      ) {
+        bulkDelete.mutate(ids);
+      }
+    },
+    deleteEverything: async (typed) => {
+      if (typed !== "DELETE") return false;
+      try {
+        const result = await deleteAllApplications();
+        setChecked(new Set());
+        setSelectedId(null);
+        refresh();
+        toast.success(`${result.deleted} jobs moved to the recycle bin.`, {
+          description: `A full backup was saved first: ${result.backup}`,
+        });
+        return true;
+      } catch (e) {
+        setError(errorText(e));
+        return false;
+      }
+    },
+    bin: binQuery.data ?? [],
+    showBin,
+    setShowBin,
+    restore: (id) => binAction.mutate({ kind: "restore", id }),
+    deleteForever: (id) => {
+      if (window.confirm("Delete this job for good? This can't be undone.")) {
+        binAction.mutate({ kind: "forever", id });
+      }
+    },
+    emptyTheBin: () => {
+      if (window.confirm("Empty the recycle bin? These jobs will be gone for good.")) {
+        binAction.mutate({ kind: "empty" });
       }
     },
   };

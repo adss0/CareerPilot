@@ -1,5 +1,6 @@
 // View: the job tracker, laid out like a job-hunt spreadsheet, with a side panel per job.
 import {
+  ArchiveRestore,
   Clock,
   Columns3,
   Download,
@@ -12,8 +13,10 @@ import {
   Sparkles,
   Table2,
   Trash2,
+  Undo2,
   X,
 } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
@@ -22,13 +25,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { BoardView } from "@/features/applications/BoardView";
-import { ASSESSMENT_LABELS, STATUS_LABELS, statusVariant } from "@/features/applications/labels";
-import type { Application, ApplicationStatus, Assessment } from "@/features/applications/types";
+import { STATUS_LABELS, statusVariant } from "@/features/applications/labels";
+import type { Application, ApplicationStatus } from "@/features/applications/types";
 import { JobSummaryView } from "@/features/jobs/JobSummaryView";
 import { API_BASE } from "@/lib/apiClient";
 import { cn } from "@/lib/utils";
 
 import { jobLink } from "./jobLink";
+import { StagesCell } from "./StagesCell";
 import type { TrackerViewModel } from "./useTrackerViewModel";
 
 const STATUSES = Object.entries(STATUS_LABELS) as [ApplicationStatus, string][];
@@ -40,13 +44,6 @@ function statusTone(status: ApplicationStatus): string {
     return "bg-success/12 text-success border-success/30 font-semibold";
   if (status === "sent" || status === "followed_up")
     return "bg-info/10 text-info border-info/25 font-semibold";
-  return "";
-}
-
-function assessmentTone(value: Assessment): string {
-  if (value === "done") return "bg-success/12 text-success border-success/30 font-semibold";
-  if (value === "pending")
-    return "bg-warning text-warning-foreground border-warning-border font-semibold";
   return "";
 }
 
@@ -80,15 +77,23 @@ function TrackerTable({ vm }: { vm: TrackerViewModel }) {
   const cell = "px-2 py-1.5 align-middle";
   return (
     <div className="bg-card shadow-card overflow-x-auto rounded-2xl border">
-      <table className="w-full min-w-[860px] text-sm">
+      <table className="w-full min-w-[900px] text-sm">
         <thead className="bg-sidebar text-left text-xs tracking-wide text-white uppercase">
           <tr>
-            <th className={cn(cell, "pl-4 font-medium")}>Company</th>
+            <th className={cn(cell, "w-10 pl-4")}>
+              <input
+                type="checkbox"
+                className="accent-primary size-4"
+                aria-label="Select all"
+                checked={vm.items.length > 0 && vm.items.every((a) => vm.checked.has(a.id))}
+                onChange={vm.toggleAllChecked}
+              />
+            </th>
+            <th className={cn(cell, "font-medium")}>Company</th>
             <th className={cn(cell, "font-medium")}>Role</th>
             <th className={cn(cell, "w-36 font-medium")}>Application deadline</th>
             <th className={cn(cell, "w-36 font-medium")}>Status</th>
-            <th className={cn(cell, "w-32 font-medium")}>Pre-assessment</th>
-            <th className={cn(cell, "w-40 font-medium")}>Assessment deadline</th>
+            <th className={cn(cell, "min-w-56 font-medium")}>Stages</th>
             <th className={cn(cell, "pr-4 font-medium")}>Next step</th>
           </tr>
         </thead>
@@ -103,7 +108,16 @@ function TrackerTable({ vm }: { vm: TrackerViewModel }) {
                 vm.selected?.id === a.id && "bg-accent",
               )}
             >
-              <td className={cn(cell, "pl-4 font-medium")}>
+              <td className={cn(cell, "pl-4")} onClick={(e) => e.stopPropagation()}>
+                <input
+                  type="checkbox"
+                  className="accent-primary size-4"
+                  aria-label={`Select ${a.company} – ${a.role}`}
+                  checked={vm.checked.has(a.id)}
+                  onChange={() => vm.toggleChecked(a.id)}
+                />
+              </td>
+              <td className={cn(cell, "font-medium")}>
                 <button
                   type="button"
                   className="text-left hover:underline"
@@ -141,26 +155,10 @@ function TrackerTable({ vm }: { vm: TrackerViewModel }) {
                 </NativeSelect>
               </td>
               <td className={cell} onClick={(e) => e.stopPropagation()}>
-                <NativeSelect
-                  aria-label={`Pre-assessment for ${a.company} – ${a.role}`}
-                  className={cn("h-8", assessmentTone(a.assessment))}
-                  value={a.assessment}
-                  onChange={(e) => vm.update(a.id, { assessment: e.target.value as Assessment })}
-                >
-                  {Object.entries(ASSESSMENT_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </td>
-              <td className={cell} onClick={(e) => e.stopPropagation()}>
-                <Input
-                  type="date"
-                  aria-label={`Assessment deadline for ${a.company} – ${a.role}`}
-                  className="h-8"
-                  value={a.assessment_due ?? ""}
-                  onChange={(e) => vm.update(a.id, { assessment_due: e.target.value || null })}
+                <StagesCell
+                  stages={a.stages}
+                  label={`${a.company} – ${a.role}`}
+                  onChange={(stages) => vm.update(a.id, { stages })}
                 />
               </td>
               <td className={cn(cell, "pr-4")}>
@@ -179,6 +177,121 @@ function TrackerTable({ vm }: { vm: TrackerViewModel }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+function SelectionBar({ vm }: { vm: TrackerViewModel }) {
+  if (vm.checked.size === 0) return null;
+  return (
+    <div className="bg-sidebar text-sidebar-foreground shadow-lift sticky top-3 z-20 flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5 text-sm">
+      <span className="font-semibold text-white">{vm.checked.size} selected</span>
+      <Button size="sm" variant="destructive" onClick={vm.deleteChecked}>
+        <Trash2 /> Delete selected
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        className="hover:bg-white/10 hover:text-white"
+        onClick={vm.clearChecked}
+      >
+        Clear
+      </Button>
+    </div>
+  );
+}
+
+function DeleteEverything({ vm, onClose }: { vm: TrackerViewModel; onClose: () => void }) {
+  const [typed, setTyped] = useState("");
+  const [busy, setBusy] = useState(false);
+  return (
+    <Card className="border-destructive/40" role="dialog" aria-label="Delete everything">
+      <CardHeader>
+        <CardTitle className="text-destructive">Delete every job in your tracker?</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        <p>
+          A full backup is saved first, and the jobs go to the recycle bin, so you can restore them
+          for 30 days. Type <span className="font-mono font-bold">DELETE</span> to confirm.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Input
+            className="max-w-48"
+            aria-label="Type DELETE to confirm"
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+          />
+          <Button
+            variant="destructive"
+            disabled={typed !== "DELETE" || busy}
+            onClick={async () => {
+              setBusy(true);
+              const ok = await vm.deleteEverything(typed);
+              setBusy(false);
+              if (ok) onClose();
+            }}
+          >
+            {busy ? <Loader2 className="animate-spin" /> : <Trash2 />} Delete everything
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function RecycleBin({ vm }: { vm: TrackerViewModel }) {
+  return (
+    <Card role="region" aria-label="Recycle bin">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+        <CardTitle className="flex items-center gap-2">
+          <Trash2 className="text-muted-foreground size-4" /> Recycle bin
+        </CardTitle>
+        <div className="flex gap-2">
+          {vm.bin.length > 0 && (
+            <Button size="sm" variant="ghost" className="text-destructive" onClick={vm.emptyTheBin}>
+              Empty the bin
+            </Button>
+          )}
+          <Button size="sm" variant="ghost" onClick={() => vm.setShowBin(false)} aria-label="Close">
+            <X />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="text-sm">
+        {vm.bin.length === 0 ? (
+          <p className="text-muted-foreground">Nothing here. Deleted jobs stay for 30 days.</p>
+        ) : (
+          <ul className="divide-y">
+            {vm.bin.map((item) => (
+              <li key={item.id} className="flex flex-wrap items-center gap-3 py-2">
+                <span className="min-w-0 flex-1">
+                  <span className="font-semibold">{item.company}</span>
+                  <span className="text-muted-foreground"> · {item.role}</span>
+                  <span className="text-muted-foreground block text-xs">
+                    Deleted {new Date(item.deleted_at).toLocaleDateString("en-GB")} · gone for good
+                    on {new Date(item.expires_at).toLocaleDateString("en-GB")}
+                  </span>
+                </span>
+                <Button size="sm" variant="outline" onClick={() => vm.restore(item.id)}>
+                  <Undo2 /> Restore
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive"
+                  onClick={() => vm.deleteForever(item.id)}
+                  aria-label={`Delete ${item.company} – ${item.role} for good`}
+                >
+                  <Trash2 />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -276,6 +389,7 @@ function SidePanel({ vm, job }: { vm: TrackerViewModel; job: Application }) {
 }
 
 export function TrackerView(vm: TrackerViewModel) {
+  const [confirmAll, setConfirmAll] = useState(false);
   const empty =
     !vm.isLoading && vm.items.length === 0 && !vm.search && !vm.status && !vm.hideClosed;
   return (
@@ -312,6 +426,9 @@ export function TrackerView(vm: TrackerViewModel) {
       </div>
 
       <Totals vm={vm} />
+
+      {vm.showBin && <RecycleBin vm={vm} />}
+      {confirmAll && <DeleteEverything vm={vm} onClose={() => setConfirmAll(false)} />}
 
       {vm.error && (
         <p role="alert" className="text-destructive text-sm">
@@ -365,6 +482,22 @@ export function TrackerView(vm: TrackerViewModel) {
                 <option value="status">Status</option>
               </NativeSelect>
             </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => vm.setShowBin(!vm.showBin)}
+              aria-pressed={vm.showBin}
+            >
+              <ArchiveRestore /> Bin{vm.bin.length > 0 && ` (${vm.bin.length})`}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-destructive"
+              onClick={() => setConfirmAll(true)}
+            >
+              <Trash2 /> Delete all
+            </Button>
             <label className="flex items-center gap-2 text-sm font-medium">
               <input
                 type="checkbox"
@@ -406,7 +539,8 @@ export function TrackerView(vm: TrackerViewModel) {
               vm.selected && "lg:grid-cols-[minmax(0,1fr)_380px]",
             )}
           >
-            <div className="min-w-0">
+            <div className="min-w-0 space-y-3">
+              <SelectionBar vm={vm} />
               {vm.isLoading ? (
                 <p className="text-muted-foreground flex items-center gap-2 text-sm">
                   <Loader2 className="size-4 animate-spin" /> Loading…

@@ -46,17 +46,21 @@ test("import a tracker spreadsheet with a title and totals above the table", asy
 
   await page.getByRole("link", { name: "Applications" }).click();
   await expect(page.getByLabel("Status for Initech – Tech Graduate")).toHaveValue("sent");
-  await expect(page.getByLabel("Pre-assessment for Initech – Tech Graduate")).toHaveValue(
-    "pending",
-  );
-  await expect(page.getByLabel("Assessment deadline for Initech – Tech Graduate")).toHaveValue(
-    "2099-11-25",
-  );
-  await expect(page.getByRole("cell", { name: "Do the assessment by 25 Nov" })).toBeVisible();
+  // The sheet's Pre-assessment + Deadline became an "Online test" stage.
+  await expect(page.getByRole("button", { name: /Online test, upcoming, 25 Nov/ })).toBeVisible();
+  await expect(page.getByText("Do the online test by 25 Nov")).toBeVisible();
+  await expect(page.getByRole("button", { name: /Online test, passed/ })).toBeVisible(); // Umbrella
 
-  // Edit the sheet in place: the next step updates.
-  await page.getByLabel("Pre-assessment for Initech – Tech Graduate").selectOption("done");
-  await expect(page.getByRole("cell", { name: "Wait for the assessment result" })).toBeVisible();
+  // Mark the test passed and add a video interview: the next step follows the stages.
+  await page.getByRole("button", { name: /Online test, upcoming, 25 Nov/ }).click();
+  await page.getByRole("radio", { name: "Passed" }).click();
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Wait for news after the online test")).toBeVisible();
+  await page.getByRole("button", { name: "Add a stage for Initech – Tech Graduate" }).click();
+  await expect(page.getByLabel("Stage", { exact: true })).toHaveValue("video");
+  await page.getByLabel("Stage date").fill("2099-12-02");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByText("Video interview on 2 Dec")).toBeVisible();
 });
 
 test("find a job → summary → tailored CV and letter → preview → save → apply", async ({ page }) => {

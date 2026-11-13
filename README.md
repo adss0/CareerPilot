@@ -2,7 +2,7 @@
 
 **Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
 
-> ✅ Status: version 1.3. Find jobs, a tracker like your own spreadsheet, and a one-page Apply flow with a tailored CV and cover letter. New here? Read the **[user guide](docs/USER_GUIDE.md)**. Changes are in the [changelog](CHANGELOG.md) and the roadmap is in the [plan](PLAN.md).
+> ✅ Status: version 1.4. Find jobs, a tracker like your own spreadsheet, and a one-page Apply flow with a tailored CV and cover letter. New here? Read the **[user guide](docs/USER_GUIDE.md)**. Changes are in the [changelog](CHANGELOG.md) and the roadmap is in the [plan](PLAN.md).
 
 ---
 
@@ -50,11 +50,11 @@ Applying for jobs is repetitive: copy the job details, rewrite a cover letter, a
 | 📄 | Export letters to PDF and Word |
 | 📤 | Approve-then-send email applications via Gmail, Outlook or any SMTP account, with daily limits |
 | 🧭 | Assisted apply for job portals |
-| 📊 | A tracker like your own spreadsheet (totals, pre-assessments, next steps, deadlines due, hide closed), a Kanban board and a dashboard |
+| 📊 | A tracker like your own spreadsheet (totals, interview stages, next steps, deadlines due, hide closed, delete with a 30-day recycle bin), a Kanban board and a dashboard |
 | 🔔 | Follow-up reminders and AI-drafted follow-up emails |
 | 📬 | Reply detection from your inbox (IMAP) |
 | 🔁 | Export your tracker to Excel any time |
-| 🖥️ | Installable desktop app for Windows |
+| 🖥️ | Installable desktop app for Windows, with one-click signed auto-updates |
 | 💾 | Backup and restore of all your data in one file |
 
 ---

@@ -5,6 +5,7 @@ import type {
   Application,
   ApplicationPage,
   ApplicationStatus,
+  BinItem,
   DueItem,
   Letter,
   LetterJob,
@@ -50,12 +51,26 @@ export type ApplicationInput = Partial<
     | "cv_id"
     | "interview_at"
     | "application_deadline"
-    | "assessment"
-    | "assessment_due"
+    | "stages"
   >
 >;
 
 export const getDue = (days = 7) => apiGet<DueItem[]>(`/applications/due?days=${days}`);
+
+// ---------- deleting: the recycle bin ----------
+
+export const listBin = () => apiGet<BinItem[]>("/bin");
+
+export const restoreFromBin = (id: number) => apiSend<Application>("POST", `/bin/${id}/restore`);
+
+export const deleteFromBin = (id: number) => apiSend<null>("DELETE", `/bin/${id}`);
+
+export const emptyBin = () => apiSend<null>("DELETE", "/bin");
+
+export const deleteAllApplications = () =>
+  apiSend<{ deleted: number; backup: string }>("POST", "/applications/delete-all", {
+    confirm: "DELETE",
+  });
 
 export const getTrackerSummary = () => apiGet<TrackerSummary>("/applications/summary");
 

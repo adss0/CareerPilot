@@ -33,8 +33,7 @@ const job = (overrides: Partial<Application> = {}): Application => ({
   letter_count: 0,
   match_score: null,
   application_deadline: "Rolling",
-  assessment: "pending",
-  assessment_due: "2026-11-25",
+  stages: [{ kind: "online_test", date: "2026-11-25", result: "upcoming", note: "" }],
   external_id: "",
   job_summary: {},
   next_step: "Do the assessment by 25 Nov",
@@ -75,6 +74,18 @@ function trackerVm(overrides: Partial<TrackerViewModel> = {}): TrackerViewModel 
     update: vi.fn(),
     summarize: vi.fn(),
     remove: vi.fn(),
+    checked: new Set(),
+    toggleChecked: vi.fn(),
+    toggleAllChecked: vi.fn(),
+    clearChecked: vi.fn(),
+    deleteChecked: vi.fn(),
+    deleteEverything: vi.fn(async () => true),
+    bin: [],
+    showBin: false,
+    setShowBin: vi.fn(),
+    restore: vi.fn(),
+    deleteForever: vi.fn(),
+    emptyTheBin: vi.fn(),
     ...overrides,
   };
 }
@@ -98,15 +109,29 @@ describe("TrackerView", () => {
     renderIn(<TrackerView {...vm} />);
     expect(screen.getByText("Total applications").nextSibling).toHaveTextContent("27");
     expect(screen.getByText("Assessments done").nextSibling).toHaveTextContent("5");
-    for (const header of ["Company", "Application deadline", "Pre-assessment", "Next step"]) {
+    for (const header of ["Company", "Application deadline", "Stages", "Next step"]) {
       expect(screen.getByRole("columnheader", { name: header })).toBeInTheDocument();
     }
     expect(screen.getByText("Do the assessment by 25 Nov")).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText("Pre-assessment for Acme Ltd – Graduate Developer"), {
-      target: { value: "done" },
+    // The online test chip opens its editor; marking it passed saves the stages.
+    fireEvent.click(screen.getByRole("button", { name: /Online test, upcoming/ }));
+    fireEvent.click(screen.getByRole("radio", { name: "Passed" }));
+    fireEvent.click(screen.getByRole("button", { name: /Save/ }));
+    expect(vm.update).toHaveBeenCalledWith(1, {
+      stages: [{ kind: "online_test", date: "2026-11-25", result: "passed", note: "" }],
     });
-    expect(vm.update).toHaveBeenCalledWith(1, { assessment: "done" });
+    // + adds the next stage most people have: a video interview.
+    fireEvent.click(screen.getByRole("button", { name: /Add a stage for Acme Ltd/ }));
+    expect(screen.getByLabelText("Stage")).toHaveValue("video");
+    fireEvent.change(screen.getByLabelText("Stage date"), { target: { value: "2026-12-02" } });
+    fireEvent.click(screen.getByRole("button", { name: /Add$/ }));
+    expect(vm.update).toHaveBeenLastCalledWith(1, {
+      stages: [
+        { kind: "online_test", date: "2026-11-25", result: "upcoming", note: "" },
+        { kind: "video", date: "2026-12-02", result: "upcoming", note: "" },
+      ],
+    });
     fireEvent.change(screen.getByLabelText("Status for Acme Ltd – Graduate Developer"), {
       target: { value: "rejected" },
     });
@@ -135,6 +160,58 @@ describe("TrackerView", () => {
     const selected = job();
     renderIn(<TrackerView {...trackerVm({ items: [selected], selected })} />);
     expect(screen.getByText(/No job description yet/)).toBeInTheDocument();
+  });
+});
+
+describe("deleting", () => {
+  it("deletes selected rows", () => {
+    const vm = trackerVm({ checked: new Set([1]) });
+    renderIn(<TrackerView {...vm} />);
+    fireEvent.click(screen.getByLabelText("Select Acme Ltd – Graduate Developer"));
+    expect(vm.toggleChecked).toHaveBeenCalledWith(1);
+    fireEvent.click(screen.getByLabelText("Select all"));
+    expect(vm.toggleAllChecked).toHaveBeenCalled();
+    expect(screen.getByText("1 selected")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Delete selected/ }));
+    expect(vm.deleteChecked).toHaveBeenCalled();
+  });
+
+  it("only deletes everything after typing DELETE", () => {
+    const vm = trackerVm();
+    renderIn(<TrackerView {...vm} />);
+    fireEvent.click(screen.getByRole("button", { name: /Delete all/ }));
+    const go = screen.getByRole("button", { name: /Delete everything/ });
+    expect(go).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Type DELETE to confirm"), {
+      target: { value: "DELETE" },
+    });
+    expect(go).toBeEnabled();
+    fireEvent.click(go);
+    expect(vm.deleteEverything).toHaveBeenCalledWith("DELETE");
+  });
+
+  it("restores from the recycle bin", () => {
+    const vm = trackerVm({
+      showBin: true,
+      bin: [
+        {
+          id: 9,
+          company: "Globex",
+          role: "Analyst",
+          status: "rejected",
+          deleted_at: "2026-11-13T10:00:00Z",
+          expires_at: "2026-12-13T10:00:00Z",
+        },
+      ],
+    });
+    renderIn(<TrackerView {...vm} />);
+    const bin = screen.getByRole("region", { name: "Recycle bin" });
+    expect(bin).toHaveTextContent("Globex");
+    expect(bin).toHaveTextContent("13/12/2026");
+    fireEvent.click(screen.getByRole("button", { name: /Restore/ }));
+    expect(vm.restore).toHaveBeenCalledWith(9);
+    fireEvent.click(screen.getByRole("button", { name: "Delete Globex – Analyst for good" }));
+    expect(vm.deleteForever).toHaveBeenCalledWith(9);
   });
 });
 

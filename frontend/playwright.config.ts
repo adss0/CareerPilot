@@ -24,6 +24,8 @@ const frontendPort = 5174;
 
 export default defineConfig({
   testDir: "e2e",
+  // One shared backend and database: run the tests one at a time (one deletes everything).
+  workers: 1,
   timeout: 90_000,
   retries: process.env.CI ? 1 : 0,
   reporter: [["list"]],

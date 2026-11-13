@@ -1,6 +1,6 @@
 """Database tables. Only repositories should query these directly."""
 
-from datetime import UTC, date, datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import JSON, Column, ForeignKey, Integer
 from sqlmodel import Field, SQLModel
@@ -85,10 +85,8 @@ class Application(SQLModel, table=True):
     application_deadline: str = Field(
         default="", max_length=100, sa_column_kwargs={"server_default": ""}
     )
-    assessment: str = Field(  # "", "pending" or "done"
-        default="", max_length=20, sa_column_kwargs={"server_default": ""}
-    )
-    assessment_due: date | None = None
+    # Interview stages: [{"kind", "date", "result", "note"}] (see app/schemas/application.py)
+    stages: list[dict] = Field(default_factory=list, sa_column=_json_list())
     # A found job's id on the job board ("reed:12345"), so it isn't saved twice.
     external_id: str = Field(
         default="", max_length=100, index=True, sa_column_kwargs={"server_default": ""}
@@ -160,6 +158,21 @@ class TailoredCv(SQLModel, table=True):
     edited: bool = Field(default=False, sa_column_kwargs={"server_default": "0"})
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime | None = None
+
+
+class RecycledApplication(SQLModel, table=True):
+    """A deleted job, kept for 30 days so it can be restored (see services/recycle_bin.py)."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    original_id: int | None = None
+    company: str = Field(default="", max_length=200)
+    role: str = Field(default="", max_length=200)
+    status: str = Field(default="", max_length=20)
+    # The job and everything linked to it, as JSON.
+    data: dict = Field(
+        default_factory=dict, sa_column=Column(JSON, nullable=False, server_default="{}")
+    )
+    deleted_at: datetime = Field(default_factory=utcnow, index=True)
 
 
 class SavedJob(SQLModel, table=True):

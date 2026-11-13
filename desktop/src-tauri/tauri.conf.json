@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "CareerPilot",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "identifier": "app.careerpilot.desktop",
   "build": {
     "frontendDist": "../../frontend/dist"
@@ -24,7 +24,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "msi"],
+    "targets": [
+      "nsis",
+      "msi"
+    ],
     "publisher": "CareerPilot",
     "shortDescription": "AI job-application assistant",
     "longDescription": "Imports jobs from Excel, writes tailored cover letters with free AI, sends approved applications and tracks replies.",
@@ -35,10 +38,24 @@
       "icons/128x128@2x.png",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/careerpilot-server"],
+    "externalBin": [
+      "binaries/careerpilot-server"
+    ],
     "windows": {
       "nsis": {
         "installMode": "currentUser"
+      }
+    },
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEUxMzc3NjQzNTBBQjM2QjUKUldTMU5xdFFRM1kzNGFpWi9CaGluWmU4YXRxV1VpSDhxZm1NaUVoZ3ZXNFVtSENUMFFQaGc4UlgK",
+      "endpoints": [
+        "https://github.com/adss0/CareerPilot/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
       }
     }
   }

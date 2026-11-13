@@ -35,6 +35,15 @@ class BackupService:
 
     # ---------- backup ----------
 
+    def save_backup(self, reason: str) -> Path:
+        """Saves a backup .zip in the backups folder, e.g. before deleting everything."""
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        folder = self.home / "backups"
+        folder.mkdir(parents=True, exist_ok=True)
+        path = folder / f"{reason}-{stamp}.zip"
+        path.write_bytes(self.create())
+        return path
+
     def create(self) -> bytes:
         buffer = io.BytesIO()
         with tempfile.TemporaryDirectory() as tmp:

@@ -1,4 +1,4 @@
-import type { ApplicationStatus, LetterJob, Tone } from "./types";
+import type { ApplicationStatus, LetterJob, StageKind, Tone } from "./types";
 
 export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   imported: "To apply",
@@ -13,7 +13,26 @@ export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   withdrawn: "Withdrawn",
 };
 
-export const ASSESSMENT_LABELS = { "": "-", pending: "Pending", done: "Done" } as const;
+export const STAGE_LABELS: Record<StageKind, string> = {
+  online_test: "Online test",
+  video: "Video interview",
+  phone: "Phone screen",
+  technical: "Technical interview",
+  assessment_centre: "Assessment centre",
+  final: "Final interview",
+  other: "Other",
+};
+
+/** Short names for the chips in the sheet. */
+export const STAGE_SHORT: Record<StageKind, string> = {
+  online_test: "Test",
+  video: "Video",
+  phone: "Phone",
+  technical: "Technical",
+  assessment_centre: "AC",
+  final: "Final",
+  other: "Other",
+};
 
 export const TONE_LABELS: Record<Tone, string> = {
   formal: "Formal",

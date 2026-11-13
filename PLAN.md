@@ -20,6 +20,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ✅ Done |
 | 8 | **Desktop app:** installable Windows app (Tauri) | ✅ Done |
 | 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ✅ Done (tag & publish left to you) |
+| 13 | **v1.4 Stages, deleting, links, updates:** interview stages column, delete selected / all with a 30-day recycle bin, add a job from just its link, signed auto-updates, desktop link fix | ✅ Done |
 | 12 | **v1.3 More boards, shortlist, deadlines, new look:** Jooble, other-site searches, add a job from any site, shortlist, deadlines due, hide closed, bold modern restyle | ✅ Done |
 | 11 | **v1.2 Find jobs & Apply:** job-board search with AI summaries, a spreadsheet-style tracker, a one-page Apply flow, CV reader fixes | ✅ Done |
 | 10 | **v1.1 Tailored documents:** CV tailored per job, letter highlights, Word + PDF saved to Documents, keys in Settings, import your own tracker | ✅ Done |
@@ -325,6 +326,17 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 ---
 
+## Phase 13: Stages, deleting, links and updates (v1.4)
+
+- [x] 13.1 **Interview stages** (`stages` JSON on the job; migration converts each pre-assessment into an "Online test" stage, then drops the old columns). Sheet chips with an editor; Next step, Due this week and totals use the stages.
+- [x] 13.2 **Deleting**: tick rows + Delete selected; Delete all (typed DELETE, backup first); **recycle bin** (`recycledapplication` table: a JSON snapshot of the job, letters, tailored CV, history, emails and replies; restored with fresh ids; 30 days).
+- [x] 13.3 **Add a job from its link**: fetches that one page (public addresses only, redirects re-checked, 3 MB, no crawling), reads schema.org JobPosting data, else the page text.
+- [x] 13.4 **Signed auto-updates** (Tauri updater + process plugins; GitHub Releases `latest.json`; the backend sidecar is stopped before the installer runs). Needs the `TAURI_SIGNING_PRIVATE_KEY` repository secret.
+- [x] 13.5 **Fixed**: links didn't open in the desktop app (the shell plugin's click handler ran first and its "open" isn't allowed).
+- [x] 13.6 Tests: 263 backend, 69 frontend, 7 end-to-end.
+
+---
+
 ## Future ideas (after v1)
 
 - Job scraping from public job boards' RSS/APIs into the tracker
@@ -369,3 +381,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-13 | **Phase 10 (v1.1) done.** Imports the owner's own tracker layout (title and totals above the table, Status and deadline columns), keys pasted in Settings, a tailored CV per job, letter highlights, Word + PDF saved to Documents\CareerPilot. 204 backend + 59 frontend tests. |
 | 2026-11-13 | **Phase 11 (v1.2) done.** Fixed LaTeX CVs being read as glyph names, a tracker laid out like the owner's spreadsheet with next steps, Find jobs (Reed, Adzuna) with AI summaries, and a one-page Apply flow. 232 backend + 65 frontend + 3 E2E tests. |
 | 2026-11-13 | **Phase 12 (v1.3) done.** Jooble, other-site searches, add a job from any site, shortlist, deadlines due, hide closed, a bold modern restyle, and a full re-test that found and fixed three bugs. 240 backend + 65 frontend + 6 E2E tests. |
+| 2026-11-13 | **Phase 13 (v1.4) done.** Interview stages, delete selected / all with a 30-day recycle bin, add a job from just its link, signed auto-updates, and the fix for links not opening in the desktop app. 263 backend + 69 frontend + 7 E2E tests. |

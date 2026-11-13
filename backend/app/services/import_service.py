@@ -183,14 +183,25 @@ class ImportService:
                     )
                 )
             extra: list[tuple[str, str]] = []
+            # A tracker's "Pre-assessment" + its deadline become an "Online test" stage.
             assessment_text = values.pop("assessment", "")
-            values["assessment"] = parse_assessment(assessment_text)
-            if assessment_text and not values["assessment"]:
+            assessment = parse_assessment(assessment_text)
+            if assessment_text and not assessment:
                 extra.append(("Pre-assessment", assessment_text))
             due_text = values.pop("assessment_due", "")
-            values["assessment_due"] = parse_day(due_text)
-            if due_text and values["assessment_due"] is None:
+            due = parse_day(due_text)
+            if due_text and due is None:
                 extra.append(("Assessment deadline", due_text))
+            if assessment or due:
+                result = "passed" if assessment == "done" else "upcoming"
+                values["stages"] = [
+                    {
+                        "kind": "online_test",
+                        "date": due.isoformat() if due else None,
+                        "result": result,
+                        "note": "",
+                    }
+                ]
             # Columns without a field of their own are kept in the notes, so nothing is lost.
             extra += [(header, cells[index].strip()) for index, header in extra_columns]
             note_lines = [f"{label}: {value}" for label, value in extra if value]
