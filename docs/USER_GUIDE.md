@@ -119,6 +119,12 @@ Open a job and go to the **Cover letter** tab.
 
 **Tailored CV:** open the job's **Tailored CV** tab and click **Tailor my CV**. The AI rewrites your summary and bullet points and puts what matters most for this job first. It only rewords and reorders: job titles, employers, dates, education and the skill list come straight from your profile. **What changed** lists the edits, and you can change anything before saving. When a job has a tailored CV, it's attached to the email instead of your uploaded CV.
 
+**ATS check:** every tailored CV gets a score out of 100 and a checklist showing how applicant-tracking systems will read it: whether the PDF reads back as text, which of the job's keywords it covers (and which ones are in your profile but missing from this CV), contact details, sections, length, bullet points, numbers and dates. It runs again every time you tailor or save.
+
+**Preview:** the **Preview** button on the cover letter and the tailored CV shows the finished PDF, including changes you haven't saved yet.
+
+**Downloads:** every download shows a message when it's done. In the desktop app the file is saved in your Downloads folder, with **Open** and **Show in folder** buttons.
+
 **Where the files go:** every letter and tailored CV is saved as Word and PDF in `Documents\CareerPilot`:
 
 ```text
@@ -173,7 +179,7 @@ Backups from an older version of CareerPilot are upgraded automatically when res
 
 ### Updates
 
-The desktop app checks for a new version a few seconds after it starts. When there is one, click **Update**: it downloads, installs and restarts. Updates are signed, so the app only installs ones published from the CareerPilot repository.
+The desktop app checks for a new version a few seconds after it starts, and **Settings → Updates** shows your version with a **Check for updates** button. When there is one, click **Update**: it downloads, installs and restarts. Updates are signed, so the app only installs ones published from the CareerPilot repository.
 
 ## 10. Troubleshooting
 

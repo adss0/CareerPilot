@@ -2,6 +2,15 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] - 2026-11-14
+
+### Added
+
+- **ATS check on every CV:** each time a CV is tailored, edited or opened it gets a score out of 100 and a checklist: readable by applicant-tracking systems (the real PDF is read back as text), the job's keywords it covers (and which ones are in your profile but missing from this CV), contact details, standard sections, length, bullet points, measurable results and dates. Rule-based: instant, free, the same every time.
+- **Preview mode:** a Preview button on the cover letter and the tailored CV shows exactly what the finished PDF will look like, including edits you haven't saved.
+- **Download confirmations:** every download (CV, cover letter, exports, backups) says it worked. In the desktop app the file goes to your Downloads folder, with **Open** and **Show in folder** buttons.
+- **Updates in Settings:** see your version, check for updates and install with one click (in addition to the automatic check when the app opens).
+
 ## [1.5.0] - 2026-11-13
 
 ### Added
@@ -115,6 +124,7 @@ The first full release.
 
 - 174 backend tests (95% coverage; CI fails under 85%), 52 frontend tests, and an end-to-end browser test of import → letter → approve → send against a fake AI and a local test mail server.
 
+[1.6.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.6.0
 [1.5.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.5.0
 [1.4.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.4.0
 [1.3.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.3.0

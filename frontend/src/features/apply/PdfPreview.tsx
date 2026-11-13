@@ -7,20 +7,31 @@ export function PdfPreview({
   url,
   title,
   version,
+  body,
 }: {
   url: string;
   title: string;
   version: string;
+  body?: unknown; // sent as JSON (a POST): preview text that isn't saved yet
 }) {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const payload = body === undefined ? null : JSON.stringify(body);
 
   useEffect(() => {
     let cancelled = false;
     let created: string | null = null;
     setObjectUrl(null);
     setError(null);
-    fetch(url)
+    const request: RequestInit | undefined =
+      payload === null
+        ? undefined
+        : {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CareerPilot": "1" },
+            body: payload,
+          };
+    fetch(url, request)
       .then((response) => {
         if (!response.ok) throw new Error(`Couldn't load the preview (${response.status}).`);
         return response.blob();
@@ -35,7 +46,7 @@ export function PdfPreview({
       cancelled = true;
       if (created) URL.revokeObjectURL(created);
     };
-  }, [url, version]); // version: reload when the document changes
+  }, [url, version, payload]); // reload when the document or the text changes
 
   if (error) return <p className="text-destructive text-sm">{error}</p>;
   if (!objectUrl)

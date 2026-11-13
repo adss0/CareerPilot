@@ -7,6 +7,7 @@ import { BackupView } from "./BackupView";
 import { DocumentSettingsView } from "./DocumentSettingsView";
 import { KeysView } from "./KeysView";
 import { SettingsView } from "./SettingsView";
+import { UpdatesView } from "./UpdatesView";
 import { useBackupViewModel } from "./useBackupViewModel";
 import { useDocumentSettingsViewModel } from "./useDocumentSettingsViewModel";
 import { useKeysViewModel } from "./useKeysViewModel";
@@ -26,6 +27,7 @@ export function SettingsPage() {
       <DocumentSettingsView {...documents} />
       <NotificationSettingsView />
       <BackupView {...backup} />
+      <UpdatesView />
     </div>
   );
 }

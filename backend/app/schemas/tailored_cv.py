@@ -2,6 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from app.schemas.ats import AtsReport
 from app.schemas.profile import EducationItem, ExperienceItem, ProjectItem
 
 
@@ -25,6 +26,7 @@ class TailoredCvRead(BaseModel):
     created_at: datetime
     updated_at: datetime | None
     saved_to: str | None = None  # the folder the files were saved in, if saving worked
+    ats: AtsReport | None = None  # how applicant-tracking systems will read it
 
 
 class TailoredCvUpdate(BaseModel):
