@@ -1,6 +1,6 @@
 """Database tables. Only repositories should query these directly."""
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 
 from sqlalchemy import JSON, Column, ForeignKey, Integer
 from sqlmodel import Field, SQLModel
@@ -81,6 +81,22 @@ class Application(SQLModel, table=True):
     status: ApplicationStatus = Field(default=ApplicationStatus.IMPORTED, index=True)
     priority: int = Field(default=0, ge=0, le=3)
     notes: str = ""
+    # The user's own tracker: e.g. "Rolling" or "30/11/2026", and the online assessment.
+    application_deadline: str = Field(
+        default="", max_length=100, sa_column_kwargs={"server_default": ""}
+    )
+    assessment: str = Field(  # "", "pending" or "done"
+        default="", max_length=20, sa_column_kwargs={"server_default": ""}
+    )
+    assessment_due: date | None = None
+    # A found job's id on the job board ("reed:12345"), so it isn't saved twice.
+    external_id: str = Field(
+        default="", max_length=100, index=True, sa_column_kwargs={"server_default": ""}
+    )
+    # The AI's summary of the job: {"summary", "requirements", "salary", ...}
+    job_summary: dict = Field(
+        default_factory=dict, sa_column=Column(JSON, nullable=False, server_default="{}")
+    )
     import_batch_id: int | None = Field(default=None, foreign_key="importbatch.id")
     # Which CV to send with this application; cleared if that CV is deleted.
     cv_id: int | None = Field(

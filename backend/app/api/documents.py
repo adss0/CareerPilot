@@ -4,7 +4,13 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Query, Response, status
 
-from app.api.deps import DocumentsServiceDep, LetterServiceDep, TailoredCvServiceDep
+from app.api.deps import (
+    CvServiceDep,
+    DocumentsServiceDep,
+    LetterServiceDep,
+    TailoredCvServiceDep,
+)
+from app.schemas.cv import CvRead
 from app.schemas.documents import (
     DocumentSettingsRead,
     DocumentSettingsUpdate,
@@ -54,6 +60,14 @@ def export_tailored_cv(
         media_type=media_type,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.post("/applications/{application_id}/tailored-cv/use-as-main", response_model=CvRead)
+def use_tailored_cv_as_main(
+    application_id: int, service: TailoredCvServiceDep, cvs: CvServiceDep
+) -> CvRead:
+    """Saves the tailored CV as a PDF in Profile → Your CVs and makes it the main CV."""
+    return service.use_as_main(application_id, cvs)
 
 
 @router.post("/applications/{application_id}/documents/save", response_model=SavedDocuments)

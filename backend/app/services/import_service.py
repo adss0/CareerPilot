@@ -1,3 +1,5 @@
+import re
+from datetime import date, datetime
 from pathlib import PurePath
 from urllib.parse import urlsplit
 
@@ -41,6 +43,34 @@ STATUS_WORDS: tuple[tuple[tuple[str, ...], ApplicationStatus], ...] = (
         ApplicationStatus.IMPORTED,
     ),
 )
+
+
+ASSESSMENT_DONE = ("done", "complete", "completed", "submitted", "passed", "finished", "sat")
+ASSESSMENT_PENDING = ("pending", "to do", "todo", "invited", "received", "in progress", "booked")
+
+
+def parse_assessment(value: str) -> str:
+    """ "Done" → "done", "Pending" → "pending", anything else → "" (kept in the notes)."""
+    text = " ".join(value.casefold().split())
+    if any(word in text for word in ASSESSMENT_DONE):
+        return "done"
+    if any(word in text for word in ASSESSMENT_PENDING) or text in ("yes", "y"):
+        return "pending"
+    return ""
+
+
+DAY_FORMATS = ("%Y-%m-%d", "%d/%m/%Y", "%d/%m/%y", "%d-%m-%Y", "%d.%m.%Y", "%d %b %Y", "%d %B %Y")
+
+
+def parse_day(value: str) -> date | None:
+    """A UK-style date from a spreadsheet: 25/11/2026, 2026-11-25 or 25 Nov 2026."""
+    text = value.strip().split(" ")[0] if re.match(r"^\d{4}-\d\d-\d\d ", value) else value.strip()
+    for fmt in DAY_FORMATS:
+        try:
+            return datetime.strptime(text, fmt).date()
+        except ValueError:
+            continue
+    return None
 
 
 def parse_status(value: str) -> ApplicationStatus | None:
@@ -152,10 +182,17 @@ class ImportService:
                         role=role,
                     )
                 )
+            extra: list[tuple[str, str]] = []
+            assessment_text = values.pop("assessment", "")
+            values["assessment"] = parse_assessment(assessment_text)
+            if assessment_text and not values["assessment"]:
+                extra.append(("Pre-assessment", assessment_text))
+            due_text = values.pop("assessment_due", "")
+            values["assessment_due"] = parse_day(due_text)
+            if due_text and values["assessment_due"] is None:
+                extra.append(("Assessment deadline", due_text))
             # Columns without a field of their own are kept in the notes, so nothing is lost.
-            extra = [("Application deadline", values.pop("deadline", ""))] + [
-                (header, cells[index].strip()) for index, header in extra_columns
-            ]
+            extra += [(header, cells[index].strip()) for index, header in extra_columns]
             note_lines = [f"{label}: {value}" for label, value in extra if value]
             if note_lines:
                 notes = "\n".join(filter(None, [values.get("notes", ""), *note_lines]))

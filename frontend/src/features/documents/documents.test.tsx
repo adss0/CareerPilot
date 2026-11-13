@@ -57,6 +57,7 @@ function cvVm(overrides: Partial<TailoredCvViewModel> = {}): TailoredCvViewModel
     isSaving: false,
     error: null,
     tailor: vi.fn(),
+    tailorAsync: vi.fn(async () => undefined),
     edit: vi.fn(),
     editExperience: vi.fn(),
     editProject: vi.fn(),

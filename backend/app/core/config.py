@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "CareerPilot"
-    version: str = "1.1.0"
+    version: str = "1.2.0"
 
     ai_provider: Literal["gemini", "groq", "ollama"] = "gemini"
     gemini_api_key: str = ""
@@ -39,6 +39,14 @@ class Settings(BaseSettings):
     ai_timeout_seconds: float = 60
     # Pause between AI calls in bulk generation, to stay inside free-tier rate limits.
     ai_request_gap_seconds: float = 4
+
+    # Job boards for "Find jobs" (free keys): https://www.reed.co.uk/developers and
+    # https://developer.adzuna.com
+    reed_api_key: str = ""
+    # Only changed by the end-to-end test, which points it at a fake Reed.
+    reed_api_base: str = "https://www.reed.co.uk/api/1.0"
+    adzuna_app_id: str = ""
+    adzuna_app_key: str = ""
 
     # Email (SMTP/IMAP) password, e.g. a Gmail App Password. Never stored in the database.
     email_password: str = ""

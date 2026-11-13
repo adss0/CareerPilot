@@ -1,7 +1,7 @@
 // View: one job, its cover letters, and how well the profile matches it.
 import { ArrowLeft, ExternalLink, Loader2, PenLine, Sparkles } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,9 @@ import { LetterEditorView } from "./LetterEditorView";
 import type { Tone } from "./types";
 import type { ApplicationDetailViewModel } from "./useApplicationDetailViewModel";
 
+const DETAIL_TABS = ["letter", "cv", "apply", "details"] as const;
+type DetailTab = (typeof DETAIL_TABS)[number];
+
 export function ApplicationDetailView({
   details,
   apply,
@@ -25,7 +28,11 @@ export function ApplicationDetailView({
   apply?: ReactNode;
   tailoredCv?: ReactNode;
 }) {
-  const [tab, setTab] = useState<"letter" | "cv" | "apply" | "details">("letter");
+  const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<DetailTab>(() => {
+    const wanted = searchParams.get("tab");
+    return DETAIL_TABS.includes(wanted as DetailTab) ? (wanted as DetailTab) : "letter";
+  });
   if (vm.isLoading) {
     return (
       <p className="text-muted-foreground flex items-center gap-2 text-sm">

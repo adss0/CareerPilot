@@ -16,8 +16,8 @@ def test_export_contains_applications(client, make_application):
     assert "careerpilot-applications-" in response.headers["content-disposition"]
 
     rows = read_xlsx(response.content)
-    assert rows[0][:3] == ["Company", "Role", "Status"]
-    assert {(r[0], r[2]) for r in rows[1:]} == {("Acme Ltd", "Sent"), ("Globex", "Imported")}
+    assert rows[0][:4] == ["Company", "Role", "Application deadline", "Status"]
+    assert {(r[0], r[3]) for r in rows[1:]} == {("Acme Ltd", "Applied"), ("Globex", "To apply")}
 
 
 def test_export_filters_by_status(client, make_application):

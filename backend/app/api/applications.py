@@ -13,6 +13,7 @@ from app.schemas.application import (
     BulkApplicationAction,
     BulkApplicationResult,
     StatusHistoryRead,
+    TrackerSummary,
 )
 from app.services.excel_export import XLSX_MEDIA_TYPE
 
@@ -57,6 +58,11 @@ def bulk_update_applications(
 
 
 # Declared before "/{application_id}" so "export" isn't read as an id.
+@router.get("/summary", response_model=TrackerSummary)
+def get_tracker_summary(service: ApplicationServiceDep) -> TrackerSummary:
+    return service.tracker_summary()
+
+
 @router.get("/export", response_class=Response)
 def export_applications(
     service: ApplicationServiceDep,

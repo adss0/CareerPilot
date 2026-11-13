@@ -20,6 +20,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ✅ Done |
 | 8 | **Desktop app:** installable Windows app (Tauri) | ✅ Done |
 | 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ✅ Done (tag & publish left to you) |
+| 11 | **v1.2 Find jobs & Apply:** job-board search with AI summaries, a spreadsheet-style tracker, a one-page Apply flow, CV reader fixes | ✅ Done |
 | 10 | **v1.1 Tailored documents:** CV tailored per job, letter highlights, Word + PDF saved to Documents, keys in Settings, import your own tracker | ✅ Done |
 
 *Rough estimates: each phase is about 1–7 days for one person working part-time.*
@@ -298,7 +299,17 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 - [x] 10.3 **Tailored CV per job:** AI rewrites the summary and bullets and reorders skills, experience and projects. Titles, employers, dates, education and skill names are copied from the profile in code; made-up skills are dropped; the guardrail flags numbers and names that aren't in the profile. Editable; Word/PDF export; attached to the email instead of the uploaded CV.
 - [x] 10.4 **Cover letter highlights:** tick skills, projects or jobs from the profile for the letter to focus on.
 - [x] 10.5 **Saved documents folder:** Word + PDF of every tailored CV and letter in `Documents\CareerPilot\CVs\<Company>` and `…\Cover Letters\<Company>` (Windows known-folder lookup, so OneDrive works). Configurable folder, auto-save toggle, "Open folder" in File Explorer. Program Files isn't used: it needs admin rights.
-- [ ] 10.6 Install the v1.1 desktop app on the owner's PC (installer from the GitHub Actions build).
+- [x] 10.6 Install the v1.1 desktop app on the owner's PC (installer from the GitHub Actions build).
+
+---
+
+## Phase 11: Find jobs & Apply (v1.2)
+
+- [x] 11.1 **CV reader fixes:** LaTeX small-caps glyph names (`/n.sc`) turned back into letters, ligatures and kerning gaps fixed; undated projects split; skills taken from project lines; "Extra-curricular" isn't a project; ".Net" kept; education with the university first.
+- [x] 11.2 **Tracker like the owner's spreadsheet:** new fields (application deadline, pre-assessment, assessment deadline), a computed **Next step**, a totals bar, in-place editing with colour coding, a side panel with the job summary, and the same columns in the Excel export. "Imported" → **To apply**, "Sent" → **Applied**.
+- [x] 11.3 **Find jobs:** Reed and Adzuna official APIs (free keys, pasted in Settings), duplicates across boards merged, an AI summary per job (salary, must-haves, match, strengths, gaps), **Apply** saves the job to the tracker. No scraping and nothing submitted to any site.
+- [x] 11.4 **Apply page:** build the tailored CV and letter in one click, preview the PDFs, download Word/PDF, save to the documents folder or make it the main CV, open the job page with one-click copy for every detail, mark as applied. Filling in the employer's own form isn't possible from the app (it would need a browser extension).
+- [x] 11.5 Tests: 232 backend, 65 frontend, 3 end-to-end (tracker import; find → summary → build → preview → save → apply; email). `npm run demo` for a safe demo.
 
 ---
 
@@ -344,3 +355,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-12 | **Phase 8 done.** Tauri desktop shell, backend bundled with PyInstaller as a sidecar (fixed orphaned-process and no-console crash bugs), app-data folder, icons, Windows installer built and smoke-tested in GitHub Actions, draft Release on version tags. |
 | 2026-11-12 | **Phase 9 done.** Security pass (CSRF header, local-host check, security headers, dependency upgrades with clean audits), backup and restore, Playwright end-to-end test in CI, coverage gate, user guide, changelog, version 1.0.0. 174 backend + 52 frontend tests + 1 E2E. Tagging v1.0.0 is left to the owner. |
 | 2026-11-13 | **Phase 10 (v1.1) done.** Imports the owner's own tracker layout (title and totals above the table, Status and deadline columns), keys pasted in Settings, a tailored CV per job, letter highlights, Word + PDF saved to Documents\CareerPilot. 204 backend + 59 frontend tests. |
+| 2026-11-13 | **Phase 11 (v1.2) done.** Fixed LaTeX CVs being read as glyph names, a tracker laid out like the owner's spreadsheet with next steps, Find jobs (Reed, Adzuna) with AI summaries, and a one-page Apply flow. 232 backend + 65 frontend + 3 E2E tests. |

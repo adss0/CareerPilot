@@ -8,6 +8,7 @@ from sqlmodel import Session
 from app.core.config import HOME_DIR, get_settings
 from app.core.db import get_engine, get_session
 from app.integrations.ai import AIProvider
+from app.integrations.jobs import JobBoard
 from app.services.ai_settings_service import AiSettingsService
 from app.services.application_service import ApplicationService
 from app.services.cv_service import CvService
@@ -16,6 +17,7 @@ from app.services.email_queue import EmailQueue
 from app.services.email_service import EmailService
 from app.services.email_settings_service import EmailSettingsService
 from app.services.import_service import ImportService
+from app.services.job_service import JobService, build_boards
 from app.services.letter_queue import LetterQueue
 from app.services.letter_service import LetterService
 from app.services.profile_service import ProfileService
@@ -63,6 +65,21 @@ def get_tailored_cv_service(session: SessionDep, ai: AIProviderDep) -> TailoredC
 
 
 TailoredCvServiceDep = Annotated[TailoredCvService, Depends(get_tailored_cv_service)]
+
+
+def get_job_boards() -> list[JobBoard]:
+    return build_boards(get_settings())
+
+
+def get_job_service(
+    session: SessionDep,
+    ai: AIProviderDep,
+    boards: Annotated[list[JobBoard], Depends(get_job_boards)],
+) -> JobService:
+    return JobService(session, boards, ai)
+
+
+JobServiceDep = Annotated[JobService, Depends(get_job_service)]
 
 
 def get_application_service(session: SessionDep) -> ApplicationService:

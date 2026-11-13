@@ -37,6 +37,12 @@ const app = (
   updated_at: "2026-11-10T09:00:00",
   letter_count: 0,
   match_score: null,
+  application_deadline: "",
+  assessment: "",
+  assessment_due: null,
+  external_id: "",
+  job_summary: {},
+  next_step: "",
 });
 
 describe("board", () => {
@@ -54,7 +60,7 @@ describe("board", () => {
         <BoardView items={[app(1, "sent", "Acme Ltd")]} truncated={false} onMove={vi.fn()} />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("region", { name: "Sent column" })).toHaveTextContent("Acme Ltd");
+    expect(screen.getByRole("region", { name: "Applied column" })).toHaveTextContent("Acme Ltd");
     expect(screen.getByRole("button", { name: /Move Acme Ltd/ })).toBeInTheDocument();
   });
 });
@@ -107,8 +113,8 @@ describe("JobDetailsView", () => {
       />,
     );
     const items = screen.getAllByRole("listitem").map((li) => li.textContent);
-    expect(items[0]).toContain("Imported → Sent");
-    expect(items[1]).toContain("Added as Imported");
+    expect(items[0]).toContain("To apply → Applied");
+    expect(items[1]).toContain("Added as To apply");
   });
 });
 

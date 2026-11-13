@@ -66,10 +66,38 @@ IMPORT_FIELDS: tuple[ImportField, ...] = (
         ("status", "application status", "stage", "outcome", "result", "progress"),
     ),
     ImportField(
-        "deadline",
+        "application_deadline",
         "Application deadline",
         False,
-        ("deadline", "application deadline", "closing date", "apply by", "closes", "due date"),
+        ("deadline", "application deadline", "closing date", "apply by", "closes"),
+    ),
+    ImportField(
+        "assessment",
+        "Pre-assessment",
+        False,
+        (
+            "pre assessment",
+            "assessment",
+            "online assessment",
+            "oa",
+            "online test",
+            "test",
+            "assessment status",
+            "pre assessment status",
+        ),
+    ),
+    ImportField(
+        "assessment_due",
+        "Assessment deadline",
+        False,
+        (
+            "assessment deadline",
+            "assessment due",
+            "test deadline",
+            "oa deadline",
+            "due date",
+            "deadline",
+        ),
     ),
 )
 FIELD_KEYS = tuple(field.key for field in IMPORT_FIELDS)

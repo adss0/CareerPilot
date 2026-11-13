@@ -35,7 +35,7 @@ class AiTestResult(BaseModel):
     model: str
 
 
-SecretName = Literal["gemini", "groq", "email"]
+SecretName = Literal["gemini", "groq", "email", "reed", "adzuna_id", "adzuna_key"]
 
 
 class SecretsStatus(BaseModel):
@@ -44,6 +44,9 @@ class SecretsStatus(BaseModel):
     gemini: bool
     groq: bool
     email: bool
+    reed: bool
+    adzuna_id: bool
+    adzuna_key: bool
 
 
 class SecretUpdate(BaseModel):

@@ -10,9 +10,9 @@ This guide takes you from a fresh install to your first sent application. Everyt
 2. [Get a free AI key](#2-get-a-free-ai-key)
 3. [Connect your email](#3-connect-your-email)
 4. [Set up your profile](#4-set-up-your-profile)
-5. [Import your jobs](#5-import-your-jobs)
+5. [Find jobs or import your own](#5-find-jobs-or-import-your-own)
 6. [Write cover letters and tailor your CV](#6-write-cover-letters-and-tailor-your-cv)
-7. [Review and send](#7-review-and-send)
+7. [Apply](#7-apply)
 8. [Track your applications](#8-track-your-applications)
 9. [Back up and restore](#9-back-up-and-restore)
 10. [Troubleshooting](#10-troubleshooting)
@@ -80,7 +80,16 @@ Open **Profile** and upload your CV (PDF, Word or text).
 
 Check every field and correct anything that's wrong. Letters only use facts from this profile. You can keep several CV versions (for example "Backend" and "Data") and choose one per job.
 
-## 5. Import your jobs
+## 5. Find jobs or import your own
+
+**Find jobs** lists jobs from UK job boards through their official free APIs:
+
+1. Get a free key from [Reed](https://www.reed.co.uk/developers/jobseeker) (UK, with a graduate filter) and/or [Adzuna](https://developer.adzuna.com/signup) (UK, with salaries: an App ID and an App Key).
+2. Paste them in **Settings → Keys & passwords**.
+3. Open **Find jobs**, type a role and a place, keep **Graduate roles** ticked and click **Search**.
+4. Click a job: a side panel shows an AI summary (what the job is, salary, must-haves, your match, why you fit and the gaps). Click **Apply** to save it to your tracker and go straight to the Apply page.
+
+**Import your own tracker:** you can also bring in your existing spreadsheet.
 
 Open **Import** and upload an Excel (`.xlsx`, `.xls`) or CSV file with one job per row. There's a template on the same page.
 
@@ -119,9 +128,16 @@ Click **Open folder** on the job to see them. In **Settings → Saved documents*
 
 To write letters for many jobs at once, select them on the **Applications** page and choose **Write cover letters**. They're written in the background with a pause between each one, to stay inside free-tier limits.
 
-## 7. Review and send
+## 7. Apply
 
-Open the job's **Apply** tab.
+Click **Apply** on a job (in Find jobs, or in the tracker's side panel). The Apply page has four steps:
+
+1. **Build your CV and cover letter:** one click builds both with Gemini, from your profile and the job ad. Rebuild either one, change the letter's tone, or open **Edit** to change the wording.
+2. **Check what you're sending:** **Preview CV** and **Preview cover letter** show the exact PDFs.
+3. **Download or save:** Word or PDF; **Save to my documents folder**; or **Use as my main CV** (adds it to Profile → Your CVs as your default).
+4. **Apply on the employer's site:** opens the job's page (or a web search if the job has no link). Websites don't let other apps type into their forms, so your name, email, phone, links, degree and cover letter are listed with one-click **Copy** buttons. Click **I've applied** when you're done.
+
+**Applying by email instead (optional):** each job's details page still has an email **Apply** tab:
 
 - **Email applications:** check the recipient, subject, message and attachments (your CV and the cover letter as a PDF). Tick **I've read the cover letter and this email**, then click **Approve & send**. It joins the send queue and goes out within the daily limit. You can cancel it until it's sent.
 - **Job portals (LinkedIn, Indeed, company sites):** CareerPilot never submits these for you, because portals ban bots. **Assisted apply** opens the job page and lets you copy your letter and details, then you mark it as applied.
@@ -131,7 +147,7 @@ Nothing is ever sent without your approval.
 ## 8. Track your applications
 
 - **Dashboard:** counts, a chart by status and jobs added per week.
-- **Applications:** a searchable, sortable table, or a Kanban **Board** you can drag cards across.
+- **Applications:** your tracker, laid out like a job-hunt spreadsheet: totals at the top, then Company, Role, Application deadline, Status, Pre-assessment, Assessment deadline and **Next step**. Change any cell and it saves. Click a company for a side panel with the job's summary and an **Apply** button. Switch to **Board** to drag cards between statuses.
 - **Replies:** CareerPilot checks your inbox for replies to applications it sent and suggests a status (interview, rejection, and so on). You confirm it. It checks every 30 minutes, or click **Check replies now** on the Dashboard.
 - **Follow-ups:** when a job has had no reply for the number of days you set, it's marked as due. Click **Draft a follow-up** (AI or template), review it and send it in the same email thread.
 - **Calendar:** interview dates and follow-ups.
@@ -151,6 +167,8 @@ Backups from an older version of CareerPilot are upgraded automatically when res
 
 | Problem | What to do |
 |---|---|
+| My CV reads as `U/n.sc/i.sc…` or projects are missing | Fixed in 1.2: open **Profile** and read your CV again. |
+| Find jobs shows "Connect a job board" | Paste a free Reed key, or an Adzuna App ID and App Key, in **Settings → Keys & passwords**. |
 | "AI isn't set up" | Paste your key again in **Settings → Keys & passwords**, then use **Test connection**. |
 | "Rate limit reached" | The free tier allows a limited number of requests per minute and day. Wait a minute, or switch provider in Settings. |
 | Test email fails with a login error | Use an App Password, not your normal password, and check that 2-Step Verification is on. |

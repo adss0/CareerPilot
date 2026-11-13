@@ -8,6 +8,7 @@ import type {
   Letter,
   LetterJob,
   Tone,
+  TrackerSummary,
 } from "./types";
 
 export type SortKey = "created_at" | "updated_at" | "company" | "role" | "status" | "priority";
@@ -45,8 +46,16 @@ export type ApplicationInput = Partial<
     | "status"
     | "cv_id"
     | "interview_at"
+    | "application_deadline"
+    | "assessment"
+    | "assessment_due"
   >
 >;
+
+export const getTrackerSummary = () => apiGet<TrackerSummary>("/applications/summary");
+
+export const summarizeApplication = (id: number) =>
+  apiSend<Application>("POST", `/applications/${id}/summary`);
 
 export const createApplication = (data: ApplicationInput) =>
   apiSend<Application>("POST", "/applications", { source: "manual", ...data });

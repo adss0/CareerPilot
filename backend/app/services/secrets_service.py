@@ -17,6 +17,9 @@ SECRETS: dict[str, tuple[str, str]] = {
     "gemini": ("GEMINI_API_KEY", "gemini_api_key"),
     "groq": ("GROQ_API_KEY", "groq_api_key"),
     "email": ("EMAIL_PASSWORD", "email_password"),
+    "reed": ("REED_API_KEY", "reed_api_key"),
+    "adzuna_id": ("ADZUNA_APP_ID", "adzuna_app_id"),
+    "adzuna_key": ("ADZUNA_APP_KEY", "adzuna_app_key"),
 }
 VALUE_RE = re.compile(r"^[\x21-\x7e]{1,500}$")  # printable, no spaces, quotes are checked below
 

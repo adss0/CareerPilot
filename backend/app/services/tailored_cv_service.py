@@ -6,6 +6,7 @@ from app.core.errors import BadRequestError, NotFoundError
 from app.integrations.ai import AIProvider
 from app.models import TailoredCv
 from app.models.tables import utcnow
+from app.schemas.cv import CvRead
 from app.schemas.profile import ProfileDetails
 from app.schemas.tailored_cv import TailoredContent, TailoredCvRead
 from app.services.application_service import ApplicationService
@@ -111,6 +112,25 @@ class TailoredCvService:
             data, media_type = build_cv_docx(content, profile), DOCX_MEDIA_TYPE
         name = cv_filename(profile.full_name, file_format, application.company, application.role)
         return data, name, media_type
+
+    def use_as_main(self, application_id: int, cvs) -> "CvRead":
+        application = self.applications.get(application_id)
+        cv = self.find(application_id)
+        if cv is None:
+            raise NotFoundError("Tailored CV for application", application_id)
+        profile = load_profile(self.session)
+        content = TailoredContent(**cv.content)
+        text = "\n".join(
+            [content.summary, ", ".join(content.skills)]
+            + [f"{e.title} {e.company}\n{e.summary}" for e in content.experience]
+            + [f"{p.name}\n{p.summary}" for p in content.projects]
+        )
+        return cvs.add_generated(
+            cv_filename(profile.full_name, "pdf"),
+            build_cv_pdf(content, profile),
+            f"Tailored for {application.company}"[:100],
+            text,
+        )
 
     def attachment(self, application_id: int) -> tuple[str, bytes, str] | None:
         """The tailored CV as a PDF for the application email, or None if there isn't one."""

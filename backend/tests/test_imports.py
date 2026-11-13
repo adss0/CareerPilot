@@ -1,4 +1,5 @@
 import json
+from datetime import date
 
 import pytest
 from sqlmodel import Session, select
@@ -189,11 +190,19 @@ TRACKER = [
     ["Total Applications", 4, "Applied", 2, "Rejected", 1],
     ["Assessments Done", 1, "In Progress", 0, "Interviews", 0],
     [],
-    ["Company", "Role", "Application Deadline", "Status", "Pre-assessment", "Deadline"],
-    ["Acme Ltd", "Software Engineer", "Rolling", "Rejected", "Done", "25/11/2026"],
-    ["Globex", "Cloud Engineer", "Rolling", "Applied ", None, None],
-    ["Initech", "Tech Graduate", "Rolling", "Interview booked", "Pending", "16/11/2026"],
-    ["Umbrella", "Grad Software", "31/12/2026", "Something odd", None, None],
+    [
+        "Company",
+        "Role",
+        "Application Deadline",
+        "Status",
+        "Pre-assessment",
+        "Deadline",
+        "Recruiter notes",
+    ],
+    ["Acme Ltd", "Software Engineer", "Rolling", "Rejected", "Done", "25/11/2026", None],
+    ["Globex", "Cloud Engineer", "Rolling", "Applied ", None, None, "Called me"],
+    ["Initech", "Tech Graduate", "Rolling", "Interview booked", "Pending", "16/11/2026", None],
+    ["Umbrella", "Grad Software", "31/12/2026", "Something odd", "Maybe", "soon", None],
 ]
 
 
@@ -205,7 +214,9 @@ def test_finds_the_table_under_a_title_and_totals(client):
     mapping = preview["suggested_mapping"]
     assert mapping["company"] == "Company" and mapping["role"] == "Role"
     assert mapping["status"] == "Status"
-    assert mapping["deadline"] == "Application Deadline"
+    assert mapping["application_deadline"] == "Application Deadline"
+    assert mapping["assessment"] == "Pre-assessment"
+    assert mapping["assessment_due"] == "Deadline"
     assert mapping["job_url"] is None  # "Application Deadline" isn't a link
 
 
@@ -215,7 +226,9 @@ def test_imports_tracker_status_and_keeps_other_columns_in_notes(client, session
         "company": "Company",
         "role": "Role",
         "status": "Status",
-        "deadline": "Application Deadline",
+        "application_deadline": "Application Deadline",
+        "assessment": "Pre-assessment",
+        "assessment_due": "Deadline",
     }
     result = commit(client, files, mapping).json()
     assert result["imported"] == 4
@@ -227,10 +240,15 @@ def test_imports_tracker_status_and_keeps_other_columns_in_notes(client, session
     assert apps["Globex"].status == "sent"
     assert apps["Initech"].status == "interview"
     assert apps["Umbrella"].status == "imported"
-    assert apps["Acme Ltd"].notes == (
-        "Application deadline: Rolling\nPre-assessment: Done\nDeadline: 25/11/2026"
-    )
-    assert apps["Globex"].notes == "Application deadline: Rolling"
+    acme = apps["Acme Ltd"]
+    assert (acme.application_deadline, acme.assessment) == ("Rolling", "done")
+    assert acme.assessment_due == date(2026, 11, 25)
+    assert acme.notes == ""
+    assert apps["Initech"].assessment == "pending"
+    assert apps["Umbrella"].application_deadline == "31/12/2026"
+    # What doesn't fit a field is kept in the notes.
+    assert apps["Umbrella"].notes == "Pre-assessment: Maybe\nAssessment deadline: soon"
+    assert apps["Globex"].notes == "Recruiter notes: Called me"
     history = session.exec(
         select(StatusHistory).where(StatusHistory.application_id == apps["Acme Ltd"].id)
     ).all()

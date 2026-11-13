@@ -1,4 +1,5 @@
 import {
+  Search,
   Briefcase,
   CalendarDays,
   FileSpreadsheet,
@@ -18,6 +19,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/jobs", label: "Find jobs", icon: Search },
   { to: "/applications", label: "Applications", icon: Briefcase },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/import", label: "Import", icon: FileSpreadsheet },

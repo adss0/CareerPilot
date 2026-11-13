@@ -1,10 +1,10 @@
 import type { ApplicationStatus, LetterJob, Tone } from "./types";
 
 export const STATUS_LABELS: Record<ApplicationStatus, string> = {
-  imported: "Imported",
+  imported: "To apply",
   drafted: "Drafted",
   ready: "Ready",
-  sent: "Sent",
+  sent: "Applied",
   followed_up: "Followed up",
   replied: "Replied",
   interview: "Interview",
@@ -12,6 +12,8 @@ export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   rejected: "Rejected",
   withdrawn: "Withdrawn",
 };
+
+export const ASSESSMENT_LABELS = { "": "-", pending: "Pending", done: "Done" } as const;
 
 export const TONE_LABELS: Record<Tone, string> = {
   formal: "Formal",

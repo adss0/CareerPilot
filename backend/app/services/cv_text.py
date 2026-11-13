@@ -42,7 +42,46 @@ def extract_text(filename: str, content: bytes) -> str:
     return clean_text(text)[:MAX_TEXT_CHARS]
 
 
+# Some PDF fonts (e.g. the small capitals in LaTeX CV templates) have no Unicode mapping, so
+# the PDF reader returns glyph names instead of letters: "U/n.sc/i.sc" for "Uni".
+GLYPH_RE = re.compile(r"/([A-Za-z]+(?:_[A-Za-z]+)*)\.(?:sc|alt|ss\d\d|osf|lf|tf|swash)\b")
+GLYPH_NAMES = {
+    "space": " ", "period": ".", "comma": ",", "hyphen": "-", "endash": "–", "emdash": "—",
+    "ampersand": "&", "colon": ":", "semicolon": ";", "slash": "/", "parenleft": "(",
+    "parenright": ")", "quoteright": "'", "quoteleft": "'", "apostrophe": "'", "at": "@",
+    "plus": "+", "numbersign": "#", "percent": "%", "exclam": "!", "question": "?",
+    "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4", "five": "5", "six": "6",
+    "seven": "7", "eight": "8", "nine": "9",
+    "ff": "ff", "fi": "fi", "fl": "fl", "ffi": "ffi", "ffl": "ffl",
+}  # fmt: skip
+
+
+def _glyph(match: re.Match) -> str:
+    name = match.group(1)
+    if len(name) == 1:
+        return name  # "/n.sc" is a small-capital "n"
+    if name in GLYPH_NAMES:
+        return GLYPH_NAMES[name]
+    if "_" in name and all(len(part) == 1 for part in name.split("_")):
+        return name.replace("_", "")  # ligature such as "/f_i.sc"
+    return match.group(0)
+
+
+LIGATURES = {"ﬀ": "ff", "ﬁ": "fi", "ﬂ": "fl", "ﬃ": "ffi", "ﬄ": "ffl", "ﬅ": "st", "ﬆ": "st"}
+# Wide kerning after these capitals can split a word: "Y ear", "T echnology". "A" and "I" are
+# real one-letter words, so they're never joined.
+KERNING_SPLIT_RE = re.compile(r"\b([FPTVWY]) ([a-z]{2,})\b")
+
+
+def fix_glyph_names(text: str) -> str:
+    text = GLYPH_RE.sub(_glyph, text)
+    for ligature, letters in LIGATURES.items():
+        text = text.replace(ligature, letters)
+    return KERNING_SPLIT_RE.sub(r"\1\2", text)
+
+
 def clean_text(text: str) -> str:
+    text = fix_glyph_names(text)
     text = text.replace("\r\n", "\n").replace("\r", "\n").replace(" ", " ")
     lines = [re.sub(r"[ \t]+", " ", line).strip() for line in text.split("\n")]
     return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
