@@ -21,13 +21,17 @@ export async function checkForUpdate(): Promise<AvailableUpdate | null> {
     install: async (onProgress) => {
       let total = 0;
       let done = 0;
-      await update.downloadAndInstall((event) => {
+      await update.download((event) => {
         if (event.event === "Started") total = event.data.contentLength ?? 0;
         if (event.event === "Progress") {
           done += event.data.chunkLength;
           if (total) onProgress?.(Math.round((done / total) * 100));
         }
       });
+      // The installer replaces the bundled backend's .exe, so stop it first.
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("stop_backend_command");
+      await update.install();
       await relaunch(); // on Windows the installer usually restarts the app itself
     },
   };
