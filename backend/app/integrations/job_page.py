@@ -25,7 +25,7 @@ from app.integrations.jobs import html_to_text, salary_text
 MAX_BYTES = 3 * 1024 * 1024
 MAX_REDIRECTS = 5
 TIMEOUT = 15
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CareerPilot/1.4 (personal job tracker)"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) CareerPilot/1.5 (personal job tracker)"
 
 
 class JobPageError(RuntimeError):

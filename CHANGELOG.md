@@ -2,6 +2,19 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] - 2026-11-13
+
+### Added
+
+- **The calendar fills itself in:** every dated interview stage (online tests, video and phone interviews, assessment centres, finals) and every closing date appears automatically, colour-coded, with ✓ / ✗ once you've recorded the result.
+- **"Coming up" reminders:** tests and interviews today or in the next 3 days show in a banner on every page (hide it until tomorrow), plus a Windows notification once a day if you've allowed notifications.
+- **A new app icon:** a teal paper plane on deep navy, matching the app, for the window, taskbar, Start menu, installer and browser tab.
+
+### Fixed
+
+- **Jobs looked "gone" right after opening the desktop app:** for the few seconds its engine takes to start, pages showed empty instead of waiting. CareerPilot now shows "Starting…" until your data is ready, and never shows "empty" when it simply couldn't load yet.
+- **Gemini stalling or "busy" (503):** the default model is now `gemini-3-flash-preview`, and when Google says a model is busy, too slow or retired, CareerPilot automatically tries `gemini-flash-lite-latest`, then `gemini-3.1-flash-lite`. A wrong key still stops straight away with a clear message.
+
 ## [1.4.0] - 2026-11-13
 
 ### Added
@@ -102,6 +115,7 @@ The first full release.
 
 - 174 backend tests (95% coverage; CI fails under 85%), 52 frontend tests, and an end-to-end browser test of import → letter → approve → send against a fake AI and a local test mail server.
 
+[1.5.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.5.0
 [1.4.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.4.0
 [1.3.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.3.0
 [1.2.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.2.0

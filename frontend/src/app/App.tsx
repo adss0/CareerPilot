@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { RouterProvider } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 
+import { BackendGate } from "@/app/BackendGate";
 import { router } from "@/app/router";
 import { ThemeProvider } from "@/app/theme";
 import { useTheme } from "@/app/themeContext";
@@ -20,7 +21,9 @@ export function App() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <BackendGate>
+          <RouterProvider router={router} />
+        </BackendGate>
         <ThemedToaster />
       </QueryClientProvider>
     </ThemeProvider>

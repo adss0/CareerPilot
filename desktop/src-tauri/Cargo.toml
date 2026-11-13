@@ -1,6 +1,6 @@
 [package]
 name = "careerpilot"
-version = "1.4.0"
+version = "1.5.0"
 description = "CareerPilot desktop app"
 edition = "2021"
 license = "MIT"

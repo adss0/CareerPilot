@@ -3,6 +3,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.application import DueItem
+
 
 class FollowUpDraft(BaseModel):
     subject: str
@@ -44,11 +46,15 @@ class NotificationSummary(BaseModel):
     follow_ups_due: int  # due today or overdue
     interviews_soon: int  # in the next 7 days
     last_reply_check: datetime | None
+    # Tests, interviews and assessment centres today or in the next few days.
+    upcoming: list[DueItem] = []
 
 
 class CalendarEvent(BaseModel):
     date: datetime
-    kind: Literal["follow_up", "interview"]
+    kind: Literal["follow_up", "interview", "stage", "deadline"]
     application_id: int
     company: str
     role: str
+    label: str = ""  # e.g. "Online test" for a stage
+    result: str = ""  # a stage's result: upcoming / passed / failed

@@ -2,7 +2,7 @@
 
 **Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
 
-> ✅ Status: version 1.4. Find jobs, a tracker like your own spreadsheet, and a one-page Apply flow with a tailored CV and cover letter. New here? Read the **[user guide](docs/USER_GUIDE.md)**. Changes are in the [changelog](CHANGELOG.md) and the roadmap is in the [plan](PLAN.md).
+> ✅ Status: version 1.5. Find jobs, a tracker like your own spreadsheet, and a one-page Apply flow with a tailored CV and cover letter. New here? Read the **[user guide](docs/USER_GUIDE.md)**. Changes are in the [changelog](CHANGELOG.md) and the roadmap is in the [plan](PLAN.md).
 
 ---
 

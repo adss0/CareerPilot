@@ -1,4 +1,5 @@
 // Model: follow-ups, inbox replies, notifications and the calendar.
+import type { DueItem } from "@/features/applications/types";
 import { apiGet, apiSend } from "@/lib/apiClient";
 
 import type { EmailLog } from "@/features/email/api";
@@ -35,14 +36,17 @@ export interface NotificationSummary {
   follow_ups_due: number;
   interviews_soon: number;
   last_reply_check: string | null;
+  upcoming?: DueItem[]; // tests and interviews today or in the next 3 days
 }
 
 export interface CalendarEvent {
   date: string;
-  kind: "follow_up" | "interview";
+  kind: "follow_up" | "interview" | "stage" | "deadline";
   application_id: number;
   company: string;
   role: string;
+  label?: string; // e.g. "Online test"
+  result?: string; // a stage's result: upcoming / passed / failed
 }
 
 export const draftFollowUp = (applicationId: number) =>

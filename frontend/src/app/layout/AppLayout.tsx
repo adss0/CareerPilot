@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   Monitor,
   Moon,
-  Plane,
   Search,
   Settings,
   Sun,
@@ -17,6 +16,7 @@ import { useTheme, type ThemeChoice } from "@/app/themeContext";
 import { useDesktopNotifications } from "@/features/tracking/useDesktopNotifications";
 import { cn } from "@/lib/utils";
 
+import { ComingUp } from "./ComingUp";
 import { UpdateNotifier } from "./UpdateNotifier";
 
 const navGroups = [
@@ -79,9 +79,11 @@ function ThemeToggle() {
 function Logo() {
   return (
     <span className="flex items-center gap-2.5 text-lg font-extrabold tracking-tight text-white">
-      <span className="bg-sidebar-active text-sidebar-active-foreground flex size-8 items-center justify-center rounded-lg shadow-[0_0_24px_-4px_var(--sidebar-active)]">
-        <Plane className="size-4 -rotate-12" />
-      </span>
+      <img
+        src="/favicon.svg"
+        alt=""
+        className="size-8 rounded-lg shadow-[0_0_24px_-6px_var(--sidebar-active)]"
+      />
       CareerPilot
     </span>
   );
@@ -144,6 +146,7 @@ export function AppLayout() {
       </aside>
       <main className="page-glow min-w-0 flex-1 px-5 py-6 md:px-10 md:py-9">
         <div className="mx-auto max-w-[1400px]">
+          <ComingUp items={notifications?.upcoming ?? []} />
           <Outlet />
         </div>
       </main>

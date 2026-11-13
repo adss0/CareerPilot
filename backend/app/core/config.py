@@ -26,12 +26,14 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "CareerPilot"
-    version: str = "1.4.0"
+    version: str = "1.5.0"
 
     ai_provider: Literal["gemini", "groq", "ollama"] = "gemini"
     gemini_api_key: str = ""
-    # "gemini-flash-latest" always points at Google's newest Flash model.
-    gemini_model: str = "gemini-flash-latest"
+    # Google retires and renames models; if this one is busy or gone, the fallbacks are used.
+    gemini_model: str = "gemini-3-flash-preview"
+    # Used when the main model is busy, too slow or retired (comma separated).
+    gemini_fallback_models: str = "gemini-flash-lite-latest,gemini-3.1-flash-lite"
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"
     ollama_base_url: str = "http://localhost:11434"

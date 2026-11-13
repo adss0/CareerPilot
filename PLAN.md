@@ -20,6 +20,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ✅ Done |
 | 8 | **Desktop app:** installable Windows app (Tauri) | ✅ Done |
 | 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ✅ Done (tag & publish left to you) |
+| 14 | **v1.5 Calendar, reminders, start-up, Gemini, icon:** stages and closing dates on the calendar, coming-up reminders, a start-up screen, Gemini model fallback, a new icon | ✅ Done |
 | 13 | **v1.4 Stages, deleting, links, updates:** interview stages column, delete selected / all with a 30-day recycle bin, add a job from just its link, signed auto-updates, desktop link fix | ✅ Done |
 | 12 | **v1.3 More boards, shortlist, deadlines, new look:** Jooble, other-site searches, add a job from any site, shortlist, deadlines due, hide closed, bold modern restyle | ✅ Done |
 | 11 | **v1.2 Find jobs & Apply:** job-board search with AI summaries, a spreadsheet-style tracker, a one-page Apply flow, CV reader fixes | ✅ Done |
@@ -337,6 +338,16 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 ---
 
+## Phase 14: Calendar, reminders, start-up and Gemini (v1.5)
+
+- [x] 14.1 Calendar: every dated stage and closing date, automatically (`/api/calendar` kinds `stage` and `deadline`).
+- [x] 14.2 "Coming up" banner + daily Windows notification for tests and interviews in the next 3 days (`/api/notifications` `upcoming`).
+- [x] 14.3 Fixed jobs looking "gone" while the bundled engine starts: a start-up screen waits for `/api/health`, and the sheet never shows "empty" before it has loaded.
+- [x] 14.4 Gemini: default `gemini-3-flash-preview` with automatic fallback (`gemini-flash-lite-latest`, `gemini-3.1-flash-lite`) on busy (5xx), too slow (30 s), retired (404) or rate-limited models. Tested live with the owner's key.
+- [x] 14.5 New app icon (navy + teal paper plane) for every size, the favicon, the sidebar and the start-up screen.
+
+---
+
 ## Future ideas (after v1)
 
 - Job scraping from public job boards' RSS/APIs into the tracker
@@ -382,3 +393,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-13 | **Phase 11 (v1.2) done.** Fixed LaTeX CVs being read as glyph names, a tracker laid out like the owner's spreadsheet with next steps, Find jobs (Reed, Adzuna) with AI summaries, and a one-page Apply flow. 232 backend + 65 frontend + 3 E2E tests. |
 | 2026-11-13 | **Phase 12 (v1.3) done.** Jooble, other-site searches, add a job from any site, shortlist, deadlines due, hide closed, a bold modern restyle, and a full re-test that found and fixed three bugs. 240 backend + 65 frontend + 6 E2E tests. |
 | 2026-11-13 | **Phase 13 (v1.4) done.** Interview stages, delete selected / all with a 30-day recycle bin, add a job from just its link, signed auto-updates, and the fix for links not opening in the desktop app. 263 backend + 69 frontend + 7 E2E tests. |
+| 2026-11-13 | **Phase 14 (v1.5) done.** The calendar fills itself in from interview stages and closing dates, coming-up reminders, a start-up screen (jobs no longer look missing while the engine starts), Gemini model fallback tested with a real key, and a new icon. |

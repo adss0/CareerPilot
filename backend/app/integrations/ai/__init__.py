@@ -70,7 +70,10 @@ def build_ai_provider(settings: Settings, provider: str, model: str) -> AIProvid
         return None
     timeout = settings.ai_timeout_seconds
     if provider == "gemini":
-        return GeminiProvider(settings.gemini_api_key, model, timeout)
+        fallbacks = tuple(
+            m.strip() for m in settings.gemini_fallback_models.split(",") if m.strip()
+        )
+        return GeminiProvider(settings.gemini_api_key, model, timeout, fallback_models=fallbacks)
     if provider == "groq":
         return GroqProvider(settings.groq_api_key, model, timeout)
     return OllamaProvider(settings.ollama_base_url, model, max(timeout, 180))
