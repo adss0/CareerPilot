@@ -1,5 +1,6 @@
 """Find jobs on job boards, summarise them, and save the ones worth applying for."""
 
+import dataclasses
 import threading
 from collections import OrderedDict
 
@@ -8,13 +9,27 @@ from sqlmodel import Session, select
 from app.core.config import Settings
 from app.core.errors import BadRequestError, NotFoundError
 from app.integrations.ai import AIProvider
-from app.integrations.jobs import AdzunaBoard, JobBoard, JobBoardError, Listing, ReedBoard
-from app.models import Application, ApplicationStatus, StatusHistory
+from app.integrations.jobs import (
+    AdzunaBoard,
+    JobBoard,
+    JobBoardError,
+    JoobleBoard,
+    Listing,
+    ReedBoard,
+)
+from app.models import Application, ApplicationStatus, SavedJob, StatusHistory
 from app.repositories.application_repository import ApplicationRepository
 from app.schemas.application import ApplicationRead
-from app.schemas.jobs import JobDetailsRead, JobListingRead, JobSearchResult, JobSummary
+from app.schemas.jobs import (
+    JobDetailsRead,
+    JobListingRead,
+    JobSearchResult,
+    JobSummary,
+    PastedJob,
+)
 from app.services.application_service import ApplicationService
-from app.services.job_summary import summarize_job
+from app.services.import_service import normalize_url
+from app.services.job_summary import extract_job, summarize_job
 from app.services.tailored_cv_service import load_profile
 
 NO_AI = "AI isn't set up yet. Add your Gemini key in Settings to summarise jobs."
@@ -52,6 +67,8 @@ def build_boards(env: Settings) -> list[JobBoard]:
         boards.append(ReedBoard(env.reed_api_key, base=env.reed_api_base))
     if env.adzuna_app_id and env.adzuna_app_key:
         boards.append(AdzunaBoard(env.adzuna_app_id, env.adzuna_app_key))
+    if env.jooble_api_key:
+        boards.append(JoobleBoard(env.jooble_api_key, base=env.jooble_api_base))
     return boards
 
 
@@ -81,9 +98,13 @@ class JobService:
         listings = _without_duplicates(listings)
         for listing in listings:
             self.cache.put(listing)
-        saved = self._saved_ids([listing.id for listing in listings])
+        ids = [listing.id for listing in listings]
+        saved, starred = self._saved_ids(ids), self._shortlisted_ids(ids)
         return JobSearchResult(
-            jobs=[self._read(listing, saved.get(listing.id)) for listing in listings],
+            jobs=[
+                self._read(listing, saved.get(listing.id), listing.id in starred)
+                for listing in listings
+            ],
             boards=[board.label for board in self.boards],
             problems=problems,
             needs_setup=False,
@@ -98,8 +119,9 @@ class JobService:
             except JobBoardError:
                 listing.description = listing.snippet  # still show what we have
         saved = self._saved_ids([job_id])
+        starred = job_id in self._shortlisted_ids([job_id])
         return JobDetailsRead(
-            **self._read(listing, saved.get(job_id)).model_dump(),
+            **self._read(listing, saved.get(job_id), starred).model_dump(),
             description=listing.description or listing.snippet,
             work_type=listing.extra.get("work_type", ""),
             summary=self.cache.summaries.get(job_id),
@@ -119,7 +141,103 @@ class JobService:
         if not summary.work_type and details.work_type:
             summary.work_type = details.work_type
         self.cache.summaries[job_id] = summary
+        starred = self._starred(job_id)
+        if starred:  # keep the shortlist's copy up to date
+            starred.summary = summary.model_dump()
+            self.session.add(starred)
+            self.session.commit()
         return details.model_copy(update={"summary": summary})
+
+    # ---------- shortlist: jobs starred to look at later ----------
+
+    def shortlist(self) -> list[JobListingRead]:
+        rows = self.session.exec(select(SavedJob).order_by(SavedJob.created_at.desc())).all()
+        ids = [row.external_id for row in rows]
+        saved = self._saved_ids(ids)
+        return [self._read(self._from_saved(row), saved.get(row.external_id), True) for row in rows]
+
+    def add_to_shortlist(self, job_id: str) -> JobListingRead:
+        listing = self._listing(job_id)
+        if not self._starred(job_id):
+            summary = self.cache.summaries.get(job_id)
+            self.session.add(
+                SavedJob(
+                    external_id=job_id,
+                    listing=dataclasses.asdict(listing),
+                    summary=summary.model_dump() if summary else {},
+                )
+            )
+            self.session.commit()
+        return self._read(listing, self._saved_ids([job_id]).get(job_id), True)
+
+    def remove_from_shortlist(self, job_id: str) -> None:
+        starred = self._starred(job_id)
+        if starred is None:
+            raise NotFoundError("Shortlisted job", job_id)  # type: ignore[arg-type]
+        self.session.delete(starred)
+        self.session.commit()
+
+    def _starred(self, job_id: str) -> SavedJob | None:
+        return self.session.exec(select(SavedJob).where(SavedJob.external_id == job_id)).first()
+
+    def _shortlisted_ids(self, job_ids: list[str]) -> set[str]:
+        if not job_ids:
+            return set()
+        rows = self.session.exec(
+            select(SavedJob.external_id).where(
+                SavedJob.external_id.in_(job_ids)  # type: ignore[attr-defined]
+            )
+        ).all()
+        return set(rows)
+
+    def _from_saved(self, row: SavedJob) -> Listing:
+        listing = Listing(
+            **{k: v for k, v in row.listing.items() if k in Listing.__dataclass_fields__}
+        )
+        self.cache.put(listing)  # so details, summary and Apply work after a restart
+        if row.summary and row.external_id not in self.cache.summaries:
+            self.cache.summaries[row.external_id] = JobSummary(**row.summary)
+        return listing
+
+    # ---------- a job from any website ----------
+
+    def add_from_text(self, job: PastedJob) -> ApplicationRead:
+        """Adds a job copied from any site (Gradcracker, The Trackr, a careers page).
+
+        With AI, the company, role, salary, location and closing date are read from the ad,
+        and it's summarised. Without AI, the company and role must be typed in."""
+        url = normalize_url(job.url) if job.url.strip() else ""
+        if url is None:
+            raise BadRequestError("That link isn't a web address. Copy it from the browser.")
+        company, role = job.company.strip(), job.role.strip()
+        found: dict = {}
+        summary: JobSummary | None = None
+        if self.ai is not None:
+            found, summary = extract_job(self.ai, load_profile(self.session), job.text, url)
+        company = company or found.get("company", "")
+        role = role or found.get("role", "")
+        if not company or not role:
+            raise BadRequestError(
+                "Type the company and the role (AI isn't set up, or couldn't find them)."
+            )
+        applications = ApplicationService(self.session)
+        application = Application(
+            company=company[:200],
+            role=role[:200],
+            job_url=url[:1000],
+            job_description=job.text.strip(),
+            location=(found.get("location") or "")[:200],
+            salary=(found.get("salary") or "")[:100],
+            application_deadline=(found.get("deadline") or "")[:100],
+            source="pasted",
+            job_summary=summary.model_dump() if summary else {},
+            status=ApplicationStatus.IMPORTED,
+        )
+        ApplicationRepository(self.session).add_many([application])
+        self.session.add(StatusHistory(application_id=application.id, to_status=application.status))
+        self.session.commit()
+        self.session.refresh(application)
+        return applications.to_read([application])[0]
 
     def save(self, job_id: str) -> ApplicationRead:
         """Adds a found job to the tracker (or returns it if it's already there)."""
@@ -180,7 +298,10 @@ class JobService:
     def _listing(self, job_id: str) -> Listing:
         listing = self.cache.get(job_id)
         if listing is None:
-            raise NotFoundError("Job", job_id)  # type: ignore[arg-type]
+            starred = self._starred(job_id)
+            if starred is None:
+                raise NotFoundError("Job", job_id)  # type: ignore[arg-type]
+            listing = self._from_saved(starred)
         return listing
 
     def _saved_ids(self, job_ids: list[str]) -> dict[str, int]:
@@ -194,7 +315,9 @@ class JobService:
         return {external_id: app_id for external_id, app_id in rows}
 
     @staticmethod
-    def _read(listing: Listing, application_id: int | None) -> JobListingRead:
+    def _read(
+        listing: Listing, application_id: int | None, shortlisted: bool = False
+    ) -> JobListingRead:
         return JobListingRead(
             id=listing.id,
             source=listing.source,
@@ -207,6 +330,7 @@ class JobService:
             snippet=listing.snippet[:600],
             url=listing.url,
             application_id=application_id,
+            shortlisted=shortlisted,
         )
 
 

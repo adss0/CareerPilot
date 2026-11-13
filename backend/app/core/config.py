@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "CareerPilot"
-    version: str = "1.2.0"
+    version: str = "1.3.0"
 
     ai_provider: Literal["gemini", "groq", "ollama"] = "gemini"
     gemini_api_key: str = ""
@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     reed_api_base: str = "https://www.reed.co.uk/api/1.0"
     adzuna_app_id: str = ""
     adzuna_app_key: str = ""
+    jooble_api_key: str = ""  # https://jooble.org/api/about
+    jooble_api_base: str = "https://jooble.org/api"
 
     # Email (SMTP/IMAP) password, e.g. a Gmail App Password. Never stored in the database.
     email_password: str = ""

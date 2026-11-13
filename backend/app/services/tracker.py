@@ -3,7 +3,8 @@
 from datetime import date
 
 from app.models import Application, ApplicationStatus
-from app.schemas.application import TrackerSummary
+from app.schemas.application import DueItem, TrackerSummary
+from app.services.import_service import parse_day
 
 NOT_APPLIED = {ApplicationStatus.IMPORTED, ApplicationStatus.DRAFTED, ApplicationStatus.READY}
 WAITING = {ApplicationStatus.SENT, ApplicationStatus.FOLLOWED_UP, ApplicationStatus.REPLIED}
@@ -66,3 +67,76 @@ def tracker_summary(applications: list[Application]) -> TrackerSummary:
         offers=count({ApplicationStatus.OFFER}),
         rejected=count({ApplicationStatus.REJECTED}),
     )
+
+
+DUE_DAYS = 7
+
+
+def _when(days: int) -> str:
+    if days == 0:
+        return "today"
+    if days == 1:
+        return "tomorrow"
+    if days < 0:
+        return f"{-days} day{'s' if days != -1 else ''} ago"
+    return f"in {days} days"
+
+
+def due_dates(application: Application, today: date | None = None) -> list[DueItem]:
+    """The dates that matter for an open job: its closing date (until you apply) and a pending
+    assessment's deadline."""
+    today = today or date.today()
+    items: list[DueItem] = []
+    if application.status in CLOSED:
+        return items
+    closes = parse_day(application.application_deadline)
+    if closes and application.status in NOT_APPLIED:
+        days = (closes - today).days
+        verb = "Closed" if days < 0 else "Closes"
+        items.append(
+            DueItem(
+                application_id=application.id or 0,
+                company=application.company,
+                role=application.role,
+                kind="deadline",
+                date=closes,
+                days_left=days,
+                label=f"{verb} {_when(days)}",
+            )
+        )
+    if application.assessment == "pending" and application.assessment_due:
+        days = (application.assessment_due - today).days
+        verb = "Assessment was due" if days < 0 else "Assessment due"
+        items.append(
+            DueItem(
+                application_id=application.id or 0,
+                company=application.company,
+                role=application.role,
+                kind="assessment",
+                date=application.assessment_due,
+                days_left=days,
+                label=f"{verb} {_when(days)}",
+            )
+        )
+    return items
+
+
+def due_label(application: Application, today: date | None = None) -> tuple[str, str]:
+    """The most urgent date within a week, as (label, level) for the tracker."""
+    urgent = [d for d in due_dates(application, today) if d.days_left <= DUE_DAYS]
+    if not urgent:
+        return "", ""
+    first = min(urgent, key=lambda d: d.days_left)
+    return first.label, "overdue" if first.days_left < 0 else "soon"
+
+
+def due_items(
+    applications: list[Application], days: int = DUE_DAYS, today: date | None = None
+) -> list[DueItem]:
+    items = [
+        item
+        for application in applications
+        for item in due_dates(application, today)
+        if item.days_left <= days and item.days_left >= -14  # forget long-gone dates
+    ]
+    return sorted(items, key=lambda d: d.days_left)

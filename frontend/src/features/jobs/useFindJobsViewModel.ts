@@ -2,18 +2,28 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 import { fetchHealth } from "@/features/health/api";
 import { errorText } from "@/lib/apiClient";
 
 import {
+  addPastedJob,
+  addToShortlist,
   getJobDetails,
+  getShortlist,
+  removeFromShortlist,
   saveJob,
   searchJobs,
   summarizeJob,
   type JobDetails,
+  type JobListing,
   type JobSearchResult,
+  type PastedJob,
 } from "./api";
+
+export type JobsTab = "results" | "shortlist";
+const EMPTY_PASTE: PastedJob = { url: "", text: "", company: "", role: "" };
 
 const SEARCH_KEY = "careerpilot.jobSearch";
 
@@ -35,6 +45,14 @@ export interface FindJobsViewModel {
   isSummarizing: boolean;
   isSaving: boolean;
   error: string | null;
+  tab: JobsTab;
+  shortlist: JobListing[];
+  paste: PastedJob;
+  isPasting: boolean;
+  setTab: (tab: JobsTab) => void;
+  toggleStar: (job: JobListing) => void;
+  setPaste: (changes: Partial<PastedJob>) => void;
+  addPasted: () => void;
   setForm: (changes: Partial<SearchForm>) => void;
   search: () => void;
   nextPage: () => void;
@@ -61,6 +79,32 @@ export function useFindJobsViewModel(): FindJobsViewModel {
   const [submitted, setSubmitted] = useState<(SearchForm & { page: number }) | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<JobsTab>("results");
+  const [paste, setPasteState] = useState<PastedJob>(EMPTY_PASTE);
+  const shortlistQuery = useQuery({ queryKey: ["jobs", "shortlist"], queryFn: getShortlist });
+
+  const starMutation = useMutation({
+    mutationFn: (job: JobListing) =>
+      job.shortlisted ? removeFromShortlist(job.id) : addToShortlist(job.id),
+    onSuccess: (_result, job) => {
+      setError(null);
+      void queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      toast.success(job.shortlisted ? "Removed from your shortlist." : "Added to your shortlist.");
+    },
+    onError: (e) => setError(errorText(e)),
+  });
+
+  const pasteMutation = useMutation({
+    mutationFn: () => addPastedJob(paste),
+    onSuccess: (application) => {
+      setError(null);
+      setPasteState(EMPTY_PASTE);
+      void queryClient.invalidateQueries({ queryKey: ["applications"] });
+      toast.success(`${application.role} at ${application.company} added to your tracker.`);
+      navigate(`/applications/${application.id}/apply`);
+    },
+    onError: (e) => setError(errorText(e)),
+  });
 
   const searchQuery = useQuery({
     queryKey: ["jobs", "search", submitted],
@@ -129,6 +173,23 @@ export function useFindJobsViewModel(): FindJobsViewModel {
       error ??
       (searchQuery.error ? errorText(searchQuery.error) : null) ??
       (detailsQuery.error ? errorText(detailsQuery.error) : null),
+    tab,
+    shortlist: shortlistQuery.data ?? [],
+    paste,
+    isPasting: pasteMutation.isPending,
+    setTab: (next) => {
+      setTab(next);
+      setSelectedId(null);
+    },
+    toggleStar: (job) => starMutation.mutate(job),
+    setPaste: (changes) => setPasteState((p) => ({ ...p, ...changes })),
+    addPasted: () => {
+      if (paste.text.trim().length < 20) {
+        setError("Paste the job ad's text (at least a couple of sentences).");
+        return;
+      }
+      pasteMutation.mutate();
+    },
     setForm: (changes) => setFormState((f) => ({ ...f, ...changes })),
     search: () => {
       if (form.q.trim().length < 2) {
@@ -137,6 +198,7 @@ export function useFindJobsViewModel(): FindJobsViewModel {
       }
       setError(null);
       setSelectedId(null);
+      setTab("results");
       setSubmitted({ ...form, page: 1 });
       try {
         localStorage.setItem(SEARCH_KEY, JSON.stringify(form));

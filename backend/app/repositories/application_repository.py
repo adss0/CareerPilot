@@ -28,10 +28,14 @@ class ApplicationRepository:
         sort: str = "-created_at",
         limit: int = 50,
         offset: int = 0,
+        hide_closed: bool = False,
     ) -> tuple[list[Application], int]:
         query = select(Application)
         if status:
             query = query.where(Application.status == status)
+        if hide_closed:
+            closed = (ApplicationStatus.REJECTED, ApplicationStatus.WITHDRAWN)
+            query = query.where(col(Application.status).not_in(closed))
         if search:
             pattern = f"%{search}%"
             query = query.where(

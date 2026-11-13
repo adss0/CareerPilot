@@ -84,10 +84,13 @@ Check every field and correct anything that's wrong. Letters only use facts from
 
 **Find jobs** lists jobs from UK job boards through their official free APIs:
 
-1. Get a free key from [Reed](https://www.reed.co.uk/developers/jobseeker) (UK, with a graduate filter) and/or [Adzuna](https://developer.adzuna.com/signup) (UK, with salaries: an App ID and an App Key).
+1. Get a free key from one or more boards: [Reed](https://www.reed.co.uk/developers/jobseeker) (UK, with a graduate filter), [Adzuna](https://developer.adzuna.com/signup) (UK, with salaries: an App ID and an App Key) or [Jooble](https://jooble.org/api/about) (jobs gathered from many sites; ask for a UK key).
 2. Paste them in **Settings → Keys & passwords**.
 3. Open **Find jobs**, type a role and a place, keep **Graduate roles** ticked and click **Search**.
 4. Click a job: a side panel shows an AI summary (what the job is, salary, must-haves, your match, why you fit and the gaps). Click **Apply** to save it to your tracker and go straight to the Apply page.
+5. Click the ☆ on a job to **shortlist** it for later, without adding it to your tracker. The **Shortlist** tab keeps it, even after a restart.
+
+**Gradcracker, The Trackr, Bright Network, Prospects and TARGETjobs** have no public API. Under **Search on other sites**, one click searches the site for your keywords. Found a job there? Use **Add a job from any site**: paste its link and the text of the ad, and CareerPilot (with AI) fills in the company, role, salary, location and closing date and opens the Apply page.
 
 **Import your own tracker:** you can also bring in your existing spreadsheet.
 
@@ -147,7 +150,7 @@ Nothing is ever sent without your approval.
 ## 8. Track your applications
 
 - **Dashboard:** counts, a chart by status and jobs added per week.
-- **Applications:** your tracker, laid out like a job-hunt spreadsheet: totals at the top, then Company, Role, Application deadline, Status, Pre-assessment, Assessment deadline and **Next step**. Change any cell and it saves. Click a company for a side panel with the job's summary and an **Apply** button. Switch to **Board** to drag cards between statuses.
+- **Applications:** your tracker, laid out like a job-hunt spreadsheet: totals at the top, then Company, Role, Application deadline, Status, Pre-assessment, Assessment deadline and **Next step**. Change any cell and it saves. Jobs closing in the next 7 days, and assessments due, get an amber chip (red when overdue); the Dashboard lists them under **Due this week**. Tick **Hide closed** to hide rejected and withdrawn jobs. Click a company for a side panel with the job's summary and an **Apply** button. Switch to **Board** to drag cards between statuses.
 - **Replies:** CareerPilot checks your inbox for replies to applications it sent and suggests a status (interview, rejection, and so on). You confirm it. It checks every 30 minutes, or click **Check replies now** on the Dashboard.
 - **Follow-ups:** when a job has had no reply for the number of days you set, it's marked as due. Click **Draft a follow-up** (AI or template), review it and send it in the same email thread.
 - **Calendar:** interview dates and follow-ups.
@@ -168,7 +171,7 @@ Backups from an older version of CareerPilot are upgraded automatically when res
 | Problem | What to do |
 |---|---|
 | My CV reads as `U/n.sc/i.sc…` or projects are missing | Fixed in 1.2: open **Profile** and read your CV again. |
-| Find jobs shows "Connect a job board" | Paste a free Reed key, or an Adzuna App ID and App Key, in **Settings → Keys & passwords**. |
+| Find jobs shows "Connect a job board" | Paste a free Reed key, an Adzuna App ID and App Key, or a Jooble key in **Settings → Keys & passwords**. |
 | "AI isn't set up" | Paste your key again in **Settings → Keys & passwords**, then use **Test connection**. |
 | "Rate limit reached" | The free tier allows a limited number of requests per minute and day. Wait a minute, or switch provider in Settings. |
 | Test email fails with a login error | Use an App Password, not your normal password, and check that 2-Step Verification is on. |

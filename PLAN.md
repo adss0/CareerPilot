@@ -20,6 +20,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ✅ Done |
 | 8 | **Desktop app:** installable Windows app (Tauri) | ✅ Done |
 | 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ✅ Done (tag & publish left to you) |
+| 12 | **v1.3 More boards, shortlist, deadlines, new look:** Jooble, other-site searches, add a job from any site, shortlist, deadlines due, hide closed, bold modern restyle | ✅ Done |
 | 11 | **v1.2 Find jobs & Apply:** job-board search with AI summaries, a spreadsheet-style tracker, a one-page Apply flow, CV reader fixes | ✅ Done |
 | 10 | **v1.1 Tailored documents:** CV tailored per job, letter highlights, Word + PDF saved to Documents, keys in Settings, import your own tracker | ✅ Done |
 
@@ -313,6 +314,17 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 ---
 
+## Phase 12: More boards, shortlist, deadlines and a new look (v1.3)
+
+- [x] 12.1 **Jooble** board (official API, free key). Gradcracker and The Trackr have no public API and scraping breaks their terms, so: one-click site searches (Gradcracker, The Trackr, Bright Network, Prospects, TARGETjobs) and **Add a job from any site** (paste link + ad; AI reads the company, role, salary, location and closing date).
+- [x] 12.2 **Shortlist** (new `savedjob` table): star jobs, kept across restarts with their summary; Apply works from it.
+- [x] 12.3 **Deadlines and assessments due**: chips in the tracker, a **Due this week** dashboard card, `/api/applications/due`.
+- [x] 12.4 **Hide closed** jobs in the tracker.
+- [x] 12.5 **Bold modern restyle**: navy sidebar, teal accent, Plus Jakarta Sans (bundled, OFL), cards with depth, colour-coded statuses and totals.
+- [x] 12.6 Full re-test: 240 backend, 65 frontend, 6 end-to-end tests (every page loads without console errors). Fixed: missing job-board key fields in Settings, a profile-creation race on a new database, more CV layouts.
+
+---
+
 ## Future ideas (after v1)
 
 - Job scraping from public job boards' RSS/APIs into the tracker
@@ -356,3 +368,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-12 | **Phase 9 done.** Security pass (CSRF header, local-host check, security headers, dependency upgrades with clean audits), backup and restore, Playwright end-to-end test in CI, coverage gate, user guide, changelog, version 1.0.0. 174 backend + 52 frontend tests + 1 E2E. Tagging v1.0.0 is left to the owner. |
 | 2026-11-13 | **Phase 10 (v1.1) done.** Imports the owner's own tracker layout (title and totals above the table, Status and deadline columns), keys pasted in Settings, a tailored CV per job, letter highlights, Word + PDF saved to Documents\CareerPilot. 204 backend + 59 frontend tests. |
 | 2026-11-13 | **Phase 11 (v1.2) done.** Fixed LaTeX CVs being read as glyph names, a tracker laid out like the owner's spreadsheet with next steps, Find jobs (Reed, Adzuna) with AI summaries, and a one-page Apply flow. 232 backend + 65 frontend + 3 E2E tests. |
+| 2026-11-13 | **Phase 12 (v1.3) done.** Jooble, other-site searches, add a job from any site, shortlist, deadlines due, hide closed, a bold modern restyle, and a full re-test that found and fixed three bugs. 240 backend + 65 frontend + 6 E2E tests. |

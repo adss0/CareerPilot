@@ -32,7 +32,7 @@ SECTIONS: dict[str, tuple[str, ...]] = {
     "skills": (
         "skills", "technical skills", "key skills", "core skills", "core competencies",
         "competencies", "technologies", "tech stack", "tools", "skills and tools",
-        "skills & tools", "technical expertise",
+        "technical expertise",
     ),
     "experience": (
         "experience", "work experience", "employment", "employment history",
@@ -40,7 +40,7 @@ SECTIONS: dict[str, tuple[str, ...]] = {
     ),
     "education": (
         "education", "qualifications", "education and qualifications",
-        "education & qualifications", "academic background", "academic qualifications",
+         "academic background", "academic qualifications",
     ),
     "projects": ("projects", "personal projects", "key projects", "selected projects"),
     "other": (
@@ -48,6 +48,7 @@ SECTIONS: dict[str, tuple[str, ...]] = {
         "achievements", "languages", "volunteering", "publications", "hobbies and interests",
         "extracurricular activities", "extracurricular activities and leadership",
         "activities", "leadership", "activities and leadership", "leadership and activities",
+        "leadership and extracurriculars",
         "additional information", "volunteering and leadership",
     ),
 }  # fmt: skip
@@ -139,7 +140,7 @@ def _clean_phone(phone: str) -> str:
 def _heading(line: str) -> str | None:
     if not line or len(line) > 50:
         return None
-    normalized = re.sub(r"[^a-z& ]", "", line.lower()).strip()
+    normalized = re.sub(r"[^a-z& ]", "", line.lower()).replace("&", " and ").strip()
     return HEADING_LOOKUP.get(" ".join(normalized.split()))
 
 
@@ -192,7 +193,7 @@ def _parse_skills(lines: list[str]) -> list[str]:
         if ":" in line and len(line.split(":", 1)[0]) <= 30:
             line = line.split(":", 1)[1]  # "Languages: Python, SQL" → "Python, SQL"
         for item in re.split(r"[,;|•·/]|\s{2,}", line):
-            item = item.strip(" .")
+            item = item.strip().rstrip(".")  # keep the dot in ".NET"
             if 1 <= len(item) <= 40:
                 skills.append(item)
     return _dedupe(skills)[:60]
@@ -325,7 +326,26 @@ def _project_entries(lines: list[str]) -> list[list[str]]:
 PROJECT_TECH_RE = re.compile(r"^(?P<name>.+\))\s+(?P<tech>[^()]+,[^()]+)$")
 
 
+PROJECT_LABELS = (
+    "personal project", "group project", "university project", "final year project",
+    "coursework", "dissertation", "hackathon", "internship", "freelance",
+)  # fmt: skip
+
+
 def _project_tech(head: str) -> tuple[str, list[str]]:
+    # "CareerPilot | Python, FastAPI, SQLite Personal Project"
+    if " | " in head:
+        name, rest = (part.strip() for part in head.split(" | ", 1))
+        label = next((lb for lb in PROJECT_LABELS if rest.lower().endswith(lb)), "")
+        if label:
+            rest = rest[: -len(label)].strip()
+            name = f"{name} ({label.title() if label != 'coursework' else 'Coursework'})"
+        if "," in rest:
+            tech = [t.strip().rstrip(".") for t in rest.split(",")]
+            return name, [t for t in tech if 1 <= len(t) <= 40]
+        if label:
+            return name, []
+        return head, []  # "Notes | A notes app": not a tech list, so keep the line as it is
     match = PROJECT_TECH_RE.match(head)
     if not match:
         return head, []

@@ -5,6 +5,7 @@ import type {
   Application,
   ApplicationPage,
   ApplicationStatus,
+  DueItem,
   Letter,
   LetterJob,
   Tone,
@@ -20,8 +21,10 @@ export function listApplications(params: {
   sort?: Sort;
   limit: number;
   offset: number;
+  hideClosed?: boolean;
 }): Promise<ApplicationPage> {
   const query = new URLSearchParams({ limit: String(params.limit), offset: String(params.offset) });
+  if (params.hideClosed) query.set("hide_closed", "true");
   if (params.status) query.set("status", params.status);
   if (params.search?.trim()) query.set("search", params.search.trim());
   if (params.sort) query.set("sort", params.sort);
@@ -51,6 +54,8 @@ export type ApplicationInput = Partial<
     | "assessment_due"
   >
 >;
+
+export const getDue = (days = 7) => apiGet<DueItem[]>(`/applications/due?days=${days}`);
 
 export const getTrackerSummary = () => apiGet<TrackerSummary>("/applications/summary");
 

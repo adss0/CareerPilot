@@ -1,60 +1,82 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+/* Bundled with the app (works offline and in the desktop app). SIL Open Font License. */
+@import "@fontsource-variable/plus-jakarta-sans";
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * CareerPilot theme: "bold modern". A deep navy sidebar, one electric-teal accent, cool
+ * off-white pages and cards with real depth. Status colours: teal (moving), blue (applied),
+ * amber (waiting on you), coral (closed).
+ */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.985 0 0);
-  --foreground: oklch(0.145 0 0);
+  --radius: 0.75rem;
+  --background: oklch(0.973 0.006 255);
+  --foreground: oklch(0.21 0.04 265);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.511 0.262 276.966);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.962 0.018 272.314);
-  --accent-foreground: oklch(0.359 0.144 278.697);
-  --destructive: oklch(0.577 0.245 27.325);
-  --success: oklch(0.627 0.194 149.214);
-  --warning: oklch(0.987 0.022 95.277);
-  --warning-foreground: oklch(0.414 0.112 45.904);
-  --warning-border: oklch(0.879 0.169 91.605);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.585 0.233 277.117);
+  --card-foreground: oklch(0.21 0.04 265);
+  --primary: oklch(0.6 0.13 185);
+  --primary-foreground: oklch(0.99 0.01 185);
+  --secondary: oklch(0.94 0.012 255);
+  --secondary-foreground: oklch(0.27 0.05 265);
+  --muted: oklch(0.945 0.01 255);
+  --muted-foreground: oklch(0.5 0.03 260);
+  --accent: oklch(0.95 0.035 185);
+  --accent-foreground: oklch(0.36 0.08 190);
+  --destructive: oklch(0.6 0.2 25);
+  --success: oklch(0.58 0.15 155);
+  --info: oklch(0.55 0.17 255);
+  --warning: oklch(0.96 0.06 90);
+  --warning-foreground: oklch(0.45 0.11 60);
+  --warning-border: oklch(0.85 0.14 85);
+  --border: oklch(0.905 0.012 255);
+  --input: oklch(0.88 0.015 255);
+  --ring: oklch(0.6 0.13 185);
+  --shadow-color: 245 30% 30%;
+  /* The navy sidebar stays navy in both themes. */
+  --sidebar: oklch(0.235 0.065 268);
+  --sidebar-foreground: oklch(0.86 0.025 260);
+  --sidebar-muted: oklch(0.68 0.04 262);
+  --sidebar-active: oklch(0.8 0.14 182);
+  --sidebar-active-foreground: oklch(0.2 0.05 265);
+  --sidebar-border: oklch(1 0 0 / 8%);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.673 0.182 276.935);
-  --primary-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.257 0.09 281.288);
-  --accent-foreground: oklch(0.87 0.065 274.039);
-  --destructive: oklch(0.704 0.191 22.216);
-  --success: oklch(0.723 0.219 149.579);
-  --warning: oklch(0.279 0.077 45.635);
-  --warning-foreground: oklch(0.924 0.12 95.746);
-  --warning-border: oklch(0.473 0.137 46.201);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.585 0.233 277.117);
+  --background: oklch(0.17 0.03 266);
+  --foreground: oklch(0.95 0.01 260);
+  --card: oklch(0.215 0.035 266);
+  --card-foreground: oklch(0.95 0.01 260);
+  --primary: oklch(0.78 0.14 182);
+  --primary-foreground: oklch(0.2 0.05 265);
+  --secondary: oklch(0.27 0.04 266);
+  --secondary-foreground: oklch(0.93 0.01 260);
+  --muted: oklch(0.255 0.035 266);
+  --muted-foreground: oklch(0.7 0.03 260);
+  --accent: oklch(0.3 0.06 200);
+  --accent-foreground: oklch(0.88 0.08 182);
+  --destructive: oklch(0.7 0.17 25);
+  --success: oklch(0.75 0.16 155);
+  --info: oklch(0.72 0.13 255);
+  --warning: oklch(0.3 0.07 70);
+  --warning-foreground: oklch(0.9 0.12 90);
+  --warning-border: oklch(0.48 0.12 70);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.78 0.14 182);
+  --shadow-color: 260 50% 3%;
+  --sidebar: oklch(0.14 0.035 268);
 }
 
 @theme inline {
+  --font-sans:
+    "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -69,12 +91,23 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-success: var(--success);
+  --color-info: var(--info);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
   --color-warning-border: var(--warning-border);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-active-foreground: var(--sidebar-active-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --shadow-card:
+    0 1px 2px hsl(var(--shadow-color) / 0.06), 0 4px 16px -4px hsl(var(--shadow-color) / 0.1);
+  --shadow-lift:
+    0 2px 4px hsl(var(--shadow-color) / 0.08), 0 12px 32px -8px hsl(var(--shadow-color) / 0.18);
 }
 
 @layer base {
@@ -82,6 +115,26 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  /* Page titles: big and confident. */
+  main h1 {
+    @apply text-3xl font-extrabold tracking-tight;
+  }
+  ::selection {
+    @apply bg-primary/25;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  /* A soft teal glow behind page headers. */
+  .page-glow {
+    background:
+      radial-gradient(60rem 18rem at 0% -6rem, oklch(0.8 0.14 182 / 0.14), transparent 70%),
+      radial-gradient(40rem 16rem at 100% -8rem, oklch(0.55 0.17 255 / 0.1), transparent 70%);
   }
 }

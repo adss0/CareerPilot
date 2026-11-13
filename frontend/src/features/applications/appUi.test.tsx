@@ -43,6 +43,8 @@ const app = (
   external_id: "",
   job_summary: {},
   next_step: "",
+  due_label: "",
+  due_level: "",
 });
 
 describe("board", () => {

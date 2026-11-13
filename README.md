@@ -2,7 +2,7 @@
 
 **Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
 
-> ✅ Status: version 1.2. Find jobs, a tracker like your own spreadsheet, and a one-page Apply flow with a tailored CV and cover letter. New here? Read the **[user guide](docs/USER_GUIDE.md)**. Changes are in the [changelog](CHANGELOG.md) and the roadmap is in the [plan](PLAN.md).
+> ✅ Status: version 1.3. Find jobs, a tracker like your own spreadsheet, and a one-page Apply flow with a tailored CV and cover letter. New here? Read the **[user guide](docs/USER_GUIDE.md)**. Changes are in the [changelog](CHANGELOG.md) and the roadmap is in the [plan](PLAN.md).
 
 ---
 
@@ -40,7 +40,7 @@ Applying for jobs is repetitive: copy the job details, rewrite a cover letter, a
 
 | | Feature |
 |---|---|
-| 🔎 | Find jobs on UK job boards (Reed, Adzuna), each summarised by AI with salary and how well you match |
+| 🔎 | Find jobs on UK job boards (Reed, Adzuna, Jooble), each summarised by AI with salary and how well you match; a shortlist; one-click searches of Gradcracker, The Trackr, Bright Network, Prospects and TARGETjobs; add a job from any site |
 | 🚀 | One-page Apply: tailored CV + cover letter, preview, download, then open the employer's site with your details ready to copy |
 | 📥 | Excel / CSV import (even your own tracker layout) with automatic column matching, status import and duplicate detection |
 | 👤 | CV upload and parsing into a reusable profile (multiple CV versions supported) |
@@ -50,7 +50,7 @@ Applying for jobs is repetitive: copy the job details, rewrite a cover letter, a
 | 📄 | Export letters to PDF and Word |
 | 📤 | Approve-then-send email applications via Gmail, Outlook or any SMTP account, with daily limits |
 | 🧭 | Assisted apply for job portals |
-| 📊 | A tracker like your own spreadsheet (totals, pre-assessments, next steps), a Kanban board and a dashboard |
+| 📊 | A tracker like your own spreadsheet (totals, pre-assessments, next steps, deadlines due, hide closed), a Kanban board and a dashboard |
 | 🔔 | Follow-up reminders and AI-drafted follow-up emails |
 | 📬 | Reply detection from your inbox (IMAP) |
 | 🔁 | Export your tracker to Excel any time |

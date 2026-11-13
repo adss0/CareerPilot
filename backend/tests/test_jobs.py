@@ -121,6 +121,7 @@ def test_search_both_boards(client, boards):
         "snippet": "Join our graduate scheme building APIs...",
         "url": "https://www.reed.co.uk/jobs/graduate-software-engineer/111",
         "application_id": None,
+        "shortlisted": False,
     }
     assert jobs[1]["title"] == "Graduate Developer"
     assert jobs[1]["salary"] == "£30,000 a year (estimated)"

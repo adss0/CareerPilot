@@ -128,7 +128,7 @@ export function ApplyView(vm: ApplyViewModel) {
           <ArrowLeft className="size-4" /> Applications
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">Apply: {job.role}</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">Apply: {job.role}</h1>
           <Badge variant={statusVariant(job.status)}>{STATUS_LABELS[job.status]}</Badge>
         </div>
         <p className="text-muted-foreground">

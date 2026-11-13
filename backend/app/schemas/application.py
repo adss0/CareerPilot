@@ -98,6 +98,18 @@ class ApplicationRead(BaseModel):
     letter_count: int = 0
     match_score: int | None = None  # from the selected cover letter
     next_step: str = ""  # what to do next, worked out from the status and the assessment
+    due_label: str = ""  # e.g. "Closes in 3 days", "Assessment due tomorrow"
+    due_level: Literal["", "soon", "overdue"] = ""
+
+
+class DueItem(BaseModel):
+    application_id: int
+    company: str
+    role: str
+    kind: Literal["deadline", "assessment"]
+    date: date
+    days_left: int  # negative: overdue
+    label: str
 
 
 class TrackerSummary(BaseModel):

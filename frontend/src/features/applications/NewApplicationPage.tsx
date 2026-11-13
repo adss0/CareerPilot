@@ -21,7 +21,7 @@ export function NewApplicationView(vm: NewApplicationViewModel) {
         >
           <ArrowLeft className="size-4" /> Applications
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight">Add a job</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Add a job</h1>
         <p className="text-muted-foreground text-sm">
           For one job at a time. To add many,{" "}
           <Link to="/import" className="text-primary underline">

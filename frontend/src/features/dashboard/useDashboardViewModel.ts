@@ -47,7 +47,7 @@ export function buildDashboard(
         value: String(stats.total),
         hint: `${stats.added_this_week} added this week`,
       },
-      { label: "Sent", value: String(stats.sent), hint: "Sent or further along" },
+      { label: "Applied", value: String(stats.sent), hint: "Applied or further along" },
       { label: "Interviews", value: String(stats.interviews), hint: "Interviews and offers" },
       {
         label: "Response rate",

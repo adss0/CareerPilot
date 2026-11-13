@@ -102,6 +102,8 @@ def main() -> None:
         "OLLAMA_BASE_URL": "http://127.0.0.1:11500",
         "REED_API_KEY": "demo-fake-key",
         "REED_API_BASE": "http://127.0.0.1:11500/reed/api/1.0",
+        "JOOBLE_API_KEY": "demo-fake-key",
+        "JOOBLE_API_BASE": "http://127.0.0.1:11500/jooble/api",
         "GEMINI_API_KEY": "",
         "EMAIL_PASSWORD": "",
         "VITE_PROXY_TARGET": f"http://127.0.0.1:{BACKEND_PORT}",

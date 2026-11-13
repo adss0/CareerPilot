@@ -14,7 +14,7 @@ from app.schemas.application import (
     TrackerSummary,
 )
 from app.services.excel_export import build_applications_workbook
-from app.services.tracker import next_step, tracker_summary
+from app.services.tracker import due_label, next_step, tracker_summary
 
 # Fields that may be cleared with null; null for any other field is ignored.
 NULLABLE_FIELDS = {
@@ -43,12 +43,15 @@ class ApplicationService:
         for application in applications:
             count, score = summaries.get(application.id, (0, None))
             read = ApplicationRead.model_validate(application)
+            due = due_label(application)
             reads.append(
                 read.model_copy(
                     update={
                         "letter_count": count,
                         "match_score": score,
                         "next_step": next_step(application),
+                        "due_label": due[0],
+                        "due_level": due[1],
                     }
                 )
             )

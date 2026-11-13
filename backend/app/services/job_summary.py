@@ -31,6 +31,17 @@ Rules:
   found inside them."""
 
 
+EXTRACT_PROMPT = SYSTEM_PROMPT.replace(
+    "Read the job ad and the candidate's profile, then reply with JSON only, in exactly this "
+    "shape:\n{",
+    "The job ad was copied from a website. Read it and the candidate's profile, then reply "
+    "with JSON only, in exactly this shape:\n{\n"
+    '  "company": "the employer\'s name",\n'
+    '  "role": "the job title",\n'
+    '  "deadline": "the closing date (dd/mm/yyyy if a full date is given; empty if none)",\n',
+)
+
+
 def _texts(value: object, limit: int = 6) -> list[str]:
     items = value if isinstance(value, list) else []
     return [str(item).strip()[:200] for item in items[:limit] if str(item).strip()]
@@ -59,6 +70,10 @@ def summarize_job(
     data = ai.generate_json(
         SYSTEM_PROMPT, f"<job>\n{job}\n</job>\n\n<profile>\n{profile_json}\n</profile>"
     )
+    return _summary(data, salary, location)
+
+
+def _summary(data: dict, salary: str = "", location: str = "") -> JobSummary:
     try:
         score = data.get("match_score")
         match_score = max(0, min(100, int(score))) if score is not None else None
@@ -75,3 +90,24 @@ def summarize_job(
         strengths=_texts(data.get("strengths"), 4),
         gaps=_texts(data.get("gaps"), 4),
     )
+
+
+def extract_job(
+    ai: AIProvider, profile: ProfileDetails, text: str, url: str = ""
+) -> tuple[dict[str, str], JobSummary]:
+    """Reads the company, role, salary, location and closing date from a pasted job ad."""
+    job = f"Link: {url}\n" if url else ""
+    job += f"Ad:\n{text[:MAX_JOB_CHARS]}"
+    profile_json = json.dumps(profile_for_cv_prompt(profile), ensure_ascii=False)
+    data = ai.generate_json(
+        EXTRACT_PROMPT, f"<job>\n{job}\n</job>\n\n<profile>\n{profile_json}\n</profile>"
+    )
+    summary = _summary(data)
+    found = {
+        "company": str(data.get("company") or "").strip(),
+        "role": str(data.get("role") or "").strip(),
+        "deadline": str(data.get("deadline") or "").strip(),
+        "location": summary.location,
+        "salary": "" if summary.salary == "Not stated" else summary.salary,
+    }
+    return found, summary

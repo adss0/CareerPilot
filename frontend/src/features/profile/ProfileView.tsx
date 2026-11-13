@@ -11,7 +11,7 @@ export function ProfileView(vm: ProfileViewModel) {
   return (
     <div className="max-w-6xl space-y-6 pb-24">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Profile</h1>
         <p className="text-muted-foreground text-sm">
           Who you are. CareerPilot uses these details, and only these, to write your cover letters.
         </p>

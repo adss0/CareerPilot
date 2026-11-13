@@ -26,16 +26,26 @@ const LABELS: Record<SecretName, string> = {
   gemini: "Gemini key",
   groq: "Groq key",
   email: "Email password",
+  reed: "Reed key",
+  adzuna_id: "Adzuna App ID",
+  adzuna_key: "Adzuna App Key",
+  jooble: "Jooble key",
+};
+
+const EMPTY: Record<SecretName, string> = {
+  gemini: "",
+  groq: "",
+  email: "",
+  reed: "",
+  adzuna_id: "",
+  adzuna_key: "",
+  jooble: "",
 };
 
 export function useKeysViewModel(): KeysViewModel {
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: ["settings", "secrets"], queryFn: getSecrets });
-  const [drafts, setDrafts] = useState<Record<SecretName, string>>({
-    gemini: "",
-    groq: "",
-    email: "",
-  });
+  const [drafts, setDrafts] = useState<Record<SecretName, string>>(EMPTY);
   const [error, setError] = useState<string | null>(null);
 
   const mutation = useMutation({
