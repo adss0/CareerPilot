@@ -9,20 +9,56 @@ import type { SecretName } from "@/features/documents/api";
 
 import type { KeysViewModel } from "./useKeysViewModel";
 
-const FIELDS: { name: SecretName; label: string; hint: string; link?: string }[] = [
+const FIELDS: {
+  name: SecretName;
+  label: string;
+  hint: string;
+  link?: string;
+  group: "AI" | "Job boards" | "Email";
+}[] = [
   {
+    group: "AI",
     name: "gemini",
     label: "Gemini API key",
     hint: "Free. Writes your cover letters and tailors your CV.",
     link: "https://aistudio.google.com/apikey",
   },
   {
+    group: "AI",
     name: "groq",
     label: "Groq API key (optional)",
     hint: "Free backup AI if Gemini is busy.",
     link: "https://console.groq.com/keys",
   },
   {
+    group: "Job boards",
+    name: "reed",
+    label: "Reed API key",
+    hint: "Free. UK jobs, with a graduate filter.",
+    link: "https://www.reed.co.uk/developers/jobseeker",
+  },
+  {
+    group: "Job boards",
+    name: "adzuna_id",
+    label: "Adzuna App ID",
+    hint: "Free. UK jobs with salaries; needs the App ID and the App Key.",
+    link: "https://developer.adzuna.com/signup",
+  },
+  {
+    group: "Job boards",
+    name: "adzuna_key",
+    label: "Adzuna App Key",
+    hint: "The second half of your Adzuna details.",
+  },
+  {
+    group: "Job boards",
+    name: "jooble",
+    label: "Jooble API key",
+    hint: "Free. Jobs gathered from many UK sites. Ask for a UK key.",
+    link: "https://jooble.org/api/about",
+  },
+  {
+    group: "Email",
     name: "email",
     label: "Email App Password",
     hint: "For sending applications and reading replies. Never your normal password.",
@@ -48,8 +84,9 @@ export function KeysView(vm: KeysViewModel) {
             {vm.error}
           </p>
         )}
-        {FIELDS.map((field) => {
+        {FIELDS.map((field, index) => {
           const isSet = vm.status?.[field.name] ?? false;
+          const heading = index === 0 || FIELDS[index - 1].group !== field.group;
           const saving = vm.saving === field.name;
           return (
             <form
@@ -60,6 +97,11 @@ export function KeysView(vm: KeysViewModel) {
                 vm.save(field.name);
               }}
             >
+              {heading && (
+                <h3 className="text-muted-foreground border-t pt-3 text-[11px] font-bold tracking-[0.12em] uppercase first:border-t-0 first:pt-0">
+                  {field.group}
+                </h3>
+              )}
               <span className="flex flex-wrap items-center gap-2 font-medium">
                 {field.label}
                 {isSet ? (

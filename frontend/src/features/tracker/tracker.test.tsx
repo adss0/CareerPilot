@@ -38,6 +38,8 @@ const job = (overrides: Partial<Application> = {}): Application => ({
   external_id: "",
   job_summary: {},
   next_step: "Do the assessment by 25 Nov",
+  due_label: "",
+  due_level: "",
   ...overrides,
 });
 
@@ -61,12 +63,14 @@ function trackerVm(overrides: Partial<TrackerViewModel> = {}): TrackerViewModel 
     search: "",
     status: "",
     sort: "created_at",
+    hideClosed: false,
     selected: null,
     isSummarizing: false,
     setView: vi.fn(),
     setSearch: vi.fn(),
     setStatus: vi.fn(),
     setSort: vi.fn(),
+    setHideClosed: vi.fn(),
     select: vi.fn(),
     update: vi.fn(),
     summarize: vi.fn(),
@@ -147,6 +151,14 @@ describe("FindJobsView", () => {
     isSummarizing: false,
     isSaving: false,
     error: null,
+    tab: "results",
+    shortlist: [],
+    paste: { url: "", text: "", company: "", role: "" },
+    isPasting: false,
+    setTab: vi.fn(),
+    toggleStar: vi.fn(),
+    setPaste: vi.fn(),
+    addPasted: vi.fn(),
     setForm: vi.fn(),
     search: vi.fn(),
     nextPage: vi.fn(),
@@ -164,6 +176,7 @@ describe("FindJobsView", () => {
       />,
     );
     expect(screen.getByText("Connect a job board (free)")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Jooble" })).toBeInTheDocument();
   });
 
   it("lists jobs and applies from the side panel", () => {
@@ -179,6 +192,7 @@ describe("FindJobsView", () => {
       snippet: "Build things",
       url: "https://example.com/1",
       application_id: null,
+      shortlisted: false,
     };
     const vm = findVm({
       result: { jobs: [listing], boards: ["Reed"], problems: [], needs_setup: false },
@@ -202,6 +216,14 @@ describe("FindJobsView", () => {
     });
     renderIn(<FindJobsView {...vm} />);
     expect(screen.getByText("1 jobs from Reed")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Shortlist Graduate Developer" }));
+    expect(vm.toggleStar).toHaveBeenCalledWith(listing);
+    expect(screen.getByRole("link", { name: /Gradcracker/ })).toHaveAttribute(
+      "href",
+      "https://www.google.com/search?q=site%3Agradcracker.com%20software%20engineer%20graduate",
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Add and apply/ }));
+    expect(vm.addPasted).toHaveBeenCalled();
     expect(screen.getByText("A dev job.")).toBeInTheDocument();
     expect(screen.getByText("Docker")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));

@@ -12,10 +12,12 @@ from app.schemas.application import (
     ApplicationUpdate,
     BulkApplicationAction,
     BulkApplicationResult,
+    DueItem,
     StatusHistoryRead,
     TrackerSummary,
 )
 from app.services.excel_export import XLSX_MEDIA_TYPE
+from app.services.tracker import due_items
 
 router = APIRouter(prefix="/applications", tags=["applications"])
 
@@ -33,9 +35,15 @@ def list_applications(
     sort: Annotated[SortKey, Query()] = "-created_at",
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
+    hide_closed: bool = False,
 ) -> ApplicationPage:
     items, total = service.search(
-        status=status_filter, search=search, sort=sort, limit=limit, offset=offset
+        status=status_filter,
+        search=search,
+        sort=sort,
+        limit=limit,
+        offset=offset,
+        hide_closed=hide_closed,
     )
     return ApplicationPage(
         items=service.to_read(items),
@@ -61,6 +69,14 @@ def bulk_update_applications(
 @router.get("/summary", response_model=TrackerSummary)
 def get_tracker_summary(service: ApplicationServiceDep) -> TrackerSummary:
     return service.tracker_summary()
+
+
+@router.get("/due", response_model=list[DueItem])
+def get_due(
+    service: ApplicationServiceDep, days: Annotated[int, Query(ge=1, le=60)] = 7
+) -> list[DueItem]:
+    """Applications closing and assessments due in the next few days (and overdue ones)."""
+    return due_items(service.repo.all(), days=days)
 
 
 @router.get("/export", response_class=Response)

@@ -70,14 +70,17 @@ def _glyph(match: re.Match) -> str:
 LIGATURES = {"ﬀ": "ff", "ﬁ": "fi", "ﬂ": "fl", "ﬃ": "ffi", "ﬄ": "ffl", "ﬅ": "st", "ﬆ": "st"}
 # Wide kerning after these capitals can split a word: "Y ear", "T echnology". "A" and "I" are
 # real one-letter words, so they're never joined.
-KERNING_SPLIT_RE = re.compile(r"\b([FPTVWY]) ([a-z]{2,})\b")
+# Also inside a word ("T ypeScript") and between capitals ("JP A" for "JPA").
+KERNING_SPLIT_RE = re.compile(r"\b([FPTVWY]) ([a-z]{2,})")
+KERNING_CAPS_RE = re.compile(r"\b([A-Z]{0,4}[PTVWY]) ([A-Z])(?=[\s,;|.)]|$)")
 
 
 def fix_glyph_names(text: str) -> str:
     text = GLYPH_RE.sub(_glyph, text)
     for ligature, letters in LIGATURES.items():
         text = text.replace(ligature, letters)
-    return KERNING_SPLIT_RE.sub(r"\1\2", text)
+    text = KERNING_SPLIT_RE.sub(r"\1\2", text)
+    return KERNING_CAPS_RE.sub(r"\1\2", text)
 
 
 def clean_text(text: str) -> str:

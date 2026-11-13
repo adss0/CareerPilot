@@ -35,7 +35,7 @@ export function CalendarView(vm: CalendarViewModel) {
     <div className="max-w-6xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Calendar</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">Calendar</h1>
           <p className="text-muted-foreground text-sm">
             Interviews (green) and follow-ups due (amber).
           </p>

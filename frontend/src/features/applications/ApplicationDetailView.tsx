@@ -64,7 +64,7 @@ export function ApplicationDetailView({
           <ArrowLeft className="size-4" /> Applications
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">{a.role}</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">{a.role}</h1>
           <Badge variant={statusVariant(a.status)}>{STATUS_LABELS[a.status]}</Badge>
         </div>
         <p className="text-muted-foreground">

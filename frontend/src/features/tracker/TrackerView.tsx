@@ -1,5 +1,6 @@
 // View: the job tracker, laid out like a job-hunt spreadsheet, with a side panel per job.
 import {
+  Clock,
   Columns3,
   Download,
   ExternalLink,
@@ -33,34 +34,42 @@ import type { TrackerViewModel } from "./useTrackerViewModel";
 const STATUSES = Object.entries(STATUS_LABELS) as [ApplicationStatus, string][];
 
 function statusTone(status: ApplicationStatus): string {
-  if (status === "rejected" || status === "withdrawn") return "bg-destructive/10 text-destructive";
+  if (status === "rejected" || status === "withdrawn")
+    return "bg-destructive/10 text-destructive border-destructive/25 font-semibold";
   if (status === "interview" || status === "offer" || status === "replied")
-    return "bg-success/15 text-success";
+    return "bg-success/12 text-success border-success/30 font-semibold";
+  if (status === "sent" || status === "followed_up")
+    return "bg-info/10 text-info border-info/25 font-semibold";
   return "";
 }
 
 function assessmentTone(value: Assessment): string {
-  if (value === "done") return "bg-success/15 text-success";
-  if (value === "pending") return "bg-warning text-warning-foreground";
+  if (value === "done") return "bg-success/12 text-success border-success/30 font-semibold";
+  if (value === "pending")
+    return "bg-warning text-warning-foreground border-warning-border font-semibold";
   return "";
 }
 
 function Totals({ vm }: { vm: TrackerViewModel }) {
   const s = vm.summary;
   const tiles = [
-    ["Total applications", s?.total],
-    ["Applied", s?.applied],
-    ["Rejected", s?.rejected],
-    ["Assessments done", s?.assessments_done],
-    ["In progress", s?.in_progress],
-    ["Interviews", s?.interviews],
+    ["Total applications", s?.total, "bg-foreground"],
+    ["Applied", s?.applied, "bg-info"],
+    ["Rejected", s?.rejected, "bg-destructive"],
+    ["Assessments done", s?.assessments_done, "bg-success"],
+    ["In progress", s?.in_progress, "bg-warning-border"],
+    ["Interviews", s?.interviews, "bg-primary"],
   ] as const;
   return (
-    <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-      {tiles.map(([label, value]) => (
-        <div key={label} className="bg-muted/60 rounded-lg px-3 py-2">
-          <dt className="text-muted-foreground text-xs font-medium">{label}</dt>
-          <dd className="text-xl font-semibold tabular-nums">{value ?? "–"}</dd>
+    <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      {tiles.map(([label, value, bar]) => (
+        <div
+          key={label}
+          className="bg-card shadow-card relative overflow-hidden rounded-xl border px-4 py-3"
+        >
+          <span className={cn("absolute inset-y-0 left-0 w-1", bar)} aria-hidden />
+          <dt className="text-muted-foreground text-xs font-semibold">{label}</dt>
+          <dd className="text-3xl font-extrabold tracking-tight tabular-nums">{value ?? "–"}</dd>
         </div>
       ))}
     </dl>
@@ -70,9 +79,9 @@ function Totals({ vm }: { vm: TrackerViewModel }) {
 function TrackerTable({ vm }: { vm: TrackerViewModel }) {
   const cell = "px-2 py-1.5 align-middle";
   return (
-    <div className="overflow-x-auto rounded-xl border">
+    <div className="bg-card shadow-card overflow-x-auto rounded-2xl border">
       <table className="w-full min-w-[860px] text-sm">
-        <thead className="bg-primary/90 text-primary-foreground text-left">
+        <thead className="bg-sidebar text-left text-xs tracking-wide text-white uppercase">
           <tr>
             <th className={cn(cell, "pl-4 font-medium")}>Company</th>
             <th className={cn(cell, "font-medium")}>Role</th>
@@ -154,7 +163,17 @@ function TrackerTable({ vm }: { vm: TrackerViewModel }) {
                   onChange={(e) => vm.update(a.id, { assessment_due: e.target.value || null })}
                 />
               </td>
-              <td className={cn(cell, "pr-4")}>{a.next_step || "–"}</td>
+              <td className={cn(cell, "pr-4")}>
+                <span className="block">{a.next_step || "–"}</span>
+                {a.due_label && (
+                  <Badge
+                    variant={a.due_level === "overdue" ? "destructive" : "warning"}
+                    className="mt-1"
+                  >
+                    <Clock /> {a.due_label}
+                  </Badge>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -257,12 +276,13 @@ function SidePanel({ vm, job }: { vm: TrackerViewModel; job: Application }) {
 }
 
 export function TrackerView(vm: TrackerViewModel) {
-  const empty = !vm.isLoading && vm.items.length === 0 && !vm.search && !vm.status;
+  const empty =
+    !vm.isLoading && vm.items.length === 0 && !vm.search && !vm.status && !vm.hideClosed;
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Applications</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">Applications</h1>
           <p className="text-muted-foreground">
             Your job tracker. Change any cell and it saves straight away.
           </p>
@@ -345,6 +365,15 @@ export function TrackerView(vm: TrackerViewModel) {
                 <option value="status">Status</option>
               </NativeSelect>
             </div>
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <input
+                type="checkbox"
+                className="accent-primary size-4"
+                checked={vm.hideClosed}
+                onChange={(e) => vm.setHideClosed(e.target.checked)}
+              />
+              Hide closed
+            </label>
             <div role="radiogroup" aria-label="View" className="bg-muted flex rounded-lg p-0.5">
               {(
                 [

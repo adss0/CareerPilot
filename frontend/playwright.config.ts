@@ -46,6 +46,8 @@ export default defineConfig({
         OLLAMA_BASE_URL: "http://127.0.0.1:11500",
         REED_API_KEY: "e2e-fake-key",
         REED_API_BASE: "http://127.0.0.1:11500/reed/api/1.0",
+        JOOBLE_API_KEY: "e2e-fake-key",
+        JOOBLE_API_BASE: "http://127.0.0.1:11500/jooble/api",
         EMAIL_QUEUE_INTERVAL_SECONDS: "1",
         GEMINI_API_KEY: "",
         EMAIL_PASSWORD: "",

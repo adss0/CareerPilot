@@ -2,6 +2,29 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-11-13
+
+### Added
+
+- **Jooble** as a third job board (free key), next to Reed and Adzuna.
+- **Search on other sites:** one click searches Gradcracker, The Trackr, Bright Network, Prospects or TARGETjobs for your keywords (they have no public API, so this opens a web search of the site).
+- **Add a job from any site:** paste a job's link and its ad; AI fills in the company, role, salary, location and closing date and summarises it, then the Apply page opens.
+- **Shortlist:** star jobs in Find jobs to look at later without adding them to your tracker. It's kept between restarts, with its AI summary.
+- **Deadlines and assessments due:** the tracker shows "Closes in 3 days" / "Assessment due tomorrow" chips, and the dashboard has a **Due this week** card.
+- **Hide closed:** one tick hides rejected and withdrawn jobs from the tracker (the totals stay complete).
+- Settings has boxes for the Reed, Adzuna and Jooble keys.
+
+### Changed
+
+- **A new look:** a deep navy sidebar, an electric-teal accent, a bold typeface (Plus Jakarta Sans, bundled so it works offline), cards with depth, colour-coded statuses (blue applied, green moving, amber waiting on you, coral closed) and a colour-coded totals bar. Light and dark.
+- The dashboard's "Sent" tile is now "Applied".
+
+### Fixed
+
+- Settings had no boxes for the Reed and Adzuna keys that Find jobs asked for.
+- Two screens loading at the same moment on a brand-new database could crash creating the profile.
+- CV reading: kerning gaps inside words ("T ypeScript", "JP A"), ".NET" losing its dot, "Name | tech Coursework" project lines, and "&" section headings such as "LEADERSHIP & ACTIVITIES".
+
 ## [1.2.0] - 2026-11-13
 
 ### Added
@@ -62,6 +85,7 @@ The first full release.
 
 - 174 backend tests (95% coverage; CI fails under 85%), 52 frontend tests, and an end-to-end browser test of import → letter → approve → send against a fake AI and a local test mail server.
 
+[1.3.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.3.0
 [1.2.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.2.0
 [1.1.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.1.0
 [1.0.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.0.0

@@ -8,6 +8,7 @@ from app.models.tables import (
     ImportBatch,
     InboxReply,
     Profile,
+    SavedJob,
     StatusHistory,
     TailoredCv,
 )
@@ -23,6 +24,7 @@ __all__ = [
     "ImportBatch",
     "InboxReply",
     "Profile",
+    "SavedJob",
     "StatusHistory",
     "TailoredCv",
 ]

@@ -15,7 +15,7 @@ export function SettingsView(vm: SettingsViewModel) {
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">Settings</h1>
         <p className="text-muted-foreground text-sm">
           Choose which free AI writes your letters, and how emails are sent.
         </p>

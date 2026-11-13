@@ -63,13 +63,13 @@ test("find a job → summary → tailored CV and letter → preview → save →
   await page.goto("/jobs");
   await page.getByLabel("Job title or keywords").fill("software engineer");
   await page.getByRole("button", { name: "Search" }).click();
-  await page.getByRole("button", { name: /Graduate Software Engineer/ }).click();
+  await page.getByRole("button", { name: /^Graduate Software Engineer/ }).click();
 
   // The AI summary appears by itself.
   await expect(page.getByText("A two-year graduate scheme building internal tools")).toBeVisible();
   await expect(page.getByText("78 · strong")).toBeVisible();
 
-  await page.getByRole("button", { name: "Apply" }).click();
+  await page.getByRole("button", { name: "Apply", exact: true }).click();
   await expect(page).toHaveURL(/\/applications\/\d+\/apply$/);
   await expect(
     page.getByRole("heading", { name: "Apply: Graduate Software Engineer" }),

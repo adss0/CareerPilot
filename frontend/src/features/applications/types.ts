@@ -39,6 +39,18 @@ export interface Application {
   external_id: string;
   job_summary: Partial<JobSummary>;
   next_step: string;
+  due_label: string; // e.g. "Closes in 3 days"
+  due_level: "" | "soon" | "overdue";
+}
+
+export interface DueItem {
+  application_id: number;
+  company: string;
+  role: string;
+  kind: "deadline" | "assessment";
+  date: string;
+  days_left: number;
+  label: string;
 }
 
 export type Assessment = "" | "pending" | "done";

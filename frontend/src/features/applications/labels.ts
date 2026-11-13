@@ -25,6 +25,7 @@ export function statusVariant(status: ApplicationStatus) {
   if (status === "offer" || status === "interview" || status === "replied")
     return "success" as const;
   if (status === "rejected" || status === "withdrawn") return "destructive" as const;
+  if (status === "sent" || status === "followed_up") return "info" as const;
   if (status === "imported") return "outline" as const;
   return "secondary" as const;
 }

@@ -51,10 +51,25 @@ class FakeAI(BaseHTTPRequestHandler):
 
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+        if self.path.startswith("/jooble/api/"):  # a fake Jooble (POST search)
+            return self._json({"totalCount": len(JOOBLE_JOBS), "jobs": JOOBLE_JOBS})
         prompt = body["messages"][-1]["content"]
         system = body["messages"][0]["content"]
         if "Connection test" in prompt:
             reply = {"ok": True}
+        elif "copied from a website" in system:  # "add a job from any site"
+            reply = {
+                "company": "Initech",
+                "role": "Graduate Software Developer",
+                "deadline": "15/12/2099",
+                "salary": "£29,000",
+                "location": "Bristol",
+                "summary": "A graduate developer role on Initech's two-year scheme.",
+                "requirements": ["A computing degree"],
+                "match_score": 70,
+                "strengths": ["Python APIs at Example Ltd"],
+                "gaps": [],
+            }
         elif "expert CV writer" in system:
             reply = {
                 "summary": "Software engineering graduate who builds APIs in Python.",
@@ -124,6 +139,19 @@ REED_JOBS = [
         "jobDescription": "Help our teams make sense of their data...",
         "jobUrl": "https://example.com/jobs/9002",
     },
+]
+JOOBLE_JOBS = [
+    {
+        "id": 7001,
+        "title": "Graduate Cloud Engineer",
+        "company": "Hooli",
+        "location": "London",
+        "snippet": "Join our cloud platform team...",
+        "salary": "£31,000",
+        "type": "Full-time",
+        "link": "https://example.com/jobs/7001",
+        "updated": "2026-11-12T08:00:00.0000000",
+    }
 ]
 REED_DESCRIPTIONS = {
     9001: "<p>Build internal tools in Python.</p><ul><li>A computing degree</li>"

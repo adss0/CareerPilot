@@ -17,6 +17,7 @@ import { errorText } from "@/lib/apiClient";
 
 export const TRACKER_LIMIT = 200;
 const VIEW_KEY = "careerpilot.trackerView";
+const HIDE_KEY = "careerpilot.hideClosed";
 
 export type TrackerViewMode = "table" | "board";
 
@@ -30,16 +31,26 @@ export interface TrackerViewModel {
   search: string;
   status: ApplicationStatus | "";
   sort: Sort;
+  hideClosed: boolean;
   selected: Application | null;
   isSummarizing: boolean;
   setView: (view: TrackerViewMode) => void;
   setSearch: (value: string) => void;
   setStatus: (value: ApplicationStatus | "") => void;
   setSort: (value: Sort) => void;
+  setHideClosed: (value: boolean) => void;
   select: (id: number | null) => void;
   update: (id: number, changes: ApplicationInput) => void;
   summarize: () => void;
   remove: (id: number) => void;
+}
+
+function readHide(): boolean {
+  try {
+    return localStorage.getItem(HIDE_KEY) === "1";
+  } catch {
+    return false;
+  }
 }
 
 function readView(): TrackerViewMode {
@@ -56,12 +67,14 @@ export function useTrackerViewModel(): TrackerViewModel {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<ApplicationStatus | "">("");
   const [sort, setSort] = useState<Sort>("created_at"); // the order you added them, like a sheet
+  const [hideClosed, setHideClosedState] = useState(readHide);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const listQuery = useQuery({
-    queryKey: ["applications", "tracker", { search, status, sort }],
-    queryFn: () => listApplications({ search, status, sort, limit: TRACKER_LIMIT, offset: 0 }),
+    queryKey: ["applications", "tracker", { search, status, sort, hideClosed }],
+    queryFn: () =>
+      listApplications({ search, status, sort, hideClosed, limit: TRACKER_LIMIT, offset: 0 }),
     placeholderData: keepPreviousData,
   });
   const summaryQuery = useQuery({
@@ -114,6 +127,7 @@ export function useTrackerViewModel(): TrackerViewModel {
     search,
     status,
     sort,
+    hideClosed,
     selected: items.find((a) => a.id === selectedId) ?? null,
     isSummarizing: summarizeMutation.isPending,
     setView: (next) => {
@@ -127,6 +141,14 @@ export function useTrackerViewModel(): TrackerViewModel {
     setSearch,
     setStatus,
     setSort,
+    setHideClosed: (value) => {
+      setHideClosedState(value);
+      try {
+        localStorage.setItem(HIDE_KEY, value ? "1" : "0");
+      } catch {
+        // not remembered
+      }
+    },
     select: setSelectedId,
     update: (id, changes) => updateMutation.mutate({ id, changes }),
     summarize: () => {

@@ -116,8 +116,24 @@ describe("TailoredCvView", () => {
 
 describe("KeysView", () => {
   const keys = (overrides: Partial<KeysViewModel> = {}): KeysViewModel => ({
-    status: { gemini: false, groq: false, email: true },
-    drafts: { gemini: "", groq: "", email: "" },
+    status: {
+      gemini: false,
+      groq: false,
+      email: true,
+      reed: false,
+      adzuna_id: false,
+      adzuna_key: false,
+      jooble: false,
+    },
+    drafts: {
+      gemini: "",
+      groq: "",
+      email: "",
+      reed: "",
+      adzuna_id: "",
+      adzuna_key: "",
+      jooble: "",
+    },
     saving: null,
     error: null,
     setDraft: vi.fn(),
@@ -128,14 +144,26 @@ describe("KeysView", () => {
 
   it("shows which keys are saved without ever showing them", () => {
     render(<KeysView {...keys()} />);
-    expect(screen.getAllByText("Not set")).toHaveLength(2);
+    expect(screen.getAllByText("Not set")).toHaveLength(6);
+    expect(screen.getByLabelText("Reed API key")).toHaveAttribute("type", "password");
+    expect(screen.getByRole("heading", { name: "Job boards" })).toBeInTheDocument();
     expect(screen.getByText("Saved")).toBeInTheDocument();
     expect(screen.getByLabelText("Gemini API key")).toHaveAttribute("type", "password");
     expect(screen.getAllByRole("button", { name: "Remove" })).toHaveLength(1);
   });
 
   it("saves a pasted key", () => {
-    const vm = keys({ drafts: { gemini: "AIza-test", groq: "", email: "" } });
+    const vm = keys({
+      drafts: {
+        gemini: "AIza-test",
+        groq: "",
+        email: "",
+        reed: "",
+        adzuna_id: "",
+        adzuna_key: "",
+        jooble: "",
+      },
+    });
     render(<KeysView {...vm} />);
     fireEvent.change(screen.getByLabelText("Gemini API key"), { target: { value: "AIza-x" } });
     expect(vm.setDraft).toHaveBeenCalledWith("gemini", "AIza-x");

@@ -81,9 +81,9 @@ def html_to_text(value: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
 
 
-def _get(client: httpx.Client, url: str, label: str, **kwargs) -> dict:
+def _get(client: httpx.Client, url: str, label: str, method: str = "GET", **kwargs) -> dict:
     try:
-        response = client.get(url, timeout=TIMEOUT, **kwargs)
+        response = client.request(method, url, timeout=TIMEOUT, **kwargs)
     except httpx.HTTPError as exc:
         raise JobBoardError(f"Couldn't reach {label}. Check your internet connection.") from exc
     if response.status_code in (401, 403):
@@ -191,4 +191,45 @@ class AdzunaBoard:
             posted=_uk_date(str(item.get("created", "") or "")),
             snippet=html_to_text(str(item.get("description", "") or "")),
             url=str(item.get("redirect_url", "") or ""),
+        )
+
+
+class JoobleBoard:
+    """https://jooble.org/api/about: a free key for one country (ask for a UK key)."""
+
+    name, label = "jooble", "Jooble"
+    BASE = "https://jooble.org/api"
+
+    def __init__(self, key: str, transport: httpx.BaseTransport | None = None, base: str = BASE):
+        self.url = f"{base.rstrip('/')}/{key}"
+        self.client = httpx.Client(transport=transport)
+
+    def search(self, query: str, location: str, graduate: bool, page: int) -> list[Listing]:
+        keywords = f"{query} graduate" if graduate and "graduate" not in query.lower() else query
+        body = {
+            "keywords": keywords,
+            "location": location or "United Kingdom",
+            "page": page,
+            "ResultOnPage": 25,
+        }
+        data = _get(self.client, self.url, self.label, method="POST", json=body)
+        return [self._listing(item) for item in data.get("jobs", [])]
+
+    def details(self, listing: Listing) -> Listing:
+        # Jooble only shares a snippet; the full ad is on the employer's or board's page.
+        listing.description = listing.description or listing.snippet
+        return listing
+
+    def _listing(self, item: dict) -> Listing:
+        return Listing(
+            id=f"jooble:{item.get('id')}",
+            source=self.name,
+            title=html_to_text(str(item.get("title", ""))),
+            company=str(item.get("company", "") or "").strip(),
+            location=str(item.get("location", "") or ""),
+            salary=str(item.get("salary", "") or "").strip(),
+            posted=_uk_date(str(item.get("updated", "") or "")[:19]),
+            snippet=html_to_text(str(item.get("snippet", "") or "")),
+            url=str(item.get("link", "") or ""),
+            extra={"work_type": str(item.get("type", "") or "")},
         )

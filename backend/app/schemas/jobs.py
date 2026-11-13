@@ -27,6 +27,7 @@ class JobListingRead(BaseModel):
     snippet: str
     url: str
     application_id: int | None = None  # already saved to the tracker
+    shortlisted: bool = False  # starred to look at later
 
 
 class JobSearchResult(BaseModel):
@@ -34,6 +35,15 @@ class JobSearchResult(BaseModel):
     boards: list[str]  # boards that were searched
     problems: list[str]  # e.g. a board that couldn't be reached
     needs_setup: bool  # no job board key yet
+
+
+class PastedJob(BaseModel):
+    """A job from any website (Gradcracker, The Trackr, a company's careers page...)."""
+
+    url: str = Field(default="", max_length=1000)
+    text: str = Field(min_length=20, max_length=30_000)  # the job ad, copied from the page
+    company: str = Field(default="", max_length=200)  # needed when AI isn't set up
+    role: str = Field(default="", max_length=200)
 
 
 class JobDetailsRead(JobListingRead):

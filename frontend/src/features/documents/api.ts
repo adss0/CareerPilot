@@ -5,7 +5,14 @@ import type { EducationItem, ExperienceItem, ProjectItem } from "@/features/prof
 
 // ---------- keys and passwords (saved to .env; never sent back) ----------
 
-export type SecretName = "gemini" | "groq" | "email";
+export type SecretName =
+  | "gemini"
+  | "groq"
+  | "email"
+  | "reed"
+  | "adzuna_id"
+  | "adzuna_key"
+  | "jooble";
 export type SecretsStatus = Record<SecretName, boolean>;
 
 export const getSecrets = () => apiGet<SecretsStatus>("/settings/secrets");

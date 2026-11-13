@@ -162,6 +162,21 @@ class TailoredCv(SQLModel, table=True):
     updated_at: datetime | None = None
 
 
+class SavedJob(SQLModel, table=True):
+    """A job from a job board the user starred to look at later (not in the tracker yet)."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    external_id: str = Field(max_length=100, unique=True)  # "reed:123"
+    # The listing as the board gave it, plus the AI summary if there was one.
+    listing: dict = Field(
+        default_factory=dict, sa_column=Column(JSON, nullable=False, server_default="{}")
+    )
+    summary: dict = Field(
+        default_factory=dict, sa_column=Column(JSON, nullable=False, server_default="{}")
+    )
+    created_at: datetime = Field(default_factory=utcnow)
+
+
 class InboxReply(SQLModel, table=True):
     """A reply found in the user's inbox that answers one of their application emails."""
 

@@ -24,6 +24,7 @@ def test_saves_a_key_to_env_without_ever_returning_it(client, env_file: Path, en
         "reed": False,
         "adzuna_id": False,
         "adzuna_key": False,
+        "jooble": False,
     }
     response = client.put("/api/settings/secrets/gemini", json={"value": "  AIza-test-key_123 "})
     assert response.status_code == 200
