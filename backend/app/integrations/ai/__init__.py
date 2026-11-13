@@ -30,13 +30,13 @@ PROVIDERS: dict[str, ProviderInfo] = {
     "gemini": ProviderInfo(
         "gemini",
         "Google Gemini",
-        "Free key from https://aistudio.google.com/apikey → GEMINI_API_KEY in backend/.env",
+        "Free key from https://aistudio.google.com/apikey → paste it in Keys & passwords",
         "Sends your text to Google. On the free tier, Google may use it to improve its products.",
     ),
     "groq": ProviderInfo(
         "groq",
         "Groq",
-        "Free key from https://console.groq.com/keys → GROQ_API_KEY in backend/.env",
+        "Free key from https://console.groq.com/keys → paste it in Keys & passwords",
         "Sends your text to Groq's servers.",
     ),
     "ollama": ProviderInfo(

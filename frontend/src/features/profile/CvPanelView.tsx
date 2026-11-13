@@ -89,7 +89,7 @@ export function CvPanelView({
               <span className="text-muted-foreground block text-xs">
                 {aiConfigured
                   ? "Sends your CV's text to Google. On the free tier Google may use it to improve its products."
-                  : "Not set up: add GEMINI_API_KEY to backend/.env. The built-in reader works offline."}
+                  : "Not set up: add your Gemini key in Settings. The built-in reader works offline."}
               </span>
             </span>
           </label>

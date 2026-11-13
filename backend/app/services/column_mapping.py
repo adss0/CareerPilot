@@ -59,6 +59,18 @@ IMPORT_FIELDS: tuple[ImportField, ...] = (
     ImportField("location", "Location", False, ("location", "city", "place", "office", "where")),
     ImportField("salary", "Salary", False, ("salary", "pay", "compensation", "wage", "rate")),
     ImportField("notes", "Notes", False, ("notes", "note", "comments", "comment", "remarks")),
+    ImportField(
+        "status",
+        "Status",
+        False,
+        ("status", "application status", "stage", "outcome", "result", "progress"),
+    ),
+    ImportField(
+        "deadline",
+        "Application deadline",
+        False,
+        ("deadline", "application deadline", "closing date", "apply by", "closes", "due date"),
+    ),
 )
 FIELD_KEYS = tuple(field.key for field in IMPORT_FIELDS)
 REQUIRED_KEYS = tuple(field.key for field in IMPORT_FIELDS if field.required)
@@ -121,3 +133,27 @@ def _column_matching(
         if values and sum(bool(pattern.match(v)) for v in values) / len(values) >= 0.6:
             return header
     return None
+
+
+HEADER_SEARCH_ROWS = 30
+
+
+def find_header_row(rows: list[list[str]]) -> int | None:
+    """Index of the row that looks most like column headers (e.g. below a title and totals).
+
+    A row scores one point for every field it has a confident header for. The first non-empty
+    row is used when no row has at least two (so plain files behave exactly as before).
+    """
+    non_empty = [i for i, row in enumerate(rows) if any(row)]
+    if not non_empty:
+        return None
+    best_index, best_score = non_empty[0], 1
+    for index in non_empty[:HEADER_SEARCH_ROWS]:
+        cells = [cell for cell in rows[index] if cell]
+        score = sum(
+            any(header_score(cell, field.synonyms) >= MIN_SCORE for cell in cells)
+            for field in IMPORT_FIELDS
+        )
+        if score > best_score:
+            best_index, best_score = index, score
+    return best_index

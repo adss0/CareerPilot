@@ -20,6 +20,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ✅ Done |
 | 8 | **Desktop app:** installable Windows app (Tauri) | ✅ Done |
 | 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ✅ Done (tag & publish left to you) |
+| 10 | **v1.1 Tailored documents:** CV tailored per job, letter highlights, Word + PDF saved to Documents, keys in Settings, import your own tracker | ✅ Done |
 
 *Rough estimates: each phase is about 1–7 days for one person working part-time.*
 
@@ -290,12 +291,22 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 ---
 
+## Phase 10: Tailored documents (v1.1)
+
+- [x] 10.1 **Import your own tracker:** find the header row under titles and totals; import **Status** (Applied → Sent, Rejected, Interview, Offer…) and **Application deadline**; keep unmatched columns in notes. Fixed "Application Deadline" being guessed as the job link.
+- [x] 10.2 **Keys & passwords in Settings:** Gemini, Groq and email App Password are written to `.env` (never the database or a backup), applied without a restart, and never sent back to the screen.
+- [x] 10.3 **Tailored CV per job:** AI rewrites the summary and bullets and reorders skills, experience and projects. Titles, employers, dates, education and skill names are copied from the profile in code; made-up skills are dropped; the guardrail flags numbers and names that aren't in the profile. Editable; Word/PDF export; attached to the email instead of the uploaded CV.
+- [x] 10.4 **Cover letter highlights:** tick skills, projects or jobs from the profile for the letter to focus on.
+- [x] 10.5 **Saved documents folder:** Word + PDF of every tailored CV and letter in `Documents\CareerPilot\CVs\<Company>` and `…\Cover Letters\<Company>` (Windows known-folder lookup, so OneDrive works). Configurable folder, auto-save toggle, "Open folder" in File Explorer. Program Files isn't used: it needs admin rights.
+- [ ] 10.6 Install the v1.1 desktop app on the owner's PC (installer from the GitHub Actions build).
+
+---
+
 ## Future ideas (after v1)
 
 - Job scraping from public job boards' RSS/APIs into the tracker
 - Chrome extension: "Save this job to CareerPilot" from any job page
 - AI interview-prep questions per application
-- CV tailoring per job (not just the cover letter)
 - Multi-language letters
 - Optional cloud sync
 
@@ -332,3 +343,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-12 | **Phase 7 done.** Follow-ups (AI or template, threaded, approved), IMAP reply detection with suggested classification, Replied status, interview dates, calendar, insights by tone and CV, desktop notifications. 154 backend + 47 frontend tests. |
 | 2026-11-12 | **Phase 8 done.** Tauri desktop shell, backend bundled with PyInstaller as a sidecar (fixed orphaned-process and no-console crash bugs), app-data folder, icons, Windows installer built and smoke-tested in GitHub Actions, draft Release on version tags. |
 | 2026-11-12 | **Phase 9 done.** Security pass (CSRF header, local-host check, security headers, dependency upgrades with clean audits), backup and restore, Playwright end-to-end test in CI, coverage gate, user guide, changelog, version 1.0.0. 174 backend + 52 frontend tests + 1 E2E. Tagging v1.0.0 is left to the owner. |
+| 2026-11-13 | **Phase 10 (v1.1) done.** Imports the owner's own tracker layout (title and totals above the table, Status and deadline columns), keys pasted in Settings, a tailored CV per job, letter highlights, Word + PDF saved to Documents\CareerPilot. 204 backend + 59 frontend tests. |

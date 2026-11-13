@@ -2,7 +2,7 @@
 
 **Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
 
-> ✅ Status: version 1.0. All planned phases are done. New here? Read the **[user guide](docs/USER_GUIDE.md)**. Changes are in the [changelog](CHANGELOG.md) and the roadmap is in the [plan](PLAN.md).
+> ✅ Status: version 1.1. All planned phases are done, plus tailored CVs and saved documents. New here? Read the **[user guide](docs/USER_GUIDE.md)**. Changes are in the [changelog](CHANGELOG.md) and the roadmap is in the [plan](PLAN.md).
 
 ---
 
@@ -40,9 +40,11 @@ Applying for jobs is repetitive: copy the job details, rewrite a cover letter, a
 
 | | Feature |
 |---|---|
-| 📥 | Excel / CSV import with automatic column matching and duplicate detection |
+| 📥 | Excel / CSV import (even your own tracker layout) with automatic column matching, status import and duplicate detection |
 | 👤 | CV upload and parsing into a reusable profile (multiple CV versions supported) |
-| ✍️ | AI cover letters tailored to each job, with tone options and version history |
+| ✍️ | AI cover letters tailored to each job, with tone options, things to highlight and version history |
+| 🎯 | A CV tailored to every job (reworded and reordered, never invented) |
+| 📁 | Every CV and letter saved as Word + PDF in Documents\CareerPilot, one folder per company |
 | 📄 | Export letters to PDF and Word |
 | 📤 | Approve-then-send email applications via Gmail, Outlook or any SMTP account, with daily limits |
 | 🧭 | Assisted apply for job portals |
@@ -96,7 +98,7 @@ CareerPilot installs like a normal Windows app. Nothing else (Python, Node) is n
 
 1. Download the installer: from a [GitHub Release](https://github.com/adss0/CareerPilot/releases), or from the latest **Desktop app** run on the [Actions tab](https://github.com/adss0/CareerPilot/actions/workflows/desktop.yml) (artifact *CareerPilot-windows-installer*).
 2. Run `CareerPilot_x.y.z_x64-setup.exe`. It installs for your user only; no admin rights are needed.
-3. Your data (database, CVs, settings) lives in `%APPDATA%\app.careerpilot.desktop`. Put your keys in a `.env` file there (same format as `backend/.env.example`) and restart the app.
+3. Your data (database, CVs, settings) lives in `%APPDATA%\app.careerpilot.desktop`. Paste your keys in **Settings → Keys & passwords** (they're saved to the `.env` file there). Tailored CVs and cover letters are saved in `Documents\CareerPilot`.
 
 **Building it yourself** needs Rust and Node: build the backend with `pyinstaller careerpilot-server.spec` in `backend/`, copy it to `desktop/src-tauri/binaries/careerpilot-server-x86_64-pc-windows-msvc.exe`, run `npm run build:desktop` in `frontend/`, then `npx tauri build` in `desktop/`. The [workflow](.github/workflows/desktop.yml) does exactly this.
 
@@ -125,7 +127,7 @@ npm run dev
 
 Open <http://localhost:5173>. The dashboard shows **Backend: Online** when everything is connected. API docs are at <http://localhost:8000/docs>.
 
-Get a free Gemini API key at <https://aistudio.google.com/apikey> and put it in `backend/.env`.
+Get a free Gemini API key at <https://aistudio.google.com/apikey> and paste it in **Settings → Keys & passwords** (it's saved to `backend/.env`).
 
 **Checks:** `pytest` and `ruff check .` in `backend/`; `npm run lint`, `npm test` and `npm run e2e` in `frontend/` (the end-to-end test needs `npx playwright install chromium` once, and uses a fake AI and a local test mail server).
 

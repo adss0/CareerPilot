@@ -122,7 +122,7 @@ class CvService:
         if use_ai and cv.text.strip():
             if self.ai is None:
                 warnings.append(
-                    "AI isn't set up (add GEMINI_API_KEY to backend/.env), "
+                    "AI isn't set up (add your Gemini key in Settings), "
                     "so the basic reader was used."
                 )
             else:

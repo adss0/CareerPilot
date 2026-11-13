@@ -1,12 +1,15 @@
 // ViewModel: one application and its cover letters (write, edit, versions, export).
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
+import { savedToast } from "@/features/documents/useTailoredCvViewModel";
 import { fetchHealth } from "@/features/health/api";
+import { getProfile } from "@/features/profile/api";
 import { errorText } from "@/lib/apiClient";
 
 import { deleteLetter, generateLetter, getApplication, listLetters, updateLetter } from "./api";
+import type { Profile } from "@/features/profile/types";
+
 import type { Application, Letter, Tone } from "./types";
 
 export interface LetterDraft {
@@ -26,12 +29,16 @@ export interface ApplicationDetailViewModel {
   aiConfigured: boolean;
   tone: Tone;
   instructions: string;
+  // Things from the profile the letter can be built around ("Pick what to highlight").
+  highlightOptions: { group: string; items: string[] }[];
+  highlights: string[];
   isGenerating: boolean;
   isSaving: boolean;
   error: string | null;
   copied: boolean;
   setTone: (tone: Tone) => void;
   setInstructions: (value: string) => void;
+  toggleHighlight: (item: string) => void;
   generate: () => void;
   viewVersion: (letterId: number) => void;
   edit: (changes: Partial<LetterDraft>) => void;
@@ -40,6 +47,21 @@ export interface ApplicationDetailViewModel {
   useVersion: () => void;
   deleteVersion: () => void;
   copyLetter: () => void;
+}
+
+function highlightOptions(profile: Profile | undefined) {
+  if (!profile) return [];
+  const groups = [
+    { group: "Skills", items: profile.skills },
+    { group: "Projects", items: profile.projects.map((p) => p.name) },
+    {
+      group: "Experience",
+      items: profile.experience.map((e) => [e.title, e.company].filter(Boolean).join(" at ")),
+    },
+  ];
+  return groups
+    .map((g) => ({ ...g, items: [...new Set(g.items.filter(Boolean))] }))
+    .filter((g) => g.items.length > 0);
 }
 
 const toDraft = (letter: Letter): LetterDraft => ({
@@ -60,6 +82,8 @@ export function useApplicationDetailViewModel(applicationId: number): Applicatio
     queryFn: () => listLetters(applicationId),
   });
   const healthQuery = useQuery({ queryKey: ["health"], queryFn: fetchHealth, retry: false });
+  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
+  const [highlights, setHighlights] = useState<string[]>([]);
 
   const [viewingId, setViewingId] = useState<number | null>(null);
   const [draft, setDraft] = useState<LetterDraft | null>(null);
@@ -94,24 +118,24 @@ export function useApplicationDetailViewModel(applicationId: number): Applicatio
   const onError = (e: unknown) => setError(errorText(e));
 
   const generateMutation = useMutation({
-    mutationFn: () => generateLetter(applicationId, tone, instructions),
+    mutationFn: () => generateLetter(applicationId, tone, instructions, highlights),
     onSuccess: (created) => {
       setError(null);
       setDraft(null);
       setViewingId(created.id);
       refresh();
-      toast.success(`Version ${created.version} written.`);
+      savedToast(`Version ${created.version} written.`, applicationId, created.saved_to ?? null);
     },
     onError,
   });
 
   const saveMutation = useMutation({
     mutationFn: (changes: Parameters<typeof updateLetter>[1]) => updateLetter(letter!.id, changes),
-    onSuccess: () => {
+    onSuccess: (saved) => {
       setError(null);
       setDraft(null);
       refresh();
-      toast.success("Letter saved.");
+      savedToast("Letter saved.", applicationId, saved.saved_to ?? null);
     },
     onError,
   });
@@ -137,12 +161,18 @@ export function useApplicationDetailViewModel(applicationId: number): Applicatio
     aiConfigured: healthQuery.data?.ai_configured ?? false,
     tone,
     instructions,
+    highlightOptions: highlightOptions(profileQuery.data),
+    highlights,
     isGenerating: generateMutation.isPending,
     isSaving: saveMutation.isPending,
     error,
     copied,
     setTone,
     setInstructions,
+    toggleHighlight: (item) =>
+      setHighlights((current) =>
+        current.includes(item) ? current.filter((x) => x !== item) : [...current, item],
+      ),
     generate: () => generateMutation.mutate(),
     viewVersion: (id) => {
       setViewingId(id);

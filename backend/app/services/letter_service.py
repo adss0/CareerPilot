@@ -10,7 +10,9 @@ from app.repositories.letter_repository import LetterRepository
 from app.schemas.application import ApplicationUpdate
 from app.schemas.letters import LetterMatch, LetterRead, LetterUpdate
 from app.schemas.profile import ProfileDetails
+from app.schemas.tailored_cv import TailoredContent
 from app.services.application_service import ApplicationService
+from app.services.documents_service import DocumentsService
 from app.services.letter_checks import check_letter
 from app.services.letter_export import (
     DOCX_MEDIA_TYPE,
@@ -71,7 +73,13 @@ class LetterService:
     def has_letters(self, application_id: int) -> bool:
         return bool(self.repo.for_application(application_id))
 
-    def generate(self, application_id: int, tone: str, instructions: str = "") -> LetterRead:
+    def generate(
+        self,
+        application_id: int,
+        tone: str,
+        instructions: str = "",
+        highlights: list[str] | None = None,
+    ) -> LetterRead:
         application = self.applications.get(application_id)
         if self.ai is None:
             raise BadRequestError(NOT_SET_UP)
@@ -82,7 +90,7 @@ class LetterService:
             raise BadRequestError(PROFILE_TOO_EMPTY)
 
         written = write_letter(
-            self.ai, profile, application, tone, instructions
+            self.ai, profile, application, tone, instructions, highlights or []
         )  # may raise AIError
 
         self.repo.unselect_all(application_id)
@@ -108,7 +116,7 @@ class LetterService:
                 application_id, ApplicationUpdate(status=ApplicationStatus.DRAFTED)
             )
         self.session.refresh(letter)
-        return to_read(letter)
+        return self._with_saved(to_read(letter), profile)
 
     def update(self, letter_id: int, data: LetterUpdate) -> LetterRead:
         letter = self.get(letter_id)
@@ -129,7 +137,8 @@ class LetterService:
         self.session.add(letter)
         self.session.commit()
         self.session.refresh(letter)
-        return to_read(letter)
+        read = to_read(letter)
+        return self._with_saved(read, self._profile()) if letter.is_selected else read
 
     def delete(self, letter_id: int) -> None:
         letter = self.get(letter_id)
@@ -152,6 +161,36 @@ class LetterService:
             content, media_type = build_docx(letter.content, profile), DOCX_MEDIA_TYPE
         filename = letter_filename(application.company, application.role, file_format)
         return content, filename, media_type
+
+    def save_documents(self, application_id: int, cvs, documents: DocumentsService) -> list[str]:
+        """Saves the tailored CV and the starred letter as Word + PDF. Returns the folders."""
+        application = self.applications.get(application_id)
+        profile = self._profile()
+        folders: list[str] = []
+        tailored = cvs.find(application_id)
+        letters = self.repo.for_application(application_id)
+        letter = next((x for x in letters if x.is_selected), letters[0] if letters else None)
+        if tailored is None and letter is None:
+            raise BadRequestError("Write a cover letter or tailor your CV for this job first.")
+        try:
+            if tailored is not None:
+                content = TailoredContent(**tailored.content)
+                folders.append(str(documents.save_cv(application, content, profile)))
+            if letter is not None:
+                folders.append(str(documents.save_letter(application, letter.content, profile)))
+        except OSError as exc:
+            raise BadRequestError(
+                "Couldn't save the files. If one is open in Word, close it and try again."
+            ) from exc
+        return folders
+
+    def _with_saved(self, read: LetterRead, profile: ProfileDetails) -> LetterRead:
+        application = self.applications.get(read.application_id)
+        documents = DocumentsService(self.session)
+        read.saved_to = documents.try_auto_save(
+            documents.save_letter, application, read.content, profile
+        )
+        return read
 
     def _profile(self) -> ProfileDetails:
         return ProfileDetails(

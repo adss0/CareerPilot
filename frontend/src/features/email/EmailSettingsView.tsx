@@ -50,9 +50,9 @@ export function EmailSettingsView(vm: EmailSettingsViewModel) {
           {f.test_mode && <Badge variant="secondary">Test mode</Badge>}
         </CardTitle>
         <CardDescription>
-          Sends approved applications from your own address. Your password goes in{" "}
-          <code>backend/.env</code> as <code>EMAIL_PASSWORD</code> and is never stored or shown
-          here. {vm.saved.password_set ? "✓ Password found." : "No password found yet."}
+          Sends approved applications from your own address. Paste your App Password under Keys &
+          passwords; it's never stored in the database or shown again.{" "}
+          {vm.saved.password_set ? "✓ Password found." : "No password found yet."}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -203,10 +203,7 @@ export function EmailSettingsView(vm: EmailSettingsViewModel) {
               Open <span className="text-foreground">myaccount.google.com/apppasswords</span> and
               create one called "CareerPilot".
             </li>
-            <li>
-              Paste the 16-letter password into <code>backend/.env</code> as{" "}
-              <code>EMAIL_PASSWORD=…</code> and restart the backend.
-            </li>
+            <li>Paste the 16-letter password under Keys & passwords and click Save.</li>
           </ol>
         </details>
 

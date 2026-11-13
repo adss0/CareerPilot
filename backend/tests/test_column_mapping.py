@@ -15,6 +15,8 @@ def test_matches_common_header_names():
         "location": "City",
         "salary": "Pay",
         "notes": "Comments",
+        "status": None,
+        "deadline": None,
     }
 
 
@@ -32,9 +34,10 @@ def test_contact_email_and_name_are_not_mixed_up():
 
 
 def test_unrelated_columns_are_left_unmapped():
-    mapping = suggest_mapping(["Company", "Role", "Status", "Date applied"], [])
-    assert "Status" not in mapping.values()
+    mapping = suggest_mapping(["Company", "Role", "Status", "Date applied", "Owner"], [])
+    assert mapping["status"] == "Status"
     assert "Date applied" not in mapping.values()
+    assert "Owner" not in mapping.values()
 
 
 def test_each_column_is_used_once():

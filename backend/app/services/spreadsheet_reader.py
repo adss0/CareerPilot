@@ -15,6 +15,8 @@ import xlrd
 from openpyxl.utils import get_column_letter
 from openpyxl.utils.exceptions import InvalidFileException
 
+from app.services.column_mapping import find_header_row
+
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 MAX_ROWS = 5000
 SUPPORTED_EXTENSIONS = (".xlsx", ".xls", ".csv")
@@ -148,8 +150,9 @@ def _limit_rows(rows: Iterator[list[str]]) -> list[list[str]]:
 
 
 def _split_header(raw_rows: list[list[str]]) -> tuple[list[str], list[tuple[int, list[str]]]]:
-    # The header is the first non-empty row, so blank rows above the table are fine.
-    header_index = next((i for i, row in enumerate(raw_rows) if any(row)), None)
+    # The header is the row that looks most like column names, so titles, totals and blank
+    # rows above the table are skipped.
+    header_index = find_header_row(raw_rows)
     if header_index is None:
         raise SpreadsheetError("The file is empty.")
 

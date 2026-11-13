@@ -48,7 +48,8 @@ export function MappingStepView({
           <CardDescription>
             <span className="text-foreground font-medium">{preview.filename}</span> has{" "}
             {preview.total_rows} {preview.total_rows === 1 ? "row" : "rows"}. We've guessed which
-            column is which. Check them and fix any that are wrong.
+            column is which. Check them and fix any that are wrong. Columns you leave unmatched are
+            kept in each job&apos;s notes, so nothing is lost.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">

@@ -68,7 +68,7 @@ def test_settings_validation(client):
 def test_remote_server_needs_password(client):
     body = configure(client, smtp_host="smtp.gmail.com", smtp_security="starttls", smtp_port=587)
     assert body["ready"] is False
-    assert any("EMAIL_PASSWORD" in p for p in body["problems"])
+    assert any("App Password" in p for p in body["problems"])
     assert configure(client)["ready"] is True  # localhost needs no password
 
 

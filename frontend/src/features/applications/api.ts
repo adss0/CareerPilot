@@ -73,8 +73,17 @@ export const getHistory = (id: number) => apiGet<HistoryEntry[]>(`/applications/
 export const listLetters = (applicationId: number) =>
   apiGet<Letter[]>(`/applications/${applicationId}/letters`);
 
-export const generateLetter = (applicationId: number, tone: Tone, instructions: string) =>
-  apiSend<Letter>("POST", `/applications/${applicationId}/letters`, { tone, instructions });
+export const generateLetter = (
+  applicationId: number,
+  tone: Tone,
+  instructions: string,
+  highlights: string[] = [],
+) =>
+  apiSend<Letter>("POST", `/applications/${applicationId}/letters`, {
+    tone,
+    instructions,
+    highlights,
+  });
 
 export const updateLetter = (
   id: number,

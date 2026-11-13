@@ -2,6 +2,20 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-11-13
+
+### Added
+
+- **Tailored CV for every job:** the AI rewrites your summary and bullet points and puts the most relevant skills, experience and projects first, using only what's in your profile (job titles, employers, dates, education and the skill list itself are copied from your profile in code, so nothing can be invented). Edit it, download it as Word or PDF, and it's attached to the application email instead of your uploaded CV.
+- **Pick what to highlight** in a cover letter: tick skills, projects or jobs from your profile and the letter is built around them.
+- **Saved documents folder:** every tailored CV and cover letter is saved as Word + PDF in `Documents\CareerPilot\CVs\<Company>` and `Documents\CareerPilot\Cover Letters\<Company>` (follows OneDrive). Change the folder, turn auto-save off, or open it in File Explorer from Settings or the job.
+- **Keys & passwords in Settings:** paste your Gemini key, Groq key or email App Password in the app. They're saved to the `.env` file only, take effect straight away and are never shown again.
+- **Import your own tracker:** the table is found even under a title and a totals block, a **Status** column (Applied, Rejected, Interview, Offer…) and an **Application deadline** column are imported, and any other columns are kept in each job's notes.
+
+### Fixed
+
+- An "Application Deadline" column was guessed as the job link, so every "Rolling" was reported as a bad URL.
+
 ## [1.0.0] - 2026-11-12
 
 The first full release.
@@ -27,4 +41,5 @@ The first full release.
 
 - 174 backend tests (95% coverage; CI fails under 85%), 52 frontend tests, and an end-to-end browser test of import → letter → approve → send against a fake AI and a local test mail server.
 
+[1.1.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.1.0
 [1.0.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.0.0

@@ -9,6 +9,7 @@ from app.api import (
     applications,
     backup,
     cvs,
+    documents,
     emails,
     health,
     imports,
@@ -81,6 +82,7 @@ def create_app() -> FastAPI:
     app.include_router(emails.router, prefix="/api")
     app.include_router(tracking.router, prefix="/api")
     app.include_router(backup.router, prefix="/api")
+    app.include_router(documents.router, prefix="/api")
     app.include_router(settings_api.router, prefix="/api")
     return app
 

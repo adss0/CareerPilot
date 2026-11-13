@@ -36,8 +36,8 @@ export function SettingsView(vm: SettingsViewModel) {
           <CardHeader>
             <CardTitle>AI provider</CardTitle>
             <CardDescription>
-              All three are free. API keys go in <code>backend/.env</code> and are never shown here
-              or stored in the database.
+              All three are free. Paste your key under Keys & passwords below; it's never shown
+              again or stored in the database.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
