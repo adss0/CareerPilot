@@ -1,7 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { API_BASE } from "./apiClient";
-import { installLinkHandling, isDesktop } from "./desktop";
+import { installLinkHandling as install, isDesktop } from "./desktop";
+
+// Every installed click handler is removed after its test, even when the test fails.
+const installed: (() => void)[] = [];
+const installLinkHandling = (...args: Parameters<typeof install>) => {
+  const uninstall = install(...args);
+  installed.push(uninstall);
+  return uninstall;
+};
 
 type Win = { __TAURI_INTERNALS__?: { invoke: ReturnType<typeof vi.fn> } };
 
@@ -15,6 +23,7 @@ function link(href: string, attrs: Record<string, string> = {}): HTMLAnchorEleme
 }
 
 afterEach(() => {
+  installed.splice(0).forEach((uninstall) => uninstall());
   delete (window as Win).__TAURI_INTERNALS__;
   document.body.innerHTML = "";
   vi.restoreAllMocks();

@@ -31,7 +31,9 @@ export interface DownloadResult {
 export async function saveApiFile(url: string): Promise<DownloadResult> {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Download failed (${response.status}).`);
-  const blob = await response.blob();
+  const type = response.headers.get("content-type") ?? "application/octet-stream";
+  // Built from the bytes so it is always this page's own Blob type.
+  const blob = new Blob([await response.arrayBuffer()], { type });
   const name = filenameFrom(response.headers.get("content-disposition"), "download");
 
   if (isDesktop()) {
