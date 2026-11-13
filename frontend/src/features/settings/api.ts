@@ -1,4 +1,4 @@
-// Model: AI provider settings. API keys are never sent or shown: they stay in backend/.env.
+// Model: AI provider settings. API keys are never sent back or shown (see documents/api.ts: write-only).
 import { apiGet, apiSend } from "@/lib/apiClient";
 
 export type ProviderName = "gemini" | "groq" | "ollama";

@@ -98,7 +98,7 @@ describe("CvPanelView", () => {
   it("disables the AI option and explains setup when AI isn't configured", () => {
     render(<CvPanelView {...baseProps} aiConfigured={false} />);
     expect(screen.getByRole("checkbox")).toBeDisabled();
-    expect(screen.getByText(/add GEMINI_API_KEY/)).toBeInTheDocument();
+    expect(screen.getByText(/add your Gemini key in Settings/)).toBeInTheDocument();
   });
 
   it("warns that AI sends the CV to Google when it is configured", () => {

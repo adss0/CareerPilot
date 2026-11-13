@@ -14,6 +14,44 @@ from app.services.column_mapping import FIELD_KEYS, IMPORT_FIELDS, REQUIRED_KEYS
 from app.services.spreadsheet_reader import SheetData, read_spreadsheet
 
 PREVIEW_ROWS = 10
+NOTES_LIMIT = 5000
+
+# Words people use in their own trackers, checked in this order ("not applied" before "applied").
+STATUS_WORDS: tuple[tuple[tuple[str, ...], ApplicationStatus], ...] = (
+    (("withdrawn", "withdrew", "not applied", "declined offer"), ApplicationStatus.WITHDRAWN),
+    (
+        ("reject", "unsuccessful", "declined", "not progressed", "no longer"),
+        ApplicationStatus.REJECTED,
+    ),
+    (("offer",), ApplicationStatus.OFFER),
+    (
+        ("interview", "assessment centre", "assessment center", "final round"),
+        ApplicationStatus.INTERVIEW,
+    ),
+    (("replied", "response", "responded"), ApplicationStatus.REPLIED),
+    (("followed up", "follow up", "chased"), ApplicationStatus.FOLLOWED_UP),
+    (
+        ("applied", "sent", "submitted", "in progress", "pending", "assessment", "online test"),
+        ApplicationStatus.SENT,
+    ),
+    (("ready",), ApplicationStatus.READY),
+    (("draft",), ApplicationStatus.DRAFTED),
+    (
+        ("to apply", "not started", "new", "todo", "to do", "saved", "imported", "wishlist"),
+        ApplicationStatus.IMPORTED,
+    ),
+)
+
+
+def parse_status(value: str) -> ApplicationStatus | None:
+    """Maps a tracker's status text (e.g. "Applied", "Rejected") to a CareerPilot status."""
+    text = " ".join(value.casefold().replace("-", " ").split())
+    if not text:
+        return ApplicationStatus.IMPORTED
+    for words, status in STATUS_WORDS:
+        if any(word in text for word in words):
+            return status
+    return None
 
 
 def dedupe_key(company: str, role: str, job_url: str) -> tuple[str, str, str]:
@@ -86,6 +124,11 @@ class ImportService:
         new_applications: list[Application] = []
         counts = {"duplicate": 0, "invalid": 0, "empty": 0, "warning": 0}
 
+        mapped = set(columns.values())
+        extra_columns = [
+            (index, header) for index, header in enumerate(data.headers) if index not in mapped
+        ]
+
         for row_number, cells in data.rows:
             values = {key: cells[index] for key, index in columns.items()}
             if not any(values.values()):
@@ -95,6 +138,28 @@ class ImportService:
             row_issues: list[ImportIssue] = []
             values = self._clean_row(row_number, values, row_issues)
             company, role = values.get("company", ""), values.get("role", "")
+
+            status_text = values.pop("status", "")
+            status = parse_status(status_text)
+            if status is None:
+                status = ApplicationStatus.IMPORTED
+                row_issues.append(
+                    ImportIssue(
+                        row=row_number,
+                        kind="warning",
+                        message=f"Status '{status_text[:40]}' wasn't recognised, so it's Imported.",
+                        company=company,
+                        role=role,
+                    )
+                )
+            # Columns without a field of their own are kept in the notes, so nothing is lost.
+            extra = [("Application deadline", values.pop("deadline", ""))] + [
+                (header, cells[index].strip()) for index, header in extra_columns
+            ]
+            note_lines = [f"{label}: {value}" for label, value in extra if value]
+            if note_lines:
+                notes = "\n".join(filter(None, [values.get("notes", ""), *note_lines]))
+                values["notes"] = notes[:NOTES_LIMIT]
 
             missing = [
                 label
@@ -137,12 +202,7 @@ class ImportService:
             counts["warning"] += len(row_issues)
             issues.extend(row_issues)
             new_applications.append(
-                Application(
-                    **values,
-                    source="excel",
-                    status=ApplicationStatus.IMPORTED,
-                    import_batch_id=batch.id,
-                )
+                Application(**values, source="excel", status=status, import_batch_id=batch.id)
             )
 
         self.repo.add_many(new_applications)

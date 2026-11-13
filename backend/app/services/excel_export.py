@@ -44,6 +44,8 @@ TEMPLATE_HEADERS = [
     "Salary",
     "Job description",
     "Notes",
+    "Status",
+    "Application deadline",
 ]
 TEMPLATE_EXAMPLES = [
     [
@@ -56,6 +58,8 @@ TEMPLATE_EXAMPLES = [
         "£30,000",
         "Paste the job description here. The AI uses it to tailor your cover letter.",
         "Example row: delete it before importing",
+        "To apply",
+        "31/12/2026",
     ],
     [
         "Sample Analytics",
@@ -67,6 +71,8 @@ TEMPLATE_EXAMPLES = [
         "",
         "",
         "Contact details are optional",
+        "Applied",
+        "Rolling",
     ],
 ]
 

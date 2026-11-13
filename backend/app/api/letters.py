@@ -27,7 +27,7 @@ def list_letters(application_id: int, service: LetterServiceDep) -> list[LetterR
 def generate_letter(
     application_id: int, data: LetterGenerate, service: LetterServiceDep
 ) -> LetterRead:
-    return service.generate(application_id, data.tone, data.instructions)
+    return service.generate(application_id, data.tone, data.instructions, data.highlights)
 
 
 @router.patch("/letters/{letter_id}", response_model=LetterRead)

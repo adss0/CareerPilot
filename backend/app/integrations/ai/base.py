@@ -37,7 +37,7 @@ def post_json(
             f"{label}'s free-tier limit was reached. Wait a minute and try again."
         )
     if response.status_code in (401, 403):
-        raise AIError(f"{label} rejected the API key. Check {key_hint} in backend/.env.")
+        raise AIError(f"{label} rejected the API key. Paste it again in Settings.")
     if response.status_code == 404:
         raise AIError(f"{label} model '{model}' wasn't found. Check the model name in Settings.")
     if response.status_code >= 400:

@@ -61,6 +61,7 @@ export interface Letter {
   edited: boolean;
   created_at: string;
   updated_at: string | null;
+  saved_to?: string | null; // folder the Word + PDF copies were saved in
 }
 
 export interface LetterJob {

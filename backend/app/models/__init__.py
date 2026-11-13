@@ -9,6 +9,7 @@ from app.models.tables import (
     InboxReply,
     Profile,
     StatusHistory,
+    TailoredCv,
 )
 
 __all__ = [
@@ -23,4 +24,5 @@ __all__ = [
     "InboxReply",
     "Profile",
     "StatusHistory",
+    "TailoredCv",
 ]

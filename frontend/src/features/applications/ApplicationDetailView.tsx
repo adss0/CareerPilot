@@ -18,9 +18,14 @@ import type { ApplicationDetailViewModel } from "./useApplicationDetailViewModel
 export function ApplicationDetailView({
   details,
   apply,
+  tailoredCv,
   ...vm
-}: ApplicationDetailViewModel & { details?: ReactNode; apply?: ReactNode }) {
-  const [tab, setTab] = useState<"letter" | "apply" | "details">("letter");
+}: ApplicationDetailViewModel & {
+  details?: ReactNode;
+  apply?: ReactNode;
+  tailoredCv?: ReactNode;
+}) {
+  const [tab, setTab] = useState<"letter" | "cv" | "apply" | "details">("letter");
   if (vm.isLoading) {
     return (
       <p className="text-muted-foreground flex items-center gap-2 text-sm">
@@ -75,6 +80,7 @@ export function ApplicationDetailView({
         {(
           [
             ["letter", "Cover letter"],
+            ["cv", "Tailored CV"],
             ["apply", "Apply"],
             ["details", "Details & timeline"],
           ] as const
@@ -99,6 +105,8 @@ export function ApplicationDetailView({
 
       {tab === "details" ? (
         details
+      ) : tab === "cv" ? (
+        tailoredCv
       ) : tab === "apply" ? (
         apply
       ) : (
@@ -151,6 +159,52 @@ export function ApplicationDetailView({
                     {vm.isGenerating ? "Writing…" : "Write letter"}
                   </Button>
                 </div>
+                {vm.highlightOptions.length > 0 && (
+                  <details className="text-sm" open={vm.highlights.length > 0}>
+                    <summary className="cursor-pointer font-medium">
+                      Pick what to highlight
+                      <span className="text-muted-foreground font-normal">
+                        {vm.highlights.length > 0
+                          ? ` · ${vm.highlights.length} chosen`
+                          : " (optional)"}
+                      </span>
+                    </summary>
+                    <div className="mt-3 space-y-3">
+                      <p className="text-muted-foreground text-xs">
+                        The letter is built around what you tick. Leave it empty to let the AI
+                        choose.
+                      </p>
+                      {vm.highlightOptions.map((group) => (
+                        <fieldset key={group.group} className="space-y-1.5">
+                          <legend className="text-muted-foreground mb-1 text-xs font-medium">
+                            {group.group}
+                          </legend>
+                          <div className="flex flex-wrap gap-1.5">
+                            {group.items.map((item) => {
+                              const on = vm.highlights.includes(item);
+                              return (
+                                <button
+                                  key={item}
+                                  type="button"
+                                  aria-pressed={on}
+                                  onClick={() => vm.toggleHighlight(item)}
+                                  className={cn(
+                                    "rounded-full border px-2.5 py-1 text-xs",
+                                    on
+                                      ? "bg-primary text-primary-foreground border-primary"
+                                      : "hover:bg-accent",
+                                  )}
+                                >
+                                  {item}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </fieldset>
+                      ))}
+                    </div>
+                  </details>
+                )}
               </CardContent>
             </Card>
 

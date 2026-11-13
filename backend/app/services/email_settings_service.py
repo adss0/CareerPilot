@@ -39,7 +39,7 @@ class EmailSettingsService:
             problems.append("Add your email address (the 'From' address).")
         local = settings.smtp_host.strip().lower() in LOCAL_HOSTS
         if not self.password and not local:
-            problems.append("Add EMAIL_PASSWORD to backend/.env (for Gmail, an App Password).")
+            problems.append("Add your email App Password in Settings → Keys & passwords.")
         if not settings.smtp_host.strip():
             problems.append("Add the SMTP server (smtp.gmail.com for Gmail).")
         return problems

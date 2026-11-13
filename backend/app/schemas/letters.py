@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -30,11 +30,16 @@ class LetterRead(BaseModel):
     edited: bool
     created_at: datetime
     updated_at: datetime | None
+    saved_to: str | None = None  # the folder the Word + PDF copies were saved in
 
 
 class LetterGenerate(BaseModel):
     tone: Tone = "formal"
     instructions: str = Field(default="", max_length=500)  # e.g. "mention I can start in June"
+    # Skills, projects or jobs from the profile that the letter should focus on.
+    highlights: list[Annotated[str, Field(max_length=300)]] = Field(
+        default_factory=list, max_length=20
+    )
 
 
 class LetterUpdate(BaseModel):

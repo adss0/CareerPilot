@@ -33,3 +33,18 @@ class AiTestResult(BaseModel):
     message: str
     provider: ProviderName
     model: str
+
+
+SecretName = Literal["gemini", "groq", "email"]
+
+
+class SecretsStatus(BaseModel):
+    """Whether each key or password is set. The values themselves are never sent back."""
+
+    gemini: bool
+    groq: bool
+    email: bool
+
+
+class SecretUpdate(BaseModel):
+    value: str = Field(max_length=500)  # "" removes it

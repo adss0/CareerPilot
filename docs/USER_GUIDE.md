@@ -11,7 +11,7 @@ This guide takes you from a fresh install to your first sent application. Everyt
 3. [Connect your email](#3-connect-your-email)
 4. [Set up your profile](#4-set-up-your-profile)
 5. [Import your jobs](#5-import-your-jobs)
-6. [Write cover letters](#6-write-cover-letters)
+6. [Write cover letters and tailor your CV](#6-write-cover-letters-and-tailor-your-cv)
 7. [Review and send](#7-review-and-send)
 8. [Track your applications](#8-track-your-applications)
 9. [Back up and restore](#9-back-up-and-restore)
@@ -42,15 +42,11 @@ CareerPilot writes letters with free AI. Pick one provider:
 | **Groq** | Free tier | <https://console.groq.com/keys> | Fast. Runs open Llama models. |
 | **Ollama** | Free, offline | <https://ollama.com> | Runs on your own PC; nothing leaves it. Needs a reasonably fast computer. Run `ollama pull llama3.2` once. |
 
-Keys never go into the app's screens or database. Put them in the `.env` file in your data folder (create it if it doesn't exist):
+Open **Settings → Keys & passwords**, paste your key and click **Save**. It works straight away; no restart is needed.
 
-```ini
-GEMINI_API_KEY=paste-your-key-here
-# or
-GROQ_API_KEY=paste-your-key-here
-```
+Keys are saved only in the `.env` file in your data folder. They never go into the database or a backup, and the app never shows them again (it only says **Saved** or **Not set**).
 
-Restart CareerPilot. Then open **Settings → AI provider**, choose your provider and click **Test connection**.
+Then open **Settings → AI provider**, choose your provider and click **Test connection**.
 
 ## 3. Connect your email
 
@@ -60,11 +56,7 @@ CareerPilot sends email through your own account using SMTP, and reads replies u
 
 1. Turn on [2-Step Verification](https://myaccount.google.com/signinoptions/two-step-verification).
 2. Create an App Password at <https://myaccount.google.com/apppasswords>. It's a 16-letter code. **Never use your normal password.**
-3. Add it to your `.env` file and restart CareerPilot:
-
-   ```ini
-   EMAIL_PASSWORD=abcdabcdabcdabcd
-   ```
+3. Paste it in **Settings → Keys & passwords → Email App Password** and click **Save** (spaces are removed for you).
 
 4. In **Settings → Email**, enter your name and email address, choose **Gmail** as the provider (this fills in the server details) and save.
 5. Click **Test connection** to check that CareerPilot can log in.
@@ -92,21 +84,38 @@ Check every field and correct anything that's wrong. Letters only use facts from
 
 Open **Import** and upload an Excel (`.xlsx`, `.xls`) or CSV file with one job per row. There's a template on the same page.
 
-1. CareerPilot guesses which column is the company, role, email, link and description. Fix any it got wrong under **Match your columns**.
+Your own tracker works too: CareerPilot finds the table even if there's a title and a totals block above it.
+
+1. CareerPilot guesses which column is the company, role, status, deadline, email, link and description. Fix any it got wrong under **Match your columns**.
+   - **Status** words such as Applied, Rejected, Interview or Offer become the job's status ("Applied" becomes **Sent**).
+   - Columns you don't match (for example *Pre-assessment*) are kept in each job's notes.
 2. Rows that need a look (a missing company, a bad email) are listed so you can fix the file or skip them.
 3. Jobs you've already imported are detected and skipped.
 4. Click **Import**.
 
 You can also add a single job by hand from **Applications → Add job**, and export everything back to Excel at any time.
 
-## 6. Write cover letters
+## 6. Write cover letters and tailor your CV
 
 Open a job and go to the **Cover letter** tab.
 
 1. Choose a tone (formal, friendly or enthusiastic) and add any extra instructions, such as "mention I can start in January".
+   Open **Pick what to highlight** to tick the skills, projects or jobs the letter should focus on.
 2. Click **Write letter**. The AI writes a letter, a match score, an email subject and a short email message.
 3. **Read it.** Edit anything you like. Flags warn you if the letter mentions something that isn't in your profile.
 4. Write more versions if you want; star the one to send. Export to PDF or Word with the buttons above the letter.
+
+**Tailored CV:** open the job's **Tailored CV** tab and click **Tailor my CV**. The AI rewrites your summary and bullet points and puts what matters most for this job first. It only rewords and reorders: job titles, employers, dates, education and the skill list come straight from your profile. **What changed** lists the edits, and you can change anything before saving. When a job has a tailored CV, it's attached to the email instead of your uploaded CV.
+
+**Where the files go:** every letter and tailored CV is saved as Word and PDF in `Documents\CareerPilot`:
+
+```text
+Documents\CareerPilot\
+  CVs\Acme Ltd\CV - Your Name - Acme Ltd - Junior Developer.docx / .pdf
+  Cover Letters\Acme Ltd\Cover letter - Acme Ltd - Junior Developer.docx / .pdf
+```
+
+Click **Open folder** on the job to see them. In **Settings → Saved documents** you can choose another folder or turn automatic saving off (then use **Save to folder** on a job). Program Files can't be used, because Windows only lets administrators save there.
 
 To write letters for many jobs at once, select them on the **Applications** page and choose **Write cover letters**. They're written in the background with a pause between each one, to stay inside free-tier limits.
 
@@ -142,7 +151,7 @@ Backups from an older version of CareerPilot are upgraded automatically when res
 
 | Problem | What to do |
 |---|---|
-| "AI isn't set up" | Check the key in `.env`, restart CareerPilot, then use **Test connection** in Settings. |
+| "AI isn't set up" | Paste your key again in **Settings → Keys & passwords**, then use **Test connection**. |
 | "Rate limit reached" | The free tier allows a limited number of requests per minute and day. Wait a minute, or switch provider in Settings. |
 | Test email fails with a login error | Use an App Password, not your normal password, and check that 2-Step Verification is on. |
 | Emails stay "Queued" | Check the daily limit in Settings; the queue resumes the next day. Failed emails show the reason and a **Retry** button. |
@@ -155,5 +164,6 @@ Backups from an older version of CareerPilot are upgraded automatically when res
 - Your CVs, profile and applications are stored only on your computer.
 - Writing a letter sends your name, location, summary, skills, experience, education and projects, plus the job details, to the AI provider you chose. Your email, phone number and links are never sent. Choose **Ollama** to keep everything on your PC.
 - Reading a CV with AI is opt-in and sends the CV's text to the provider.
-- Keys and your email password live only in the `.env` file. They never appear in the app, the database or a backup.
+- Keys and your email password live only in the `.env` file. You paste them in Settings, but the app never shows them again, and they're never in the database or a backup.
+- Tailored CVs and letters are saved in your Documents folder. If Documents is in OneDrive, they sync to your OneDrive account too.
 - The app's server only accepts connections from your own computer.

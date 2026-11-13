@@ -168,7 +168,7 @@ describe("EmailSettingsView", () => {
     follow_up_days: 7,
     password_set: false,
     ready: false,
-    problems: ["Add EMAIL_PASSWORD to backend/.env (for Gmail, an App Password)."],
+    problems: ["Add your email App Password in Settings → Keys & passwords."],
   };
 
   it("shows setup problems and test mode, and never a password field", () => {
@@ -187,7 +187,7 @@ describe("EmailSettingsView", () => {
         test={vi.fn()}
       />,
     );
-    expect(screen.getByText(/Add EMAIL_PASSWORD/)).toBeInTheDocument();
+    expect(screen.getByText(/Add your email App Password/)).toBeInTheDocument();
     expect(screen.getByText("Not set up")).toBeInTheDocument();
     expect(document.querySelector('input[type="password"]')).toBeNull();
     fireEvent.click(screen.getByRole("checkbox", { name: /Test mode/ }));

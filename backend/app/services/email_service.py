@@ -25,6 +25,7 @@ from app.services.email_builder import build_email, clean_header, new_message_id
 from app.services.email_settings_service import EmailSettingsService
 from app.services.letter_export import letter_filename
 from app.services.letter_service import LetterService
+from app.services.tailored_cv_service import TailoredCvService
 
 # Applications in these states haven't gone out yet, so sending moves them to "sent".
 NOT_YET_SENT = {ApplicationStatus.IMPORTED, ApplicationStatus.DRAFTED, ApplicationStatus.READY}
@@ -75,7 +76,10 @@ class EmailService:
         attachments = []
         if letter:
             attachments.append(Attachment(name=self._letter_filename(application)))
-        if cv:
+        tailored = TailoredCvService(self.session).attachment(application_id)
+        if tailored:
+            attachments.append(Attachment(name=tailored[0], size_bytes=len(tailored[1])))
+        elif cv:
             attachments.append(Attachment(name=cv.original_filename, size_bytes=cv.size_bytes))
 
         return EmailPreview(
@@ -161,8 +165,12 @@ class EmailService:
         if letter and log.kind == "application":
             content, filename, media_type = LetterService(self.session).export(letter.id, "pdf")
             attachments.append((filename, content, media_type))
+        # The CV tailored for this job if there is one, otherwise the uploaded CV.
+        tailored = TailoredCvService(self.session).attachment(log.application_id)
         cv = self._cv_for(application)
-        if cv and log.kind == "application":
+        if tailored and log.kind == "application":
+            attachments.append(tailored)
+        elif cv and log.kind == "application":
             path = self.cv_dir / cv.stored_name
             if path.is_file():
                 attachments.append((cv.original_filename, path.read_bytes(), cv.content_type))

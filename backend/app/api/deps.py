@@ -5,12 +5,13 @@ from typing import Annotated
 from fastapi import Depends
 from sqlmodel import Session
 
-from app.core.config import get_settings
+from app.core.config import HOME_DIR, get_settings
 from app.core.db import get_engine, get_session
 from app.integrations.ai import AIProvider
 from app.services.ai_settings_service import AiSettingsService
 from app.services.application_service import ApplicationService
 from app.services.cv_service import CvService
+from app.services.documents_service import DocumentsService
 from app.services.email_queue import EmailQueue
 from app.services.email_service import EmailService
 from app.services.email_settings_service import EmailSettingsService
@@ -18,6 +19,8 @@ from app.services.import_service import ImportService
 from app.services.letter_queue import LetterQueue
 from app.services.letter_service import LetterService
 from app.services.profile_service import ProfileService
+from app.services.secrets_service import SecretsService
+from app.services.tailored_cv_service import TailoredCvService
 from app.services.tracking_service import ReplyChecker
 
 SessionDep = Annotated[Session, Depends(get_session)]
@@ -39,6 +42,27 @@ def get_cv_storage_dir() -> Path:
 
 
 AIProviderDep = Annotated[AIProvider | None, Depends(get_ai_provider)]
+
+
+def get_secrets_service() -> SecretsService:
+    return SecretsService(get_settings(), HOME_DIR / ".env")
+
+
+SecretsServiceDep = Annotated[SecretsService, Depends(get_secrets_service)]
+
+
+def get_documents_service(session: SessionDep) -> DocumentsService:
+    return DocumentsService(session)
+
+
+DocumentsServiceDep = Annotated[DocumentsService, Depends(get_documents_service)]
+
+
+def get_tailored_cv_service(session: SessionDep, ai: AIProviderDep) -> TailoredCvService:
+    return TailoredCvService(session, ai)
+
+
+TailoredCvServiceDep = Annotated[TailoredCvService, Depends(get_tailored_cv_service)]
 
 
 def get_application_service(session: SessionDep) -> ApplicationService:

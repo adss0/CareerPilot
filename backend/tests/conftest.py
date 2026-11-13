@@ -28,6 +28,7 @@ from app.api.tracking import get_tracking_service
 from app.core.config import Settings
 from app.core.db import get_session, make_engine
 from app.main import app
+from app.services import documents_service
 from app.services.ai_settings_service import AiSettingsService
 from app.services.email_queue import EmailQueue
 from app.services.email_service import EmailService
@@ -48,6 +49,14 @@ def engine() -> Iterator[Engine]:
 def session(engine: Engine) -> Iterator[Session]:
     with Session(engine) as session:
         yield session
+
+
+@pytest.fixture(autouse=True)
+def documents_folder(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Saved CVs and letters go to a temp folder, never the real Documents folder."""
+    folder = tmp_path / "Documents" / "CareerPilot"
+    monkeypatch.setattr(documents_service, "default_folder", lambda: folder)
+    return folder
 
 
 @pytest.fixture

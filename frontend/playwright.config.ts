@@ -41,6 +41,7 @@ export default defineConfig({
       reuseExistingServer: false,
       env: {
         CAREERPILOT_HOME: path.join(tmp, "home"),
+        CAREERPILOT_DOCUMENTS: path.join(tmp, "documents"),
         AI_PROVIDER: "ollama",
         OLLAMA_BASE_URL: "http://127.0.0.1:11500",
         EMAIL_QUEUE_INTERVAL_SECONDS: "1",

@@ -121,6 +121,31 @@ class CoverLetter(SQLModel, table=True):
     updated_at: datetime | None = None
 
 
+class TailoredCv(SQLModel, table=True):
+    """The user's CV reworded and reordered for one job. One per application."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    application_id: int = Field(
+        sa_column=Column(
+            Integer,
+            ForeignKey("application.id", ondelete="CASCADE"),
+            nullable=False,
+            unique=True,
+        )
+    )
+    # {"summary", "skills": [...], "experience": [...], "projects": [...], "education": [...]}
+    # in the shapes of app/schemas/profile.py; contact details always come from the profile.
+    content: dict = Field(
+        default_factory=dict, sa_column=Column(JSON, nullable=False, server_default="{}")
+    )
+    changes: list[str] = Field(default_factory=list, sa_column=_json_list())  # what the AI changed
+    flags: list[str] = Field(default_factory=list, sa_column=_json_list())  # things to check
+    model_used: str = Field(default="", max_length=100)
+    edited: bool = Field(default=False, sa_column_kwargs={"server_default": "0"})
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime | None = None
+
+
 class InboxReply(SQLModel, table=True):
     """A reply found in the user's inbox that answers one of their application emails."""
 

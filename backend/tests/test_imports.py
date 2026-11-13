@@ -180,3 +180,77 @@ def test_only_the_file_name_is_stored(client, session: Session):
     result = commit(client, jobs_file(filename="C:\\Users\\someone\\Desktop\\jobs.xlsx")).json()
     assert result["filename"] == "jobs.xlsx"
     assert session.get(ImportBatch, result["batch_id"]).filename == "jobs.xlsx"
+
+
+# A personal tracker: a title, a totals block, then the table (like a real "grad jobs" sheet).
+TRACKER = [
+    ["Grad Job Application Tracker"],
+    [],
+    ["Total Applications", 4, "Applied", 2, "Rejected", 1],
+    ["Assessments Done", 1, "In Progress", 0, "Interviews", 0],
+    [],
+    ["Company", "Role", "Application Deadline", "Status", "Pre-assessment", "Deadline"],
+    ["Acme Ltd", "Software Engineer", "Rolling", "Rejected", "Done", "25/11/2026"],
+    ["Globex", "Cloud Engineer", "Rolling", "Applied ", None, None],
+    ["Initech", "Tech Graduate", "Rolling", "Interview booked", "Pending", "16/11/2026"],
+    ["Umbrella", "Grad Software", "31/12/2026", "Something odd", None, None],
+]
+
+
+def test_finds_the_table_under_a_title_and_totals(client):
+    files = {"file": ("tracker.xlsx", make_xlsx(("Tracker", TRACKER)), XLSX)}
+    preview = client.post("/api/imports/preview", files=files).json()
+    assert preview["headers"][:4] == ["Company", "Role", "Application Deadline", "Status"]
+    assert preview["total_rows"] == 4
+    mapping = preview["suggested_mapping"]
+    assert mapping["company"] == "Company" and mapping["role"] == "Role"
+    assert mapping["status"] == "Status"
+    assert mapping["deadline"] == "Application Deadline"
+    assert mapping["job_url"] is None  # "Application Deadline" isn't a link
+
+
+def test_imports_tracker_status_and_keeps_other_columns_in_notes(client, session: Session):
+    files = {"file": ("tracker.xlsx", make_xlsx(("Tracker", TRACKER)), XLSX)}
+    mapping = {
+        "company": "Company",
+        "role": "Role",
+        "status": "Status",
+        "deadline": "Application Deadline",
+    }
+    result = commit(client, files, mapping).json()
+    assert result["imported"] == 4
+    assert [i["message"] for i in result["issues"]] == [
+        "Status 'Something odd' wasn't recognised, so it's Imported."
+    ]
+    apps = {a.company: a for a in session.exec(select(Application)).all()}
+    assert apps["Acme Ltd"].status == "rejected"
+    assert apps["Globex"].status == "sent"
+    assert apps["Initech"].status == "interview"
+    assert apps["Umbrella"].status == "imported"
+    assert apps["Acme Ltd"].notes == (
+        "Application deadline: Rolling\nPre-assessment: Done\nDeadline: 25/11/2026"
+    )
+    assert apps["Globex"].notes == "Application deadline: Rolling"
+    history = session.exec(
+        select(StatusHistory).where(StatusHistory.application_id == apps["Acme Ltd"].id)
+    ).all()
+    assert [h.to_status for h in history] == ["rejected"]
+
+
+@pytest.mark.parametrize(
+    ("text", "status"),
+    [
+        ("", "imported"),
+        ("Applied", "sent"),
+        ("Not applied yet", "withdrawn"),
+        ("Unsuccessful", "rejected"),
+        ("Offer received!", "offer"),
+        ("Online test pending", "sent"),
+        ("To apply", "imported"),
+        ("??", None),
+    ],
+)
+def test_parse_status(text, status):
+    from app.services.import_service import parse_status
+
+    assert parse_status(text) == status
