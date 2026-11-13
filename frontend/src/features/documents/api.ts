@@ -52,6 +52,23 @@ export interface TailoredContent {
   projects: ProjectItem[];
 }
 
+export interface AtsCheck {
+  id: string;
+  label: string;
+  status: "pass" | "warn" | "fail";
+  detail: string;
+}
+
+/** How applicant-tracking systems will read the CV (backend/app/services/ats_check.py). */
+export interface AtsReport {
+  score: number;
+  level: "good" | "ok" | "needs_work";
+  checks: AtsCheck[];
+  matched_keywords: string[];
+  missing_in_profile: string[];
+  missing_gaps: string[];
+}
+
 export interface TailoredCv {
   application_id: number;
   content: TailoredContent;
@@ -62,6 +79,7 @@ export interface TailoredCv {
   created_at: string;
   updated_at: string | null;
   saved_to: string | null;
+  ats?: AtsReport | null;
 }
 
 const cvPath = (applicationId: number) => `/applications/${applicationId}/tailored-cv`;

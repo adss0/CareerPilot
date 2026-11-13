@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "CareerPilot"
-    version: str = "1.5.0"
+    version: str = "1.6.0"
 
     ai_provider: Literal["gemini", "groq", "ollama"] = "gemini"
     gemini_api_key: str = ""

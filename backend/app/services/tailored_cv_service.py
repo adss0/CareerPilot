@@ -10,6 +10,7 @@ from app.schemas.cv import CvRead
 from app.schemas.profile import ProfileDetails
 from app.schemas.tailored_cv import TailoredContent, TailoredCvRead
 from app.services.application_service import ApplicationService
+from app.services.ats_check import check_cv
 from app.services.cv_export import build_cv_docx, build_cv_pdf, cv_filename
 from app.services.cv_tailor import profile_for_cv_prompt, tailor_cv
 from app.services.documents_service import DocumentsService
@@ -160,11 +161,16 @@ class TailoredCvService:
             flag.replace("The letter", "The CV").replace("the letter", "the CV") for flag in flags
         ]
 
-    @staticmethod
-    def _read(cv: TailoredCv, saved_to: str | None = None) -> TailoredCvRead:
+    def _read(self, cv: TailoredCv, saved_to: str | None = None) -> TailoredCvRead:
+        content = TailoredContent(**cv.content)
+        # Checked every time it's tailored, edited or opened.
+        ats = check_cv(
+            content, load_profile(self.session), self.applications.get(cv.application_id)
+        )
         return TailoredCvRead(
             application_id=cv.application_id,
-            content=TailoredContent(**cv.content),
+            ats=ats,
+            content=content,
             changes=cv.changes,
             flags=cv.flags,
             model_used=cv.model_used,

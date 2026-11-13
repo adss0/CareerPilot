@@ -88,6 +88,17 @@ test("find a job → summary → tailored CV and letter → preview → save →
   await page.getByRole("button", { name: "Preview cover letter" }).click();
   await expect(page.locator('iframe[title="Cover letter preview"]')).toBeVisible();
 
+  // Every tailored CV gets an ATS check.
+  await expect(page.getByText(/ATS \d+\/100/)).toBeVisible();
+
+  // Downloads say clearly that they worked.
+  const download = page.waitForEvent("download");
+  await page.getByRole("link", { name: "CV (PDF)" }).click();
+  expect((await download).suggestedFilename()).toBe(
+    "CV - Jane Example - Acme Ltd - Graduate Software Engineer.pdf",
+  );
+  await expect(page.getByText("CV downloaded")).toBeVisible();
+
   await page.getByRole("button", { name: "Save to my documents folder" }).click();
   await expect(page.getByText("Saved as Word and PDF.")).toBeVisible();
   const cvFolder = path.join(documents, "CVs", "Acme Ltd");
@@ -112,4 +123,14 @@ test("find a job → summary → tailored CV and letter → preview → save →
   await expect(
     page.getByLabel("Application deadline for Acme Ltd – Graduate Software Engineer"),
   ).toHaveValue("30/11/2026");
+
+  // The Tailored CV tab: the full ATS report, and a preview of unsaved edits.
+  await page.getByRole("button", { name: "Acme Ltd", exact: true }).click();
+  await page.getByRole("link", { name: "All details" }).click();
+  await page.getByRole("tab", { name: "Tailored CV" }).click();
+  await expect(page.getByRole("region", { name: "ATS check" })).toContainText("Readable by ATS");
+  await page.getByLabel("Profile summary").fill("An edited summary that isn't saved yet.");
+  await page.getByRole("button", { name: "Preview" }).click();
+  await expect(page.locator('iframe[title="CV preview"]')).toBeVisible();
+  await page.getByRole("button", { name: "Close preview" }).click();
 });

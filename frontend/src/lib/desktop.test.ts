@@ -1,7 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { API_BASE } from "./apiClient";
-import { installDesktopLinkHandling, isDesktop } from "./desktop";
+import { installLinkHandling as install, isDesktop } from "./desktop";
+
+// Every installed click handler is removed after its test, even when the test fails.
+const installed: (() => void)[] = [];
+const installLinkHandling = (...args: Parameters<typeof install>) => {
+  const uninstall = install(...args);
+  installed.push(uninstall);
+  return uninstall;
+};
 
 type Win = { __TAURI_INTERNALS__?: { invoke: ReturnType<typeof vi.fn> } };
 
@@ -15,6 +23,7 @@ function link(href: string, attrs: Record<string, string> = {}): HTMLAnchorEleme
 }
 
 afterEach(() => {
+  installed.splice(0).forEach((uninstall) => uninstall());
   delete (window as Win).__TAURI_INTERNALS__;
   document.body.innerHTML = "";
   vi.restoreAllMocks();
@@ -23,7 +32,11 @@ afterEach(() => {
 describe("desktop link handling", () => {
   it("does nothing in a normal browser", () => {
     expect(isDesktop()).toBe(false);
-    const uninstall = installDesktopLinkHandling(vi.fn());
+    const uninstall = installLinkHandling({
+      onError: vi.fn(),
+      onDownloading: vi.fn(),
+      onDownloaded: vi.fn(),
+    });
     const a = link("https://example.com/job", { target: "_blank" });
     const event = new MouseEvent("click", { bubbles: true, cancelable: true });
     a.dispatchEvent(event);
@@ -34,7 +47,11 @@ describe("desktop link handling", () => {
   it("opens web links in the user's browser inside the desktop app", () => {
     const invoke = vi.fn().mockResolvedValue(null);
     (window as Win).__TAURI_INTERNALS__ = { invoke };
-    const uninstall = installDesktopLinkHandling(vi.fn());
+    const uninstall = installLinkHandling({
+      onError: vi.fn(),
+      onDownloading: vi.fn(),
+      onDownloaded: vi.fn(),
+    });
 
     const event = new MouseEvent("click", { bubbles: true, cancelable: true });
     link("https://example.com/job", { target: "_blank" }).dispatchEvent(event);
@@ -46,30 +63,60 @@ describe("desktop link handling", () => {
     uninstall();
   });
 
-  it("saves API downloads directly inside the desktop app", async () => {
+  it("saves API downloads in the Downloads folder inside the desktop app", async () => {
     (window as Win).__TAURI_INTERNALS__ = { invoke: vi.fn() };
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response("PDF", {
-        headers: { "content-disposition": 'attachment; filename="Cover letter - Acme.pdf"' },
-      }),
-    );
-    URL.createObjectURL = vi.fn().mockReturnValue("blob:1");
-    URL.revokeObjectURL = vi.fn();
-    const saved: string[] = [];
-    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
-      this: HTMLAnchorElement,
-    ) {
-      saved.push(this.download);
-    });
-    const uninstall = installDesktopLinkHandling(vi.fn());
+    const savedPath = "C:\\Users\\me\\Downloads\\Cover letter - Acme.pdf";
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response("PDF", {
+          headers: { "content-disposition": 'attachment; filename="Cover letter - Acme.pdf"' },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ name: "Cover letter - Acme.pdf", path: savedPath })),
+      );
+    const handlers = { onError: vi.fn(), onDownloading: vi.fn(), onDownloaded: vi.fn() };
+    const uninstall = installLinkHandling(handlers);
 
     const url = `${new URL(API_BASE, location.href).href}/letters/1/export?format=pdf`;
     const event = new MouseEvent("click", { bubbles: true, cancelable: true });
     link(url, { download: "" }).dispatchEvent(event);
-    await vi.waitFor(() => expect(saved).toEqual(["Cover letter - Acme.pdf"]));
+    await vi.waitFor(() =>
+      expect(handlers.onDownloaded).toHaveBeenCalledWith("download-1", {
+        name: "Cover letter - Acme.pdf",
+        path: savedPath,
+      }),
+    );
 
     expect(event.defaultPrevented).toBe(true);
-    expect(fetchMock).toHaveBeenCalledWith(url);
+    expect(handlers.onDownloading).toHaveBeenCalledWith("download-1");
+    expect(fetchMock.mock.calls[0][0]).toBe(url);
+    expect(fetchMock.mock.calls[1][0]).toBe(`${API_BASE}/downloads`);
+    uninstall();
+  });
+
+  it("confirms browser downloads too", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("PDF", {
+        headers: { "content-disposition": 'attachment; filename="CV - Jane.pdf"' },
+      }),
+    );
+    URL.createObjectURL = vi.fn().mockReturnValue("blob:1");
+    URL.revokeObjectURL = vi.fn();
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    const handlers = { onError: vi.fn(), onDownloading: vi.fn(), onDownloaded: vi.fn() };
+    const uninstall = installLinkHandling(handlers);
+    const url = `${new URL(API_BASE, location.href).href}/applications/1/tailored-cv/export`;
+    link(url, { download: "" }).dispatchEvent(
+      new MouseEvent("click", { bubbles: true, cancelable: true }),
+    );
+    await vi.waitFor(() =>
+      expect(handlers.onDownloaded).toHaveBeenCalledWith(expect.any(String), {
+        name: "CV - Jane.pdf",
+        path: null,
+      }),
+    );
     uninstall();
   });
 });
@@ -81,7 +128,11 @@ describe("links win over other click handlers", () => {
     // Like Tauri's shell plugin: a bubbling handler that cancels clicks on links.
     const other = vi.fn((e: Event) => e.preventDefault());
     document.addEventListener("click", other);
-    const uninstall = installDesktopLinkHandling(vi.fn());
+    const uninstall = installLinkHandling({
+      onError: vi.fn(),
+      onDownloading: vi.fn(),
+      onDownloaded: vi.fn(),
+    });
     const a = document.createElement("a");
     a.href = "https://example.com/apply";
     a.target = "_blank";

@@ -20,6 +20,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ✅ Done |
 | 8 | **Desktop app:** installable Windows app (Tauri) | ✅ Done |
 | 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ✅ Done (tag & publish left to you) |
+| 15 | **v1.6 ATS check, preview, downloads, updates:** an ATS score on every CV, preview mode, download confirmations, an Updates section | ✅ Done |
 | 14 | **v1.5 Calendar, reminders, start-up, Gemini, icon:** stages and closing dates on the calendar, coming-up reminders, a start-up screen, Gemini model fallback, a new icon | ✅ Done |
 | 13 | **v1.4 Stages, deleting, links, updates:** interview stages column, delete selected / all with a 30-day recycle bin, add a job from just its link, signed auto-updates, desktop link fix | ✅ Done |
 | 12 | **v1.3 More boards, shortlist, deadlines, new look:** Jooble, other-site searches, add a job from any site, shortlist, deadlines due, hide closed, bold modern restyle | ✅ Done |
@@ -348,6 +349,15 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 ---
 
+## Phase 15: ATS check, preview, downloads and updates (v1.6)
+
+- [x] 15.1 **ATS check** (`services/ats_check.py`, rule-based): the generated PDF read back as text, job keywords (split into "in your profile" and gaps), contact, sections, length/pages, bullets (present or past tense verbs, not "Responsible for"), numbers, dates. Score 0–100 on every tailored CV.
+- [x] 15.2 **Preview mode**: `POST /api/preview/letter` and `/api/preview/cv` render the on-screen text (unsaved edits included) to the real PDF.
+- [x] 15.3 **Download confirmations**: desktop saves to the Downloads folder (`/api/downloads`, never overwriting) with Open / Show in folder; browser downloads get a message too.
+- [x] 15.4 **Settings → Updates**: version, check now, install with progress. The update secret is set by the owner.
+
+---
+
 ## Future ideas (after v1)
 
 - Job scraping from public job boards' RSS/APIs into the tracker
@@ -394,3 +404,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-13 | **Phase 12 (v1.3) done.** Jooble, other-site searches, add a job from any site, shortlist, deadlines due, hide closed, a bold modern restyle, and a full re-test that found and fixed three bugs. 240 backend + 65 frontend + 6 E2E tests. |
 | 2026-11-13 | **Phase 13 (v1.4) done.** Interview stages, delete selected / all with a 30-day recycle bin, add a job from just its link, signed auto-updates, and the fix for links not opening in the desktop app. 263 backend + 69 frontend + 7 E2E tests. |
 | 2026-11-13 | **Phase 14 (v1.5) done.** The calendar fills itself in from interview stages and closing dates, coming-up reminders, a start-up screen (jobs no longer look missing while the engine starts), Gemini model fallback tested with a real key, and a new icon. |
+| 2026-11-14 | **Phase 15 (v1.6) done.** An ATS check and score on every tailored CV, preview mode for CVs and letters, download confirmations with Open / Show in folder, and an Updates section. 289 backend + 79 frontend + 7 E2E tests. |

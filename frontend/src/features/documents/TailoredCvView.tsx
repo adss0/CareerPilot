@@ -1,6 +1,7 @@
 // View: the CV tailored to this job. Reworded and reordered by AI, never invented.
 import {
   AlertTriangle,
+  Eye,
   FileDown,
   FolderOpen,
   Loader2,
@@ -9,6 +10,7 @@ import {
   Trash2,
   Wand2,
 } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -16,12 +18,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
+import { PreviewDialog } from "@/features/apply/PreviewDialog";
+
 import { tailoredCvExportUrl } from "./api";
+import { AtsReportView } from "./AtsReportView";
 import type { TailoredCvViewModel } from "./useTailoredCvViewModel";
 
 const lines = (text: string) => Math.min(8, Math.max(2, text.split("\n").length + 1));
 
 export function TailoredCvView(vm: TailoredCvViewModel) {
+  const [previewing, setPreviewing] = useState(false);
   if (vm.isLoading) {
     return (
       <p className="text-muted-foreground flex items-center gap-2 text-sm">
@@ -67,6 +73,9 @@ export function TailoredCvView(vm: TailoredCvViewModel) {
             </Button>
             {cv && (
               <>
+                <Button variant="outline" onClick={() => setPreviewing(true)}>
+                  <Eye /> Preview
+                </Button>
                 <Button variant="outline" asChild>
                   <a href={tailoredCvExportUrl(vm.applicationId, "pdf")} download>
                     <FileDown /> PDF
@@ -91,6 +100,7 @@ export function TailoredCvView(vm: TailoredCvViewModel) {
 
       {cv && form && (
         <>
+          {cv.ats && <AtsReportView report={cv.ats} />}
           {(cv.changes.length > 0 || cv.flags.length > 0) && (
             <div className="grid gap-4 md:grid-cols-2">
               {cv.changes.length > 0 && (
@@ -222,6 +232,14 @@ export function TailoredCvView(vm: TailoredCvViewModel) {
             </CardContent>
           </Card>
         </>
+      )}
+      {previewing && form && (
+        <PreviewDialog
+          title="CV preview"
+          kind="cv"
+          content={form}
+          onClose={() => setPreviewing(false)}
+        />
       )}
     </div>
   );

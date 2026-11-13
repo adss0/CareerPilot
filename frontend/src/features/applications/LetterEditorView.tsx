@@ -1,4 +1,5 @@
-import { AlertTriangle, Check, Copy, FileDown, Star, Trash2 } from "lucide-react";
+import { AlertTriangle, Check, Copy, Eye, FileDown, Star, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+
+import { PreviewDialog } from "@/features/apply/PreviewDialog";
 
 import { letterExportUrl } from "./api";
 import { TONE_LABELS } from "./labels";
@@ -47,6 +50,7 @@ export function LetterEditorView({
   onDeleteVersion,
   onCopy,
 }: LetterEditorViewProps) {
+  const [previewing, setPreviewing] = useState(false);
   return (
     <Card>
       <CardHeader className="gap-3">
@@ -143,6 +147,9 @@ export function LetterEditorView({
             </>
           ) : (
             <>
+              <Button variant="outline" onClick={() => setPreviewing(true)}>
+                <Eye /> Preview
+              </Button>
               <Button variant="outline" onClick={onCopy}>
                 {copied ? <Check /> : <Copy />}
                 {copied ? "Copied" : "Copy letter"}
@@ -184,6 +191,14 @@ export function LetterEditorView({
           </p>
         )}
       </CardContent>
+      {previewing && (
+        <PreviewDialog
+          title="Cover letter preview"
+          kind="letter"
+          content={form.content}
+          onClose={() => setPreviewing(false)}
+        />
+      )}
     </Card>
   );
 }

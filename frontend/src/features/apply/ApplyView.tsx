@@ -25,6 +25,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { STATUS_LABELS, TONE_LABELS, statusVariant } from "@/features/applications/labels";
 import type { Tone } from "@/features/applications/types";
 import { tailoredCvExportUrl } from "@/features/documents/api";
+import { AtsScore } from "@/features/documents/AtsReportView";
 import { jobLink } from "@/features/tracker/jobLink";
 import { cn } from "@/lib/utils";
 
@@ -184,6 +185,11 @@ export function ApplyView(vm: ApplyViewModel) {
                 <Badge variant="outline">Not built</Badge>
               )}
             </p>
+            {cv.cv?.ats && (
+              <Link to={`/applications/${job.id}?tab=cv`} className="block hover:underline">
+                <AtsScore report={cv.cv.ats} />
+              </Link>
+            )}
             {cv.cv?.changes.length ? (
               <ul className="text-muted-foreground list-disc pl-5 text-xs">
                 {cv.cv.changes.slice(0, 3).map((c) => (
