@@ -2,6 +2,27 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-11-13
+
+### Added
+
+- **Find jobs:** search UK job boards (Reed, with its graduate filter, and Adzuna) through their official free APIs. Each job opens in a side panel with an AI summary: what the job is, salary, location, must-haves, your match score, why you fit and the gaps. **Apply** saves it to your tracker and opens the Apply page.
+- **Apply page:** build the tailored CV and cover letter with Gemini in one click, preview the exact PDFs you'll upload, download Word or PDF, save both to your documents folder or make the CV your main CV, then open the employer's page with your details ready to copy (name, email, phone, links, degree, letter) and mark the job as applied.
+- **A tracker like your own spreadsheet:** totals at the top (total, applied, rejected, assessments done, in progress, interviews) and the columns Company, Role, Application deadline, Status, Pre-assessment, Assessment deadline and Next step. Edit any cell in place; rejected, pending and done are colour-coded. Click a job for a side panel with its summary and an Apply button. The Excel export uses the same columns.
+- **Next step** for every job, worked out from its status and assessment ("Do the assessment by 25 Nov", "Wait for a reply", "Apply by 30/11/2026"…).
+- Import now reads **Pre-assessment** (Done/Pending) and **Assessment deadline** columns into real fields.
+- `npm run demo` starts a safe demo with a fake AI and a fake job board.
+
+### Changed
+
+- Status names match a job hunter's tracker: "Imported" is now **To apply** and "Sent" is now **Applied**.
+- The Applications page is the simple tracker; email sending stays available on each job's Apply tab.
+
+### Fixed
+
+- **CVs made with LaTeX templates** (small-capital headings) were read as `U/n.sc/i.sc/v.sc…`: the PDF reader returned glyph names. They're now turned back into letters, along with ligatures (ﬁ) and kerning gaps ("Y ear").
+- The built-in CV reader now splits undated projects, takes skills from project lines when there's no Skills section ("Java, Spring Boot, JPA"), ignores an "Extra-curricular" section, keeps ".Net", and reads education where the university comes before the degree.
+
 ## [1.1.0] - 2026-11-13
 
 ### Added
@@ -41,5 +62,6 @@ The first full release.
 
 - 174 backend tests (95% coverage; CI fails under 85%), 52 frontend tests, and an end-to-end browser test of import → letter → approve → send against a fake AI and a local test mail server.
 
+[1.2.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.2.0
 [1.1.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.1.0
 [1.0.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.0.0

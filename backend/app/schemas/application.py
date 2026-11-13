@@ -1,9 +1,11 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from app.models.enums import ApplicationStatus
+
+Assessment = Literal["", "pending", "done"]
 
 
 def _blank_to_none(value):
@@ -26,6 +28,9 @@ class ApplicationBase(BaseModel):
     follow_up_at: datetime | None = None
     interview_at: datetime | None = None
     cv_id: int | None = None  # which CV to send; None = use the default CV
+    application_deadline: str = Field(default="", max_length=100)
+    assessment: Assessment = ""
+    assessment_due: date | None = None
 
     _clean_email = field_validator("contact_email", mode="before")(_blank_to_none)
 
@@ -54,6 +59,9 @@ class ApplicationUpdate(BaseModel):
     follow_up_at: datetime | None = None
     interview_at: datetime | None = None
     cv_id: int | None = None
+    application_deadline: str | None = Field(default=None, max_length=100)
+    assessment: Assessment | None = None
+    assessment_due: date | None = None
 
     _clean_email = field_validator("contact_email", mode="before")(_blank_to_none)
 
@@ -82,8 +90,27 @@ class ApplicationRead(BaseModel):
     interview_at: datetime | None
     created_at: datetime
     updated_at: datetime
+    application_deadline: str
+    assessment: str
+    assessment_due: date | None
+    external_id: str
+    job_summary: dict
     letter_count: int = 0
     match_score: int | None = None  # from the selected cover letter
+    next_step: str = ""  # what to do next, worked out from the status and the assessment
+
+
+class TrackerSummary(BaseModel):
+    """The totals above the tracker, like the top of a job-hunt spreadsheet."""
+
+    total: int
+    to_apply: int
+    applied: int
+    in_progress: int
+    assessments_done: int
+    interviews: int
+    offers: int
+    rejected: int
 
 
 class ApplicationPage(BaseModel):

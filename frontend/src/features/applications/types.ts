@@ -33,6 +33,38 @@ export interface Application {
   updated_at: string;
   letter_count: number;
   match_score: number | null;
+  application_deadline: string;
+  assessment: Assessment;
+  assessment_due: string | null; // yyyy-mm-dd
+  external_id: string;
+  job_summary: Partial<JobSummary>;
+  next_step: string;
+}
+
+export type Assessment = "" | "pending" | "done";
+
+// The AI's plain-English summary of a job (backend/app/schemas/jobs.py).
+export interface JobSummary {
+  summary: string;
+  salary: string;
+  location: string;
+  work_type: string;
+  requirements: string[];
+  nice_to_have: string[];
+  match_score: number | null;
+  strengths: string[];
+  gaps: string[];
+}
+
+export interface TrackerSummary {
+  total: number;
+  to_apply: number;
+  applied: number;
+  in_progress: number;
+  assessments_done: number;
+  interviews: number;
+  offers: number;
+  rejected: number;
 }
 
 export interface ApplicationPage {

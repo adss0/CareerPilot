@@ -40,6 +40,7 @@ export interface ApplicationDetailViewModel {
   setInstructions: (value: string) => void;
   toggleHighlight: (item: string) => void;
   generate: () => void;
+  generateAsync: () => Promise<unknown>;
   viewVersion: (letterId: number) => void;
   edit: (changes: Partial<LetterDraft>) => void;
   save: () => void;
@@ -174,6 +175,7 @@ export function useApplicationDetailViewModel(applicationId: number): Applicatio
         current.includes(item) ? current.filter((x) => x !== item) : [...current, item],
       ),
     generate: () => generateMutation.mutate(),
+    generateAsync: () => generateMutation.mutateAsync(),
     viewVersion: (id) => {
       setViewingId(id);
       setDraft(null);

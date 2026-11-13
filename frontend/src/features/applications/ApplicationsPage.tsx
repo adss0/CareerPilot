@@ -1,8 +1,8 @@
-// Connects the ViewModel to the View.
-import { ApplicationsView } from "./ApplicationsView";
-import { useApplicationsViewModel } from "./useApplicationsViewModel";
+// Connects the tracker ViewModel to its View.
+import { TrackerView } from "@/features/tracker/TrackerView";
+import { useTrackerViewModel } from "@/features/tracker/useTrackerViewModel";
 
 export function ApplicationsPage() {
-  const vm = useApplicationsViewModel();
-  return <ApplicationsView {...vm} />;
+  const vm = useTrackerViewModel();
+  return <TrackerView {...vm} />;
 }

@@ -1,3 +1,5 @@
+import { ApplyPage } from "@/features/apply/ApplyPage";
+import { FindJobsPage } from "@/features/jobs/FindJobsPage";
 import { createBrowserRouter, createHashRouter } from "react-router-dom";
 
 import { AppLayout } from "@/app/layout/AppLayout";
@@ -18,7 +20,9 @@ export const router = createRouter([
     element: <AppLayout />,
     children: [
       { path: "/", element: <DashboardPage /> },
+      { path: "/jobs", element: <FindJobsPage /> },
       { path: "/applications", element: <ApplicationsPage /> },
+      { path: "/applications/:id/apply", element: <ApplyPage /> },
       { path: "/applications/new", element: <NewApplicationPage /> },
       { path: "/applications/:id", element: <ApplicationDetailPage /> },
       { path: "/calendar", element: <CalendarPage /> },

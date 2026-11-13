@@ -9,6 +9,10 @@ from openpyxl.styles import Font, PatternFill
 from openpyxl.worksheet.worksheet import Worksheet
 
 from app.models import Application
+from app.services.tracker import next_step
+
+# The words a job hunter uses in their own tracker.
+STATUS_LABELS = {"imported": "To apply", "sent": "Applied", "followed_up": "Followed up"}
 
 XLSX_MEDIA_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
@@ -19,8 +23,11 @@ EXPORT_COLUMNS: list[tuple[str, str, int]] = [
     # (header, Application attribute, column width)
     ("Company", "company", 24),
     ("Role", "role", 28),
+    ("Application deadline", "application_deadline", 18),
     ("Status", "status", 13),
-    ("Priority", "priority", 9),
+    ("Pre-assessment", "assessment", 15),
+    ("Assessment deadline", "assessment_due", 18),
+    ("Next step", "next_step", 30),
     ("Job URL", "job_url", 40),
     ("Contact name", "contact_name", 20),
     ("Contact email", "contact_email", 28),
@@ -46,6 +53,8 @@ TEMPLATE_HEADERS = [
     "Notes",
     "Status",
     "Application deadline",
+    "Pre-assessment",
+    "Assessment deadline",
 ]
 TEMPLATE_EXAMPLES = [
     [
@@ -60,6 +69,8 @@ TEMPLATE_EXAMPLES = [
         "Example row: delete it before importing",
         "To apply",
         "31/12/2026",
+        "",
+        "",
     ],
     [
         "Sample Analytics",
@@ -73,6 +84,8 @@ TEMPLATE_EXAMPLES = [
         "Contact details are optional",
         "Applied",
         "Rolling",
+        "Pending",
+        "30/11/2026",
     ],
 ]
 
@@ -98,9 +111,14 @@ def build_applications_workbook(applications: list[Application]) -> bytes:
     for application in applications:
         row = []
         for _, attribute, _ in EXPORT_COLUMNS:
-            value = getattr(application, attribute)
+            if attribute == "next_step":
+                value = next_step(application)
+            else:
+                value = getattr(application, attribute)
             if attribute == "status":
-                value = value.value.replace("_", " ").capitalize()
+                value = STATUS_LABELS.get(value.value, value.value.replace("_", " ").capitalize())
+            elif attribute == "assessment":
+                value = value.capitalize()
             row.append(safe_cell(value))
         sheet.append(row)
 

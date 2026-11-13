@@ -79,6 +79,29 @@ class CvService:
             raise
         return self._parse(cv, use_ai)
 
+    def add_generated(self, filename: str, content: bytes, label: str, text: str) -> CvRead:
+        """Stores a CV made by CareerPilot (a tailored CV) and makes it the main CV."""
+        stored_name = f"{uuid.uuid4().hex}.pdf"
+        self.storage_dir.mkdir(parents=True, exist_ok=True)
+        (self.storage_dir / stored_name).write_bytes(content)
+        self.repo.clear_default()
+        cv = CvDocument(
+            label=label.strip()[:100] or "Tailored CV",
+            original_filename=PurePath(filename).name[:200],
+            stored_name=stored_name,
+            content_type=CV_TYPES[".pdf"],
+            size_bytes=len(content),
+            text=text,
+            is_default=True,
+        )
+        try:
+            self.repo.add(cv)
+            self.session.commit()
+        except Exception:
+            (self.storage_dir / stored_name).unlink(missing_ok=True)
+            raise
+        return to_read(cv)
+
     def parse(self, cv_id: int, use_ai: bool) -> CvParseResult:
         return self._parse(self.get(cv_id), use_ai)
 

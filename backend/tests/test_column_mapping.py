@@ -16,7 +16,9 @@ def test_matches_common_header_names():
         "salary": "Pay",
         "notes": "Comments",
         "status": None,
-        "deadline": None,
+        "application_deadline": None,
+        "assessment": None,
+        "assessment_due": None,
     }
 
 

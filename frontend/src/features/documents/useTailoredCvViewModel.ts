@@ -28,6 +28,7 @@ export interface TailoredCvViewModel {
   isSaving: boolean;
   error: string | null;
   tailor: () => void;
+  tailorAsync: () => Promise<unknown>;
   edit: (changes: Partial<TailoredContent>) => void;
   editExperience: (index: number, summary: string) => void;
   editProject: (index: number, summary: string) => void;
@@ -112,6 +113,7 @@ export function useTailoredCvViewModel(applicationId: number): TailoredCvViewMod
         tailorMutation.mutate();
       }
     },
+    tailorAsync: () => tailorMutation.mutateAsync(),
     edit,
     editExperience: (index, summary) =>
       form &&

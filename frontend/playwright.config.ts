@@ -44,6 +44,8 @@ export default defineConfig({
         CAREERPILOT_DOCUMENTS: path.join(tmp, "documents"),
         AI_PROVIDER: "ollama",
         OLLAMA_BASE_URL: "http://127.0.0.1:11500",
+        REED_API_KEY: "e2e-fake-key",
+        REED_API_BASE: "http://127.0.0.1:11500/reed/api/1.0",
         EMAIL_QUEUE_INTERVAL_SECONDS: "1",
         GEMINI_API_KEY: "",
         EMAIL_PASSWORD: "",

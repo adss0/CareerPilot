@@ -46,6 +46,9 @@ SECTIONS: dict[str, tuple[str, ...]] = {
     "other": (
         "certifications", "certificates", "interests", "hobbies", "references", "awards",
         "achievements", "languages", "volunteering", "publications", "hobbies and interests",
+        "extracurricular activities", "extracurricular activities and leadership",
+        "activities", "leadership", "activities and leadership", "leadership and activities",
+        "additional information", "volunteering and leadership",
     ),
 }  # fmt: skip
 HEADING_LOOKUP = {alias: key for key, aliases in SECTIONS.items() for alias in aliases}
@@ -65,8 +68,12 @@ def parse_cv(text: str) -> ProfileDetails:
         "skills": _parse_skills(sections.get("skills", [])),
         "experience": [_experience(b) for b in _entries(sections.get("experience", []))],
         "education": [_education(b) for b in _entries(sections.get("education", []))],
-        "projects": [_project(b) for b in _entries(sections.get("projects", []))],
+        "projects": [_project(b) for b in _project_entries(sections.get("projects", []))],
     }
+    # No skills section? Use the tech listed on the projects (a common grad CV layout).
+    project_tech = [t for p in details["projects"] for t in p.pop("_tech")]
+    if not details["skills"]:
+        details["skills"] = _dedupe(project_tech)[:60]
     for url in URL_RE.findall(text):
         normalized = url if url.lower().startswith("http") else f"https://{url}"
         lower = normalized.lower()
@@ -130,7 +137,7 @@ def _clean_phone(phone: str) -> str:
 
 
 def _heading(line: str) -> str | None:
-    if not line or len(line) > 40:
+    if not line or len(line) > 50:
         return None
     normalized = re.sub(r"[^a-z& ]", "", line.lower()).strip()
     return HEADING_LOOKUP.get(" ".join(normalized.split()))
@@ -264,9 +271,27 @@ def _experience(block: list[str]) -> dict:
     return {"title": title, "company": company, "start": start, "end": end, "summary": _body(rest)}
 
 
+INSTITUTION_RE = re.compile(
+    r"\b(university|college|school|institute|academy|polytechnic|sixth form|into)\b", re.I
+)
+
+
 def _education(block: list[str]) -> dict:
     start, end, block = _dates(block)
-    qualification, institution, rest = _head_and_rest(block)
+    head = BULLET_RE.sub("", block[0]).strip() if block else ""
+    if (
+        len(block) > 1
+        and INSTITUTION_RE.search(head)
+        and _split_title(head)[1] == ""
+        and not BULLET_RE.match(block[1])
+    ):
+        # "Example University" then "BSc Computer Science | First Class": the institution
+        # comes first, so the next line holds the qualification.
+        degree, _, more = block[1].partition(" | ")
+        institution, qualification = head, degree.strip()
+        rest = ([more.strip()] if more.strip() else []) + block[2:]
+    else:
+        qualification, institution, rest = _head_and_rest(block)
     return {
         "qualification": qualification,
         "institution": institution,
@@ -276,6 +301,38 @@ def _education(block: list[str]) -> dict:
     }
 
 
+def _project_entries(lines: list[str]) -> list[list[str]]:
+    """Projects rarely have dates, so a new project also starts at a heading line that comes
+    after bullet points ("E-Commerce App (Coursework) Java, Spring Boot" after "• Built …").
+    A line starting in lower case is a bullet that wrapped onto the next line."""
+    blocks: list[list[str]] = []
+    for block in _entries(lines):
+        current: list[str] = []
+        seen_bullet = False
+        for line in block:
+            heading = not BULLET_RE.match(line) and line[:1].isupper()
+            if heading and seen_bullet and current:
+                blocks.append(current)
+                current, seen_bullet = [], False
+            current.append(line)
+            seen_bullet = seen_bullet or bool(BULLET_RE.match(line))
+        if current:
+            blocks.append(current)
+    return blocks[:30]
+
+
+# "Shop App (Example Ltd) C#, .Net, WPF" → name, then the tech used.
+PROJECT_TECH_RE = re.compile(r"^(?P<name>.+\))\s+(?P<tech>[^()]+,[^()]+)$")
+
+
+def _project_tech(head: str) -> tuple[str, list[str]]:
+    match = PROJECT_TECH_RE.match(head)
+    if not match:
+        return head, []
+    tech = [t.strip().rstrip(".") for t in match.group("tech").split(",")]
+    return match.group("name").strip(), [t for t in tech if 1 <= len(t) <= 40]
+
+
 def _project(block: list[str]) -> dict:
     _, _, block = _dates(block)
     text = "\n".join(block)
@@ -283,4 +340,8 @@ def _project(block: list[str]) -> dict:
     name = BULLET_RE.sub("", block[0]).strip() if block else ""
     if link and link in name:
         name = name.replace(link, "").strip(" -–|:")
-    return {"name": name, "summary": _body(block[1:]), "link": link}
+    name, tech = _project_tech(name)
+    summary = _body(block[1:])
+    if tech:
+        summary = f"Tech: {', '.join(tech)}\n{summary}".strip()
+    return {"name": name, "summary": summary, "link": link, "_tech": tech}

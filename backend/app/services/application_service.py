@@ -11,12 +11,15 @@ from app.schemas.application import (
     ApplicationUpdate,
     BulkApplicationAction,
     BulkApplicationResult,
+    TrackerSummary,
 )
 from app.services.excel_export import build_applications_workbook
+from app.services.tracker import next_step, tracker_summary
 
 # Fields that may be cleared with null; null for any other field is ignored.
 NULLABLE_FIELDS = {
     "contact_email",
+    "assessment_due",
     "applied_at",
     "last_contact_at",
     "follow_up_at",
@@ -40,7 +43,15 @@ class ApplicationService:
         for application in applications:
             count, score = summaries.get(application.id, (0, None))
             read = ApplicationRead.model_validate(application)
-            reads.append(read.model_copy(update={"letter_count": count, "match_score": score}))
+            reads.append(
+                read.model_copy(
+                    update={
+                        "letter_count": count,
+                        "match_score": score,
+                        "next_step": next_step(application),
+                    }
+                )
+            )
         return reads
 
     def export_workbook(self, *, status: ApplicationStatus | None = None) -> bytes:
@@ -124,3 +135,6 @@ class ApplicationService:
         self.repo.add_history(
             StatusHistory(application_id=application.id, from_status=old, to_status=new)
         )
+
+    def tracker_summary(self) -> TrackerSummary:
+        return tracker_summary(self.repo.all())
