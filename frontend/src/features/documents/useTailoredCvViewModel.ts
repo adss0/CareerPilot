@@ -4,6 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { fetchHealth } from "@/features/health/api";
+import { listCvs } from "@/features/profile/api";
+import type { Cv } from "@/features/profile/types";
 import { errorText } from "@/lib/apiClient";
 
 import {
@@ -13,6 +15,7 @@ import {
   saveDocuments,
   tailorCv,
   updateTailoredCv,
+  type CvStyle,
   type TailoredContent,
   type TailoredCv,
 } from "./api";
@@ -27,6 +30,12 @@ export interface TailoredCvViewModel {
   isTailoring: boolean;
   isSaving: boolean;
   error: string | null;
+  /** Your uploaded CVs: the tailored CV can be based on any of them. */
+  cvs: Cv[];
+  sourceCvId: number | null; // null = your main CV (your profile)
+  style: CvStyle;
+  setSourceCvId: (id: number | null) => void;
+  setStyle: (style: CvStyle) => void;
   tailor: () => void;
   tailorAsync: () => Promise<unknown>;
   edit: (changes: Partial<TailoredContent>) => void;
@@ -39,30 +48,22 @@ export interface TailoredCvViewModel {
   openFolder: () => void;
 }
 
-export function savedToast(message: string, applicationId: number, savedTo: string | null) {
-  if (!savedTo) {
-    toast.success(message);
-    return;
-  }
-  toast.success(message, {
-    description: `Word and PDF copies saved in ${savedTo}`,
-    action: {
-      label: "Open folder",
-      onClick: () => void openDocumentsFolder(applicationId).catch(() => undefined),
-    },
-  });
-}
-
 export function useTailoredCvViewModel(applicationId: number): TailoredCvViewModel {
   const queryClient = useQueryClient();
   const key = ["tailored-cv", applicationId];
   const query = useQuery({ queryKey: key, queryFn: () => getTailoredCv(applicationId) });
   const healthQuery = useQuery({ queryKey: ["health"], queryFn: fetchHealth, retry: false });
+  const cvsQuery = useQuery({ queryKey: ["cvs"], queryFn: listCvs });
   const [draft, setDraft] = useState<TailoredContent | null>(null);
+  // What to use the next time it's tailored (until then, what this CV was built with).
+  const [chosenCv, setChosenCv] = useState<number | null | undefined>(undefined);
+  const [chosenStyle, setChosenStyle] = useState<CvStyle | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const cv = query.data ?? null;
   const form = draft ?? cv?.content ?? null;
+  const sourceCvId = chosenCv !== undefined ? chosenCv : (cv?.source_cv_id ?? null);
+  const style = chosenStyle ?? cv?.style ?? "own";
 
   const onSaved = (saved: TailoredCv, message: string) => {
     setError(null);
@@ -70,18 +71,20 @@ export function useTailoredCvViewModel(applicationId: number): TailoredCvViewMod
     queryClient.setQueryData(key, saved);
     // The Apply tab lists the attachments: the tailored CV replaces the uploaded one.
     void queryClient.invalidateQueries({ queryKey: ["email-preview", applicationId] });
-    savedToast(message, applicationId, saved.saved_to);
+    setChosenStyle(null);
+    toast.success(message);
   };
   const onError = (e: unknown) => setError(errorText(e));
 
   const tailorMutation = useMutation({
-    mutationFn: () => tailorCv(applicationId),
+    mutationFn: () => tailorCv(applicationId, { cv_id: sourceCvId, style }),
     onSuccess: (saved) => onSaved(saved, "CV tailored to this job."),
     onError,
   });
   const saveMutation = useMutation({
-    mutationFn: (content: TailoredContent) => updateTailoredCv(applicationId, content),
-    onSuccess: (saved) => onSaved(saved, "CV saved."),
+    mutationFn: (changes: { content: TailoredContent; style?: CvStyle }) =>
+      updateTailoredCv(applicationId, changes.content, changes.style),
+    onSuccess: (saved, changes) => onSaved(saved, changes.style ? "Layout changed." : "CV saved."),
     onError,
   });
   const deleteMutation = useMutation({
@@ -108,6 +111,15 @@ export function useTailoredCvViewModel(applicationId: number): TailoredCvViewMod
     isTailoring: tailorMutation.isPending,
     isSaving: saveMutation.isPending,
     error,
+    cvs: cvsQuery.data ?? [],
+    sourceCvId,
+    style,
+    setSourceCvId: setChosenCv,
+    setStyle: (next) => {
+      setChosenStyle(next);
+      // The layout doesn't need the AI: an existing CV is laid out again straight away.
+      if (cv) saveMutation.mutate({ content: draft ?? cv.content, style: next });
+    },
     tailor: () => {
       if (!draft || window.confirm("Tailoring again replaces your edits. Continue?")) {
         tailorMutation.mutate();
@@ -124,7 +136,7 @@ export function useTailoredCvViewModel(applicationId: number): TailoredCvViewMod
     save: () => {
       if (draft) {
         const skills = draft.skills.map((s) => s.trim()).filter(Boolean);
-        saveMutation.mutate({ ...draft, skills });
+        saveMutation.mutate({ content: { ...draft, skills } });
       }
     },
     discard: () => setDraft(null),
@@ -136,8 +148,8 @@ export function useTailoredCvViewModel(applicationId: number): TailoredCvViewMod
     saveToFolder: () => {
       saveDocuments(applicationId).then(
         (result) =>
-          toast.success("Saved to your documents folder.", {
-            description: result.folders.join("\n"),
+          toast.success("Saved as PDF in your documents folder.", {
+            description: result.files.join("\n"),
             action: {
               label: "Open folder",
               onClick: () => void openDocumentsFolder(applicationId).catch(() => undefined),

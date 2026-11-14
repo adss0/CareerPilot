@@ -6,13 +6,15 @@ import {
   Monitor,
   Moon,
   Search,
+  Send,
   Settings,
   Sun,
   User,
 } from "lucide-react";
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { useTheme, type ThemeChoice } from "@/app/themeContext";
+import { readApplying } from "@/features/apply/applying";
 import { useDesktopNotifications } from "@/features/tracking/useDesktopNotifications";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +53,7 @@ function ThemeToggle() {
     <div
       role="radiogroup"
       aria-label="Theme"
-      className="flex rounded-lg bg-white/6 p-0.5 ring-1 ring-sidebar-border"
+      className="bg-sidebar-hover ring-sidebar-border flex rounded-lg p-0.5 ring-1"
     >
       {themes.map(({ value, label, icon: Icon }) => (
         <button
@@ -66,7 +68,7 @@ function ThemeToggle() {
             "flex flex-1 items-center justify-center rounded-md px-2 py-1.5 transition-colors",
             choice === value
               ? "bg-sidebar-active text-sidebar-active-foreground"
-              : "text-sidebar-muted hover:text-white",
+              : "text-sidebar-muted hover:text-sidebar-strong",
           )}
         >
           <Icon className="size-3.5" />
@@ -78,14 +80,31 @@ function ThemeToggle() {
 
 function Logo() {
   return (
-    <span className="flex items-center gap-2.5 text-lg font-extrabold tracking-tight text-white">
-      <img
-        src="/favicon.svg"
-        alt=""
-        className="size-8 rounded-lg shadow-[0_0_24px_-6px_var(--sidebar-active)]"
-      />
+    <span className="text-sidebar-strong flex items-center gap-2.5 text-lg font-bold tracking-tight">
+      <img src="/favicon.svg" alt="" className="size-8 rounded-lg" />
       CareerPilot
     </span>
+  );
+}
+
+/** A way back to the Apply page you left to look at something else. */
+function ContinueApplying() {
+  const { pathname } = useLocation(); // read again on every page change
+  const job = readApplying();
+  const path = job ? `/applications/${job.id}/apply` : "";
+  if (!job || pathname === path) return null;
+  return (
+    <Link
+      to={path}
+      className="border-sidebar-border text-sidebar-foreground hover:bg-sidebar-hover mx-3 mb-2 hidden rounded-lg border px-3 py-2 text-xs md:block"
+    >
+      <span className="text-primary flex items-center gap-1.5 font-semibold">
+        <Send className="size-3.5" /> Continue applying
+      </span>
+      <span className="mt-0.5 block truncate">
+        {job.role} · {job.company}
+      </span>
+    </Link>
   );
 }
 
@@ -95,7 +114,7 @@ export function AppLayout() {
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <UpdateNotifier />
-      <aside className="bg-sidebar text-sidebar-foreground flex flex-col md:sticky md:top-0 md:h-screen md:w-64 md:shrink-0">
+      <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border flex flex-col border-b md:sticky md:top-0 md:h-screen md:w-60 md:shrink-0 md:border-r md:border-b-0">
         <div className="flex items-center justify-between gap-2 px-5 py-5">
           <Logo />
           <div className="w-28 md:hidden">
@@ -118,10 +137,10 @@ export function AppLayout() {
                   end={to === "/"}
                   className={({ isActive }) =>
                     cn(
-                      "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-semibold whitespace-nowrap transition-colors",
+                      "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors",
                       isActive
-                        ? "bg-sidebar-active text-sidebar-active-foreground shadow-[0_6px_20px_-8px_var(--sidebar-active)]"
-                        : "text-sidebar-foreground hover:bg-white/6 hover:text-white",
+                        ? "bg-sidebar-active text-sidebar-active-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-hover hover:text-sidebar-strong",
                     )
                   }
                 >
@@ -140,11 +159,12 @@ export function AppLayout() {
             </div>
           ))}
         </nav>
+        <ContinueApplying />
         <div className="hidden space-y-3 p-4 md:block">
           <ThemeToggle />
         </div>
       </aside>
-      <main className="page-glow min-w-0 flex-1 px-5 py-6 md:px-10 md:py-9">
+      <main className="min-w-0 flex-1 px-5 py-6 md:px-10 md:py-10">
         <div className="mx-auto max-w-[1400px]">
           <ComingUp items={notifications?.upcoming ?? []} />
           <Outlet />

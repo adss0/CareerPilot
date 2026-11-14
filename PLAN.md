@@ -20,6 +20,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ✅ Done |
 | 8 | **Desktop app:** installable Windows app (Tauri) | ✅ Done |
 | 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ✅ Done (tag & publish left to you) |
+| 16 | **v1.7 One-page CVs, main cover letter, sponsorship, calmer look:** Jake's Resume layout, save PDFs on apply, clickable totals, quick add, continue applying | ✅ Done |
 | 15 | **v1.6 ATS check, preview, downloads, updates:** an ATS score on every CV, preview mode, download confirmations, an Updates section | ✅ Done |
 | 14 | **v1.5 Calendar, reminders, start-up, Gemini, icon:** stages and closing dates on the calendar, coming-up reminders, a start-up screen, Gemini model fallback, a new icon | ✅ Done |
 | 13 | **v1.4 Stages, deleting, links, updates:** interview stages column, delete selected / all with a 30-day recycle bin, add a job from just its link, signed auto-updates, desktop link fix | ✅ Done |
@@ -358,6 +359,19 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 ---
 
+## Phase 16: One-page CVs, main cover letter, sponsorship and a calmer look (v1.7)
+
+- [x] 16.1 **One-page CV** (`services/cv_export.py`): the Jake's Resume layout, section order from the main CV or Jake's, a text size that fits, and trimming from the end. Based on any uploaded CV.
+- [x] 16.2 **Main cover letter** in the profile, given to the AI as the example to follow.
+- [x] 16.3 **Sponsorship** (`services/sponsorship.py`): yes / no / unsure, read from the job ad.
+- [x] 16.4 **Saving**: PDF only, only on "I've applied", in `CVs` and `Cover Letters` with no company folders.
+- [x] 16.5 **Tracker**: clickable totals (`GROUPS` in `services/tracker.py`), a corner Add job button with a quick form.
+- [x] 16.6 **Apply page**: Back to Apply from the editors, Continue applying in the sidebar.
+- [x] 16.7 **Calmer theme**, scrolling job panels, clearer Find jobs messages.
+- [x] 16.8 **A backup before an update** changes the database.
+
+---
+
 ## Future ideas (after v1)
 
 - Job scraping from public job boards' RSS/APIs into the tracker
@@ -405,3 +419,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-13 | **Phase 13 (v1.4) done.** Interview stages, delete selected / all with a 30-day recycle bin, add a job from just its link, signed auto-updates, and the fix for links not opening in the desktop app. 263 backend + 69 frontend + 7 E2E tests. |
 | 2026-11-13 | **Phase 14 (v1.5) done.** The calendar fills itself in from interview stages and closing dates, coming-up reminders, a start-up screen (jobs no longer look missing while the engine starts), Gemini model fallback tested with a real key, and a new icon. |
 | 2026-11-14 | **Phase 15 (v1.6) done.** An ATS check and score on every tailored CV, preview mode for CVs and letters, download confirmations with Open / Show in folder, and an Updates section. 289 backend + 79 frontend + 7 E2E tests. |
+| 2026-11-14 | **Phase 16 (v1.7) done.** One-page CVs in the Jake's Resume layout, a main cover letter, sponsorship, PDFs saved only on apply, clickable totals, quick add, continue applying, a calmer theme, and a backup before updates. 299 backend + 86 frontend + 7 E2E tests. |

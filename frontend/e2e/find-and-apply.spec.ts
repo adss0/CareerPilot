@@ -63,7 +63,9 @@ test("import a tracker spreadsheet with a title and totals above the table", asy
   await expect(page.getByText("Video interview on 2 Dec")).toBeVisible();
 });
 
-test("find a job → summary → tailored CV and letter → preview → save → apply", async ({ page }) => {
+test("find a job → summary → tailored CV and letter → preview → apply → saved as PDF", async ({
+  page,
+}) => {
   await page.goto("/jobs");
   await page.getByLabel("Job title or keywords").fill("software engineer");
   await page.getByRole("button", { name: "Search" }).click();
@@ -99,13 +101,9 @@ test("find a job → summary → tailored CV and letter → preview → save →
   );
   await expect(page.getByText("CV downloaded")).toBeVisible();
 
-  await page.getByRole("button", { name: "Save to my documents folder" }).click();
-  await expect(page.getByText("Saved as Word and PDF.")).toBeVisible();
-  const cvFolder = path.join(documents, "CVs", "Acme Ltd");
-  expect(fs.readdirSync(cvFolder).sort()).toEqual([
-    "CV - Jane Example - Acme Ltd - Graduate Software Engineer.docx",
-    "CV - Jane Example - Acme Ltd - Graduate Software Engineer.pdf",
-  ]);
+  // Nothing is written to the documents folder while it's still a draft.
+  expect(fs.existsSync(documents)).toBe(false);
+  await expect(page.getByText("Ready · 1 page")).toBeVisible();
 
   await expect(page.getByRole("link", { name: "Open the application page" })).toHaveAttribute(
     "href",
@@ -115,6 +113,14 @@ test("find a job → summary → tailored CV and letter → preview → save →
 
   await page.getByRole("button", { name: "I've applied" }).click();
   await expect(page.getByText("Marked as applied", { exact: true })).toBeVisible();
+  // Applying saves one PDF each, straight into "CVs" and "Cover Letters".
+  await expect(page.getByText(/Saved as PDF: CV - Jane Example/)).toBeVisible();
+  expect(fs.readdirSync(path.join(documents, "CVs"))).toEqual([
+    "CV - Jane Example - Acme Ltd - Graduate Software Engineer.pdf",
+  ]);
+  expect(fs.readdirSync(path.join(documents, "Cover Letters"))).toEqual([
+    "Cover letter - Acme Ltd - Graduate Software Engineer.pdf",
+  ]);
 
   await page.getByRole("link", { name: "Back to tracker" }).click();
   await expect(page.getByLabel("Status for Acme Ltd – Graduate Software Engineer")).toHaveValue(

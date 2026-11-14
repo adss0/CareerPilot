@@ -35,6 +35,8 @@ class Profile(SQLModel, table=True):
     github_url: str = Field(default="", max_length=500)
     portfolio_url: str = Field(default="", max_length=500)
     summary: str = ""
+    # The user's own cover letter: new letters follow its structure and voice.
+    main_cover_letter: str = Field(default="", sa_column_kwargs={"server_default": ""})
     skills: list[str] = Field(default_factory=list, sa_column=_json_list())
     # Lists of small dicts; shapes are defined in app/schemas/profile.py
     experience: list[dict] = Field(default_factory=list, sa_column=_json_list())
@@ -84,6 +86,10 @@ class Application(SQLModel, table=True):
     # The user's own tracker: e.g. "Rolling" or "30/11/2026", and the online assessment.
     application_deadline: str = Field(
         default="", max_length=100, sa_column_kwargs={"server_default": ""}
+    )
+    # Does the employer sponsor visas? "yes", "no" or "unsure" (the ad doesn't say).
+    sponsorship: str = Field(
+        default="unsure", max_length=10, sa_column_kwargs={"server_default": "unsure"}
     )
     # Interview stages: [{"kind", "date", "result", "note"}] (see app/schemas/application.py)
     stages: list[dict] = Field(default_factory=list, sa_column=_json_list())
@@ -156,6 +162,10 @@ class TailoredCv(SQLModel, table=True):
     flags: list[str] = Field(default_factory=list, sa_column=_json_list())  # things to check
     model_used: str = Field(default="", max_length=100)
     edited: bool = Field(default=False, sa_column_kwargs={"server_default": "0"})
+    # The layout ("own" = the main CV's section order, "jake" = Jake's Resume) and the
+    # uploaded CV it was based on (None = the profile).
+    style: str = Field(default="", max_length=20, sa_column_kwargs={"server_default": ""})
+    source_cv_id: int | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime | None = None
 

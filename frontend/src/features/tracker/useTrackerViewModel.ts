@@ -22,6 +22,7 @@ import type {
   Application,
   ApplicationStatus,
   BinItem,
+  TrackerGroup,
   TrackerSummary,
 } from "@/features/applications/types";
 import { errorText } from "@/lib/apiClient";
@@ -41,6 +42,8 @@ export interface TrackerViewModel {
   error: string | null;
   search: string;
   status: ApplicationStatus | "";
+  /** The total that was clicked above the sheet ("" = all jobs). */
+  group: TrackerGroup | "";
   sort: Sort;
   hideClosed: boolean;
   selected: Application | null;
@@ -48,6 +51,7 @@ export interface TrackerViewModel {
   setView: (view: TrackerViewMode) => void;
   setSearch: (value: string) => void;
   setStatus: (value: ApplicationStatus | "") => void;
+  setGroup: (value: TrackerGroup | "") => void;
   setSort: (value: Sort) => void;
   setHideClosed: (value: boolean) => void;
   select: (id: number | null) => void;
@@ -90,15 +94,24 @@ export function useTrackerViewModel(): TrackerViewModel {
   const [view, setViewState] = useState<TrackerViewMode>(readView);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<ApplicationStatus | "">("");
+  const [group, setGroup] = useState<TrackerGroup | "">("");
   const [sort, setSort] = useState<Sort>("created_at"); // the order you added them, like a sheet
   const [hideClosed, setHideClosedState] = useState(readHide);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const listQuery = useQuery({
-    queryKey: ["applications", "tracker", { search, status, sort, hideClosed }],
+    queryKey: ["applications", "tracker", { search, status, group, sort, hideClosed }],
     queryFn: () =>
-      listApplications({ search, status, sort, hideClosed, limit: TRACKER_LIMIT, offset: 0 }),
+      listApplications({
+        search,
+        status,
+        group,
+        sort,
+        hideClosed,
+        limit: TRACKER_LIMIT,
+        offset: 0,
+      }),
     placeholderData: keepPreviousData,
   });
   const summaryQuery = useQuery({
@@ -201,6 +214,8 @@ export function useTrackerViewModel(): TrackerViewModel {
     },
     setSearch,
     setStatus,
+    group,
+    setGroup,
     setSort,
     setHideClosed: (value) => {
       setHideClosedState(value);

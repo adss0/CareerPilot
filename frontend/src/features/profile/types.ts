@@ -38,6 +38,7 @@ export interface ProfileDetails {
 
 export interface Profile extends ProfileDetails {
   has_cv: boolean;
+  main_cover_letter: string; // new letters follow its structure and voice
   updated_at: string;
 }
 

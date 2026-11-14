@@ -1,4 +1,4 @@
-"""Tailored CVs, letter highlights, and saving Word + PDF copies to the documents folder."""
+"""Tailored CVs, letter highlights, and saving PDFs to the documents folder when applying."""
 
 import io
 from pathlib import Path
@@ -7,7 +7,6 @@ import docx
 import pytest
 from pypdf import PdfReader
 
-from app.services.documents_service import folder_name
 from tests.test_ai import FakeAI
 from tests.test_letters import ai_reply
 
@@ -81,13 +80,13 @@ def test_tailored_cv_only_rewords_and_reorders(client, ready, make_application):
 
     # Skills: the profile's own names, in the AI's order; the made-up one is dropped.
     assert content["skills"] == ["SQL", "Python", "React", "Docker"]
-    # Experience: internship first with new bullets; titles and dates come from the profile;
-    # the job the AI didn't mention is kept unchanged.
-    assert [e["company"] for e in content["experience"]] == ["Example Ltd", "Coffee Co"]
+    # Experience: new bullets; titles and dates come from the profile. What the AI left out
+    # stays out, which is how the CV is kept to one page.
+    assert [e["company"] for e in content["experience"]] == ["Example Ltd"]
     assert content["experience"][0]["summary"] == "Built a FastAPI service used by 3 teams"
     assert content["experience"][0]["start"] == "2024"
-    assert content["experience"][1]["summary"] == "Served customers\nTrained new staff"
-    assert [p["name"] for p in content["projects"]] == ["Job tracker", "Budget app"]
+    assert [p["name"] for p in content["projects"]] == ["Job tracker"]
+    assert cv["pages"] == 1 and cv["style"] == "jake"
     assert content["education"] == [
         {
             "qualification": "BSc Computer Science",
@@ -106,25 +105,21 @@ def test_tailored_cv_only_rewords_and_reorders(client, ready, make_application):
     assert "Python and SQL developer" in prompt
 
 
-def test_tailored_cv_is_saved_as_word_and_pdf(
+def test_documents_are_saved_as_pdf_only_when_applying(
     client, ready, make_application, documents_folder: Path
 ):
     application = make_application(company="Acme Ltd", role="Junior Developer")
-    cv = tailor(client, application["id"]).json()
+    tailor(client, application["id"])
+    assert not documents_folder.exists()  # nothing is written just because a CV was built
 
-    folder = documents_folder / "CVs" / "Acme Ltd"
-    assert cv["saved_to"] == str(folder)
-    names = sorted(p.name for p in folder.iterdir())
-    assert names == [
-        "CV - Jane Example - Acme Ltd - Junior Developer.docx",
-        "CV - Jane Example - Acme Ltd - Junior Developer.pdf",
-    ]
-    word = docx.Document(folder / names[0])
-    text = "\n".join(p.text for p in word.paragraphs)
-    assert "Jane Example" in text and "jane@example.com" in text
-    assert "Built a FastAPI service used by 3 teams" in text
-    pdf = "".join(page.extract_text() for page in PdfReader(folder / names[1]).pages)
-    assert "Graduate developer who builds Python APIs" in pdf
+    saved = client.post(f"/api/applications/{application['id']}/documents/save?on_apply=true")
+    pdf_path = documents_folder / "CVs" / "CV - Jane Example - Acme Ltd - Junior Developer.pdf"
+    assert saved.json() == {"files": [str(pdf_path)]}
+    # One PDF, straight in "CVs": no Word copy and no folder per company.
+    assert [p.name for p in (documents_folder / "CVs").iterdir()] == [pdf_path.name]
+    pdf = "".join(page.extract_text() for page in PdfReader(pdf_path).pages)
+    assert "Jane Example" in pdf and "jane@example.com" in pdf
+    assert "Built a FastAPI service used by 3 teams" in pdf
 
 
 def test_edit_export_and_delete_tailored_cv(client, ready, make_application):
@@ -176,12 +171,23 @@ def test_letters_are_saved_with_highlights(client, ai, make_application, documen
     _system, prompt = ai["provider"].calls[0]
     assert "<focus>" in prompt and "- Job tracker\n- Python" in prompt
 
-    folder = documents_folder / "Cover Letters" / "Acme Ltd"
-    assert response.json()["saved_to"] == str(folder)
-    assert sorted(p.name for p in folder.iterdir()) == [
-        "Cover letter - Acme Ltd - Junior Developer.docx",
-        "Cover letter - Acme Ltd - Junior Developer.pdf",
+    assert not documents_folder.exists()
+    client.post(f"/api/applications/{application['id']}/documents/save")
+    assert [p.name for p in (documents_folder / "Cover Letters").iterdir()] == [
+        "Cover letter - Acme Ltd - Junior Developer.pdf"
     ]
+
+
+def test_the_main_cover_letter_guides_new_letters(client, ai, make_application):
+    mine = "Dear Hiring Manager,\n\nI build things people use.\n\nYours sincerely,\nJane"
+    saved = client.put("/api/profile", json={**PROFILE, "main_cover_letter": mine}).json()
+    assert saved["main_cover_letter"] == mine
+    ai["provider"] = FakeAI(ai_reply())
+    application = make_application()
+    client.post(f"/api/applications/{application['id']}/letters", json={})
+    system, prompt = ai["provider"].calls[0]
+    assert f"<example_letter>\n{mine}\n</example_letter>" in prompt
+    assert "Follow its\n  structure" in system
 
 
 def test_auto_save_can_be_turned_off_and_folder_changed(
@@ -197,16 +203,18 @@ def test_auto_save_can_be_turned_off_and_folder_changed(
     client.put("/api/profile", json=PROFILE)
     ai["provider"] = FakeAI(ai_reply())
     application = make_application()
-    letter = client.post(f"/api/applications/{application['id']}/letters", json={}).json()
-    assert letter["saved_to"] is None
+    client.post(f"/api/applications/{application['id']}/letters", json={})
+    url = f"/api/applications/{application['id']}/documents/save"
+    assert client.post(f"{url}?on_apply=true").json() == {"files": []}
     assert not documents_folder.exists()
 
     # "Save to folder" still works on demand, into a folder the user picked.
     mine = tmp_path / "My CVs"
     changed = client.put("/api/settings/documents", json={"folder": str(mine)}).json()
     assert changed["folder"] == str(mine)
-    saved = client.post(f"/api/applications/{application['id']}/documents/save").json()
-    assert saved == {"folders": [str(mine / "Cover Letters" / "Acme Ltd")]}
+    saved = client.post(url).json()
+    letter = mine / "Cover Letters" / "Cover letter - Acme Ltd - Junior Developer.pdf"
+    assert saved == {"files": [str(letter)]}
 
     # Back to the default.
     assert client.put("/api/settings/documents", json={"folder": ""}).json()["folder"] == str(
@@ -231,19 +239,7 @@ def test_open_folder_opens_the_jobs_folder(client, ready, make_application, monk
     monkeypatch.setattr(documents_service.sys, "platform", "win32")
     application = make_application(company="Acme Ltd")
     tailor(client, application["id"])
+    client.post(f"/api/applications/{application['id']}/documents/save")
     result = client.post(f"/api/documents/open?application_id={application['id']}").json()
     assert opened == [Path(result["folder"])]
-    assert result["folder"].endswith(str(Path("CVs") / "Acme Ltd"))
-
-
-@pytest.mark.parametrize(
-    ("company", "folder"),
-    [
-        ("Acme Ltd", "Acme Ltd"),
-        ('A/B: "Corp"?', "AB Corp"),
-        ("CON", "_CON"),
-        ("  ...  ", "Other"),
-    ],
-)
-def test_company_folder_names_are_safe_on_windows(company, folder):
-    assert folder_name(company) == folder
+    assert result["folder"].endswith("CVs")

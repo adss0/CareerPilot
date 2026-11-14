@@ -1,11 +1,10 @@
-"""Saves tailored CVs and cover letters as Word + PDF files in a folder the user can browse.
+"""Saves tailored CVs and cover letters as PDFs in a folder the user can browse.
 
-Default: Documents\\CareerPilot, with "CVs" and "Cover Letters" inside, one folder per company.
+Default: Documents\\CareerPilot, with "CVs" and "Cover Letters" inside. Each file is named
+after the company and role. Files are only written when the user applies or asks for it.
 """
 
-import logging
 import os
-import re
 import subprocess
 import sys
 from pathlib import Path
@@ -17,10 +16,8 @@ from app.models import Application, AppSetting
 from app.schemas.documents import DocumentSettingsRead, DocumentSettingsUpdate
 from app.schemas.profile import ProfileDetails
 from app.schemas.tailored_cv import TailoredContent
-from app.services.cv_export import build_cv_docx, build_cv_pdf, cv_filename
-from app.services.letter_export import build_docx, build_pdf, letter_filename
-
-logger = logging.getLogger(__name__)
+from app.services.cv_export import CvLayout, build_cv_pdf, cv_filename
+from app.services.letter_export import build_pdf, letter_filename
 
 SETTINGS_KEY = "documents"
 CV_FOLDER = "CVs"
@@ -45,15 +42,6 @@ def default_folder() -> Path:
     if override := os.environ.get("CAREERPILOT_DOCUMENTS"):
         return Path(override)
     return documents_dir() / "CareerPilot"
-
-
-def folder_name(value: str) -> str:
-    """A safe Windows folder name for a company (no \\ / : * ? " < > |, no trailing dots)."""
-    safe = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "", value)
-    safe = re.sub(r"\s+", " ", safe).strip(" .")[:80]
-    if safe.upper() in {"CON", "PRN", "AUX", "NUL"} or re.fullmatch(r"(?i)(COM|LPT)\d", safe):
-        safe = f"_{safe}"
-    return safe or "Other"
 
 
 class DocumentsService:
@@ -113,57 +101,35 @@ class DocumentsService:
 
     # ---------- saving files ----------
 
-    def cv_dir(self, application: Application) -> Path:
-        return self.folder / CV_FOLDER / folder_name(application.company)
+    @property
+    def cv_dir(self) -> Path:
+        return self.folder / CV_FOLDER
 
-    def letter_dir(self, application: Application) -> Path:
-        return self.folder / LETTER_FOLDER / folder_name(application.company)
+    @property
+    def letter_dir(self) -> Path:
+        return self.folder / LETTER_FOLDER
 
     def save_cv(
-        self, application: Application, content: TailoredContent, profile: ProfileDetails
+        self,
+        application: Application,
+        content: TailoredContent,
+        profile: ProfileDetails,
+        layout: CvLayout | None = None,
     ) -> Path:
-        folder = self.cv_dir(application)
-        name = profile.full_name
-        files = {
-            cv_filename(name, "docx", application.company, application.role): build_cv_docx(
-                content, profile
-            ),
-            cv_filename(name, "pdf", application.company, application.role): build_cv_pdf(
-                content, profile
-            ),
-        }
-        return self._write(folder, files)
+        name = cv_filename(profile.full_name, "pdf", application.company, application.role)
+        return self._write(self.cv_dir / name, build_cv_pdf(content, profile, layout))
 
     def save_letter(self, application: Application, letter: str, profile: ProfileDetails) -> Path:
-        folder = self.letter_dir(application)
-        files = {
-            letter_filename(application.company, application.role, "docx"): build_docx(
-                letter, profile
-            ),
-            letter_filename(application.company, application.role, "pdf"): build_pdf(
-                letter, profile
-            ),
-        }
-        return self._write(folder, files)
-
-    def try_auto_save(self, save, *args) -> str | None:
-        """Saves if auto-save is on. Never fails the request: a locked file is only logged."""
-        if not self.auto_save:
-            return None
-        try:
-            return str(save(*args))
-        except OSError:
-            logger.warning("Couldn't save documents to %s", self.folder, exc_info=True)
-            return None
+        name = letter_filename(application.company, application.role, "pdf")
+        return self._write(self.letter_dir / name, build_pdf(letter, profile))
 
     @staticmethod
-    def _write(folder: Path, files: dict[str, bytes]) -> Path:
-        folder.mkdir(parents=True, exist_ok=True)
-        for name, content in files.items():
-            temp = folder / f".{name}.tmp"
-            temp.write_bytes(content)
-            os.replace(temp, folder / name)  # an open file in Word fails here, not half-written
-        return folder
+    def _write(path: Path, content: bytes) -> Path:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temp = path.with_name(f".{path.name}.tmp")
+        temp.write_bytes(content)
+        os.replace(temp, path)  # a file open elsewhere fails here, not half-written
+        return path
 
     # ---------- opening in Explorer ----------
 

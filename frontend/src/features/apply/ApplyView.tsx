@@ -26,6 +26,7 @@ import { STATUS_LABELS, TONE_LABELS, statusVariant } from "@/features/applicatio
 import type { Tone } from "@/features/applications/types";
 import { tailoredCvExportUrl } from "@/features/documents/api";
 import { AtsScore } from "@/features/documents/AtsReportView";
+import { CvChoices } from "@/features/documents/TailoredCvView";
 import { jobLink } from "@/features/tracker/jobLink";
 import { cn } from "@/lib/utils";
 
@@ -129,7 +130,7 @@ export function ApplyView(vm: ApplyViewModel) {
           <ArrowLeft className="size-4" /> Applications
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl font-extrabold tracking-tight">Apply: {job.role}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Apply: {job.role}</h1>
           <Badge variant={statusVariant(job.status)}>{STATUS_LABELS[job.status]}</Badge>
         </div>
         <p className="text-muted-foreground">
@@ -151,7 +152,10 @@ export function ApplyView(vm: ApplyViewModel) {
       {!job.job_description.trim() && (
         <p className="text-muted-foreground text-sm">
           Tip: this job has no description, so the CV and letter can only be general.{" "}
-          <Link to={`/applications/${job.id}`} className="text-primary underline">
+          <Link
+            to={`/applications/${job.id}?tab=details&from=apply`}
+            className="text-primary underline"
+          >
             Paste the job ad
           </Link>{" "}
           for a much better match.
@@ -162,7 +166,7 @@ export function ApplyView(vm: ApplyViewModel) {
         number={1}
         title="Build your CV and cover letter"
         done={ready}
-        description="Gemini tailors both to this job using only facts from your profile."
+        description="The AI tailors both to this job using only facts from your profile. The CV is kept to one page."
       >
         {!ready && (
           <Button onClick={vm.buildBoth} disabled={busy || !letters.aiConfigured}>
@@ -180,13 +184,19 @@ export function ApplyView(vm: ApplyViewModel) {
             <p className="flex items-center justify-between font-medium">
               Tailored CV
               {cv.cv ? (
-                <Badge variant="success">Ready</Badge>
+                <Badge variant={cv.cv.pages > 1 ? "warning" : "success"}>
+                  {cv.cv.pages > 1 ? `${cv.cv.pages} pages` : "Ready · 1 page"}
+                </Badge>
               ) : (
                 <Badge variant="outline">Not built</Badge>
               )}
             </p>
+            <CvChoices vm={cv} disabled={busy || cv.isSaving} />
             {cv.cv?.ats && (
-              <Link to={`/applications/${job.id}?tab=cv`} className="block hover:underline">
+              <Link
+                to={`/applications/${job.id}?tab=cv&from=apply`}
+                className="block hover:underline"
+              >
                 <AtsScore report={cv.cv.ats} />
               </Link>
             )}
@@ -209,7 +219,7 @@ export function ApplyView(vm: ApplyViewModel) {
               </Button>
               {cv.cv && (
                 <Button size="sm" variant="ghost" asChild>
-                  <Link to={`/applications/${job.id}?tab=cv`}>
+                  <Link to={`/applications/${job.id}?tab=cv&from=apply`}>
                     <PenLine /> Edit
                   </Link>
                 </Button>
@@ -252,7 +262,7 @@ export function ApplyView(vm: ApplyViewModel) {
               </Button>
               {letter && (
                 <Button size="sm" variant="ghost" asChild>
-                  <Link to={`/applications/${job.id}?tab=letter`}>
+                  <Link to={`/applications/${job.id}?tab=letter&from=apply`}>
                     <PenLine /> Edit
                   </Link>
                 </Button>
@@ -300,7 +310,12 @@ export function ApplyView(vm: ApplyViewModel) {
         )}
       </Step>
 
-      <Step number={3} title="Download or save" done={false}>
+      <Step
+        number={3}
+        title="Download or save"
+        done={false}
+        description="Optional: both are saved as PDFs in your documents folder when you click I've applied."
+      >
         <div className="flex flex-wrap gap-2">
           {!cv.cv && !letter && (
             <p className="text-muted-foreground">Build your CV and cover letter first.</p>
@@ -312,11 +327,6 @@ export function ApplyView(vm: ApplyViewModel) {
                   <FileDown /> CV (PDF)
                 </a>
               </Button>
-              <Button variant="outline" asChild>
-                <a href={tailoredCvExportUrl(job.id, "docx")} download>
-                  <FileDown /> CV (Word)
-                </a>
-              </Button>
             </>
           )}
           {letter && (
@@ -326,18 +336,17 @@ export function ApplyView(vm: ApplyViewModel) {
                   <FileDown /> Letter (PDF)
                 </a>
               </Button>
-              <Button variant="outline" asChild>
-                <a href={vm.letterPdfUrl!.replace("format=pdf", "format=docx")} download>
-                  <FileDown /> Letter (Word)
-                </a>
-              </Button>
             </>
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={vm.saveToFolder} disabled={vm.isSaving || (!cv.cv && !letter)}>
+          <Button
+            variant="outline"
+            onClick={vm.saveToFolder}
+            disabled={vm.isSaving || (!cv.cv && !letter)}
+          >
             {vm.isSaving ? <Loader2 className="animate-spin" /> : <Save />}
-            Save to my documents folder
+            Save PDFs to my folder now
           </Button>
           <Button variant="outline" onClick={vm.useAsMainCv} disabled={!cv.cv}>
             <Star /> Use as my main CV

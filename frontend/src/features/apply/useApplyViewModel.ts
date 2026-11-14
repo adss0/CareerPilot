@@ -57,11 +57,25 @@ export function useApplyViewModel(applicationId: number): ApplyViewModel {
     onError: (e) => toast.error(errorText(e)),
   });
 
+  const openFolderAction = {
+    label: "Open folder",
+    onClick: () => void openDocumentsFolder(applicationId).catch(() => undefined),
+  };
+
   const markMutation = useMutation({
-    mutationFn: () => updateApplication(applicationId, { status: "sent" }),
-    onSuccess: () => {
+    mutationFn: async () => {
+      await updateApplication(applicationId, { status: "sent" });
+      // The PDFs are kept only now, so drafts never fill up the documents folder.
+      return saveDocuments(applicationId, true).catch(() => ({ files: [] }));
+    },
+    onSuccess: (saved) => {
       void queryClient.invalidateQueries({ queryKey: ["applications"] });
-      toast.success("Marked as applied. Good luck!");
+      toast.success("Marked as applied. Good luck!", {
+        description: saved.files.length
+          ? `Saved as PDF: ${saved.files.map((f) => f.split(/[\\/]/).pop()).join(", ")}`
+          : undefined,
+        action: saved.files.length ? openFolderAction : undefined,
+      });
     },
     onError: (e) => toast.error(errorText(e)),
   });
@@ -94,12 +108,9 @@ export function useApplyViewModel(applicationId: number): ApplyViewModel {
       setSaving(true);
       saveDocuments(applicationId)
         .then((result) =>
-          toast.success("Saved as Word and PDF.", {
-            description: result.folders.join("\n"),
-            action: {
-              label: "Open folder",
-              onClick: () => void openDocumentsFolder(applicationId).catch(() => undefined),
-            },
+          toast.success("Saved as PDF.", {
+            description: result.files.join("\n"),
+            action: openFolderAction,
           }),
         )
         .catch((e) => toast.error(errorText(e)))

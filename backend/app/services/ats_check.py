@@ -17,7 +17,7 @@ from app.models import Application
 from app.schemas.ats import AtsCheck, AtsReport
 from app.schemas.profile import ProfileDetails
 from app.schemas.tailored_cv import TailoredContent
-from app.services.cv_export import build_cv_pdf, bullets, contact_line
+from app.services.cv_export import CvLayout, bullets, contact_line, render_cv
 
 # Common skills and terms in graduate job ads, matched as whole terms (case-insensitive).
 # Ordinary English words ("go", "express", "swift") are left out: they'd match any sentence.
@@ -124,18 +124,24 @@ def cv_text(content: TailoredContent) -> str:
 
 
 def check_cv(
-    content: TailoredContent, profile: ProfileDetails, application: Application
+    content: TailoredContent,
+    profile: ProfileDetails,
+    application: Application,
+    layout: CvLayout | None = None,
 ) -> AtsReport:
     checks: list[AtsCheck] = []
     text = cv_text(content)
 
     # ---------- readable: read the real PDF back as text ----------
-    pdf = build_cv_pdf(content, profile)
+    layout = layout or CvLayout()
+    pdf, pages = render_cv(content, profile, layout)
     reader = PdfReader(io.BytesIO(pdf))
-    pages = len(reader.pages)
     pdf_text = " ".join(page.extract_text() or "" for page in reader.pages)
     flat = re.sub(r"\s+", " ", pdf_text).lower()
-    expected = ["profile" if content.summary else "", "skills" if content.skills else ""]
+    expected = [
+        "profile" if content.summary and "summary" in layout.order else "",
+        "skills" if content.skills else "",
+    ]
     expected += [
         "experience" if content.experience else "",
         "education" if content.education else "",
@@ -197,7 +203,6 @@ def check_cv(
     absent = [
         name
         for name, present in (
-            ("Profile", bool(content.summary.strip())),
             ("Skills", bool(content.skills)),
             ("Experience or Projects", bool(content.experience or content.projects)),
             ("Education", bool(content.education)),
@@ -211,14 +216,17 @@ def check_cv(
             status="warn" if absent else "pass",
             detail=f"Missing: {', '.join(absent)}."
             if absent
-            else "Profile, Skills, Experience and Education.",
+            else "Education, Experience, Projects and Skills, under standard headings.",
         )
     )
 
     # ---------- length ----------
     words = len(re.findall(r"\w+", pdf_text))
-    if pages > 2:
-        status, detail = "warn", f"{pages} pages: graduate CVs work best on 1–2 pages."
+    if pages > 1:
+        status, detail = (
+            "warn",
+            f"{pages} pages: it should be one. Shorten or remove a few bullet points.",
+        )
     elif words < 250:
         status, detail = "warn", f"Only {words} words: add more detail about what you did."
     else:

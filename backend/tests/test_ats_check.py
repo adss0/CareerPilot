@@ -95,7 +95,7 @@ def test_a_weak_cv_gets_clear_warnings():
     checks = by_id(report)
     assert checks["keywords"].status == "fail"
     assert checks["contact"].status == "warn" and "phone" in checks["contact"].detail
-    assert "Profile, Skills, Education" in checks["sections"].detail
+    assert "Skills, Education" in checks["sections"].detail
     assert checks["length"].status == "warn" and "words" in checks["length"].detail
     assert checks["bullets"].status == "warn" and "Responsible for" in checks["bullets"].detail
     assert checks["results"].status == "warn"

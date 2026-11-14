@@ -30,7 +30,6 @@ class LetterRead(BaseModel):
     edited: bool
     created_at: datetime
     updated_at: datetime | None
-    saved_to: str | None = None  # the folder the Word + PDF copies were saved in
 
 
 class LetterGenerate(BaseModel):

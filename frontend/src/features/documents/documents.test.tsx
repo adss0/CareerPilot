@@ -42,7 +42,9 @@ const cv: TailoredCv = {
   edited: false,
   created_at: "2026-11-13T10:00:00Z",
   updated_at: null,
-  saved_to: null,
+  style: "jake",
+  source_cv_id: null,
+  pages: 1,
 };
 
 function cvVm(overrides: Partial<TailoredCvViewModel> = {}): TailoredCvViewModel {
@@ -56,6 +58,11 @@ function cvVm(overrides: Partial<TailoredCvViewModel> = {}): TailoredCvViewModel
     isTailoring: false,
     isSaving: false,
     error: null,
+    cvs: [],
+    sourceCvId: null,
+    style: "jake",
+    setSourceCvId: vi.fn(),
+    setStyle: vi.fn(),
     tailor: vi.fn(),
     tailorAsync: vi.fn(async () => undefined),
     edit: vi.fn(),

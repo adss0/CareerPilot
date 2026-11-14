@@ -29,6 +29,10 @@ SortKey = Literal[
     "role", "-role", "status", "-status", "priority", "-priority",
 ]  # fmt: skip
 
+TrackerGroup = Literal[
+    "to_apply", "applied", "in_progress", "assessments_done", "interviews", "offers", "rejected"
+]  # fmt: skip
+
 
 @router.get("", response_model=ApplicationPage)
 def list_applications(
@@ -39,8 +43,10 @@ def list_applications(
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
     hide_closed: bool = False,
+    group: TrackerGroup | None = None,
 ) -> ApplicationPage:
     items, total = service.search(
+        group=group,
         status=status_filter,
         search=search,
         sort=sort,
