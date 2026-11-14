@@ -117,7 +117,7 @@ Open a job and go to the **Cover letter** tab.
 3. **Read it.** Edit anything you like. Flags warn you if the letter mentions something that isn't in your profile.
 4. Write more versions if you want; star the one to send. Export to PDF or Word with the buttons above the letter.
 
-**Tailored CV:** open the job's **Tailored CV** tab and click **Tailor my CV**. The AI rewrites your summary and bullet points and puts what matters most for this job first. It only rewords and reorders: job titles, employers, dates, education and the skill list come straight from your profile. **What changed** lists the edits, and you can change anything before saving. When a job has a tailored CV, it's attached to the email instead of your uploaded CV.
+**Tailored CV:** open the job's **Tailored CV** tab and click **Tailor my CV**. The AI rewrites your summary and bullet points and puts what matters most for this job first. It only rewords and reorders: job titles, employers, dates, education and the skill list come straight from your profile. The CV is always **one page**, in the Jake's Resume layout. **Layout** chooses the section order (your main CV's, or Jake's Resume's), and **Based on** chooses which of your uploaded CVs to tailor. **What changed** lists the edits, and you can change anything before saving. When a job has a tailored CV, it's attached to the email instead of your uploaded CV.
 
 **ATS check:** every tailored CV gets a score out of 100 and a checklist showing how applicant-tracking systems will read it: whether the PDF reads back as text, which of the job's keywords it covers (and which ones are in your profile but missing from this CV), contact details, sections, length, bullet points, numbers and dates. It runs again every time you tailor or save.
 
@@ -125,12 +125,16 @@ Open a job and go to the **Cover letter** tab.
 
 **Downloads:** every download shows a message when it's done. In the desktop app the file is saved in your Downloads folder, with **Open** and **Show in folder** buttons.
 
-**Where the files go:** every letter and tailored CV is saved as Word and PDF in `Documents\CareerPilot`:
+**Main cover letter:** paste a cover letter you're happy with in **Profile → Main cover letter**. Every new letter follows its structure, length and voice.
+
+**Sponsorship:** each job has a Visa sponsorship value (Yes, No or Unsure). It's read from the job ad when the ad says, and you can change it in the tracker.
+
+**Where the files go:** when you click **I've applied**, the CV and cover letter are saved as PDFs in `Documents\CareerPilot` (nothing is saved for drafts):
 
 ```text
 Documents\CareerPilot\
-  CVs\Acme Ltd\CV - Your Name - Acme Ltd - Junior Developer.docx / .pdf
-  Cover Letters\Acme Ltd\Cover letter - Acme Ltd - Junior Developer.docx / .pdf
+  CVs\CV - Your Name - Acme Ltd - Junior Developer.pdf
+  Cover Letters\Cover letter - Acme Ltd - Junior Developer.pdf
 ```
 
 Click **Open folder** on the job to see them. In **Settings → Saved documents** you can choose another folder or turn automatic saving off (then use **Save to folder** on a job). Program Files can't be used, because Windows only lets administrators save there.

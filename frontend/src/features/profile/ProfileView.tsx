@@ -4,6 +4,7 @@ import { CheckCircle2, Loader2, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { CvPanelView } from "./CvPanelView";
+import { MainLetterView } from "./MainLetterView";
 import { ProfileFormView } from "./ProfileFormView";
 import type { ProfileViewModel } from "./useProfileViewModel";
 
@@ -11,9 +12,10 @@ export function ProfileView(vm: ProfileViewModel) {
   return (
     <div className="max-w-6xl space-y-6 pb-24">
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight">Profile</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
         <p className="text-muted-foreground text-sm">
-          Who you are. CareerPilot uses these details, and only these, to write your cover letters.
+          Who you are. CareerPilot uses these details, and only these, to write your CVs and cover
+          letters.
         </p>
       </div>
 
@@ -64,7 +66,7 @@ export function ProfileView(vm: ProfileViewModel) {
 
       {vm.form && (
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="order-2 lg:order-1">
+          <div className="order-2 space-y-6 lg:order-1">
             <ProfileFormView
               form={vm.form}
               onSetField={vm.setField}
@@ -74,6 +76,7 @@ export function ProfileView(vm: ProfileViewModel) {
               onUpdateItem={vm.updateItem}
               onRemoveItem={vm.removeItem}
             />
+            <MainLetterView />
           </div>
           <div className="order-1 lg:sticky lg:top-6 lg:order-2">
             <CvPanelView

@@ -39,8 +39,12 @@ export const openDocumentsFolder = (applicationId?: number) =>
     applicationId ? `/documents/open?application_id=${applicationId}` : "/documents/open",
   );
 
-export const saveDocuments = (applicationId: number) =>
-  apiSend<{ folders: string[] }>("POST", `/applications/${applicationId}/documents/save`);
+/** Saves the CV and cover letter as PDFs. `onApply` respects the "save when I apply" setting. */
+export const saveDocuments = (applicationId: number, onApply = false) =>
+  apiSend<{ files: string[] }>(
+    "POST",
+    `/applications/${applicationId}/documents/save${onApply ? "?on_apply=true" : ""}`,
+  );
 
 // ---------- tailored CV ----------
 
@@ -69,6 +73,14 @@ export interface AtsReport {
   missing_gaps: string[];
 }
 
+/** "own" follows the section order of your main CV; "jake" is the Jake's Resume order. */
+export type CvStyle = "own" | "jake";
+
+export const CV_STYLE_LABELS: Record<CvStyle, string> = {
+  own: "My main CV's layout",
+  jake: "Jake's Resume",
+};
+
 export interface TailoredCv {
   application_id: number;
   content: TailoredContent;
@@ -78,8 +90,10 @@ export interface TailoredCv {
   edited: boolean;
   created_at: string;
   updated_at: string | null;
-  saved_to: string | null;
   ats?: AtsReport | null;
+  style: CvStyle;
+  source_cv_id: number | null; // the uploaded CV it was based on (null = your profile)
+  pages: number;
 }
 
 const cvPath = (applicationId: number) => `/applications/${applicationId}/tailored-cv`;
@@ -94,11 +108,16 @@ export async function getTailoredCv(applicationId: number): Promise<TailoredCv |
   }
 }
 
-export const tailorCv = (applicationId: number) =>
-  apiSend<TailoredCv>("POST", cvPath(applicationId));
+export const tailorCv = (
+  applicationId: number,
+  options: { cv_id: number | null; style: CvStyle },
+) => apiSend<TailoredCv>("POST", cvPath(applicationId), options);
 
-export const updateTailoredCv = (applicationId: number, content: TailoredContent) =>
-  apiSend<TailoredCv>("PUT", cvPath(applicationId), { content });
+export const updateTailoredCv = (
+  applicationId: number,
+  content: TailoredContent,
+  style?: CvStyle,
+) => apiSend<TailoredCv>("PUT", cvPath(applicationId), { content, style });
 
 export const deleteTailoredCv = (applicationId: number) =>
   apiSend<null>("DELETE", cvPath(applicationId));

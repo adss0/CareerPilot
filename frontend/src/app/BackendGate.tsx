@@ -35,12 +35,8 @@ export function BackendGate({ children }: { children: ReactNode }) {
       role="status"
       className="bg-sidebar text-sidebar-foreground flex min-h-screen flex-col items-center justify-center gap-5"
     >
-      <img
-        src="/favicon.svg"
-        alt=""
-        className="size-16 rounded-2xl shadow-[0_0_40px_-8px_var(--sidebar-active)]"
-      />
-      <p className="text-2xl font-extrabold tracking-tight text-white">CareerPilot</p>
+      <img src="/favicon.svg" alt="" className="size-16 rounded-2xl" />
+      <p className="text-sidebar-strong text-2xl font-bold tracking-tight">CareerPilot</p>
       {state === "waiting" ? (
         <p className="flex items-center gap-2 text-sm">
           <Loader2 className="size-4 animate-spin" /> Starting… your jobs will be here in a moment.

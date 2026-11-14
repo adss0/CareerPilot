@@ -1,8 +1,11 @@
+import sqlite3
 from collections.abc import Iterator
 from functools import lru_cache
+from pathlib import Path
 
 from alembic import command
 from alembic.config import Config
+from alembic.script import ScriptDirectory
 from sqlalchemy import Engine, event
 from sqlmodel import Session, create_engine
 
@@ -36,9 +39,28 @@ def get_session() -> Iterator[Session]:
         yield session
 
 
-def run_migrations(url: str | None = None, revision: str = "head") -> None:
-    """Bring the database schema up to date (creates the file on first run)."""
+def _alembic_config(url: str | None = None) -> Config:
     config = Config(str(BACKEND_DIR / "alembic.ini"))
     config.set_main_option("script_location", str(BACKEND_DIR / "migrations"))
     config.set_main_option("sqlalchemy.url", url or database_url(str(get_settings().db_file)))
-    command.upgrade(config, revision)
+    return config
+
+
+def run_migrations(url: str | None = None, revision: str = "head") -> None:
+    """Bring the database schema up to date (creates the file on first run)."""
+    command.upgrade(_alembic_config(url), revision)
+
+
+def needs_upgrade(db_file: Path) -> bool:
+    """True when an existing database is from an older version of the app."""
+    if not db_file.exists():
+        return False
+    head = ScriptDirectory.from_config(_alembic_config()).get_current_head()
+    connection = sqlite3.connect(db_file)
+    try:
+        row = connection.execute("SELECT version_num FROM alembic_version").fetchone()
+    except sqlite3.Error:
+        return False  # not a CareerPilot database yet: nothing to protect
+    finally:
+        connection.close()
+    return row is not None and row[0] != head

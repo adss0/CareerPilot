@@ -41,6 +41,7 @@ const app = (
   stages: [],
   external_id: "",
   job_summary: {},
+  sponsorship: "unsure",
   next_step: "",
   due_label: "",
   due_level: "",

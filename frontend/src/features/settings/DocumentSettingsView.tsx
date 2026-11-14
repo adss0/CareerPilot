@@ -1,4 +1,4 @@
-// View: the folder where tailored CVs and cover letters are saved as Word + PDF.
+// View: the folder where tailored CVs and cover letters are saved as PDFs.
 import { FolderOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,10 @@ export function DocumentSettingsView(vm: DocumentSettingsViewModel) {
           <FolderOpen className="size-4" /> Saved documents
         </CardTitle>
         <CardDescription>
-          Every tailored CV and cover letter is saved here as Word and PDF, in a{" "}
+          When you apply for a job, its CV and cover letter are saved here as PDFs, in a{" "}
           <span className="text-foreground">CVs</span> and a{" "}
-          <span className="text-foreground">Cover Letters</span> folder with one folder per company.
+          <span className="text-foreground">Cover Letters</span> folder. Nothing is saved while
+          you're still drafting.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
@@ -71,7 +72,7 @@ export function DocumentSettingsView(vm: DocumentSettingsViewModel) {
             disabled={!s || vm.isSaving}
             onChange={(e) => vm.setAutoSave(e.target.checked)}
           />
-          Save automatically whenever a CV or letter is written or edited
+          Save the CV and cover letter when I mark a job as applied
         </label>
       </CardContent>
     </Card>

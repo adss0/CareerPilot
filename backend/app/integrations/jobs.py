@@ -84,8 +84,13 @@ def html_to_text(value: str) -> str:
 def _get(client: httpx.Client, url: str, label: str, method: str = "GET", **kwargs) -> dict:
     try:
         response = client.request(method, url, timeout=TIMEOUT, **kwargs)
+    except httpx.TimeoutException as exc:
+        raise JobBoardError(f"{label} took too long to answer. Try again in a minute.") from exc
     except httpx.HTTPError as exc:
-        raise JobBoardError(f"Couldn't reach {label}. Check your internet connection.") from exc
+        raise JobBoardError(
+            f"Couldn't reach {label} ({type(exc).__name__}). Check your internet connection; "
+            "if other sites work, paste the key again in Settings."
+        ) from exc
     if response.status_code in (401, 403):
         raise JobBoardError(f"{label} didn't accept your key. Paste it again in Settings.")
     if response.status_code == 429:

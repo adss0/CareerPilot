@@ -2,7 +2,7 @@
 
 **Your personal job-application assistant. CareerPilot reads your job list from Excel, writes a tailored cover letter for every job using free AI, sends email applications for you (after you approve them), and tracks every application from "sent" to "offer".**
 
-> ✅ Status: version 1.6. Find jobs, a tracker like your own spreadsheet, and a one-page Apply flow with a tailored CV and cover letter. New here? Read the **[user guide](docs/USER_GUIDE.md)**. Changes are in the [changelog](CHANGELOG.md) and the roadmap is in the [plan](PLAN.md).
+> ✅ Status: version 1.7. Find jobs, a tracker like your own spreadsheet, and a one-page Apply flow with a tailored CV and cover letter. New here? Read the **[user guide](docs/USER_GUIDE.md)**. Changes are in the [changelog](CHANGELOG.md) and the roadmap is in the [plan](PLAN.md).
 
 ---
 
@@ -46,7 +46,7 @@ Applying for jobs is repetitive: copy the job details, rewrite a cover letter, a
 | 👤 | CV upload and parsing into a reusable profile (multiple CV versions supported) |
 | ✍️ | AI cover letters tailored to each job, with tone options, things to highlight and version history |
 | 🎯 | A CV tailored to every job (reworded and reordered, never invented), with an ATS check and score every time |
-| 📁 | Every CV and letter saved as Word + PDF in Documents\CareerPilot, one folder per company |
+| 📁 | The CV and letter saved as PDFs in Documents\CareerPilot when you apply |
 | 📄 | Export letters to PDF and Word |
 | 📤 | Approve-then-send email applications via Gmail, Outlook or any SMTP account, with daily limits |
 | 🧭 | Assisted apply for job portals |

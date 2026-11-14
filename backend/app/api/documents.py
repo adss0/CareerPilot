@@ -1,4 +1,4 @@
-"""Tailored CVs, and the folder where CVs and cover letters are saved as Word + PDF."""
+"""Tailored CVs, and the folder where CVs and cover letters are saved as PDFs."""
 
 from typing import Annotated, Literal
 
@@ -17,7 +17,7 @@ from app.schemas.documents import (
     OpenFolderResult,
     SavedDocuments,
 )
-from app.schemas.tailored_cv import TailoredCvRead, TailoredCvUpdate
+from app.schemas.tailored_cv import TailoredCvRead, TailoredCvUpdate, TailorRequest
 
 router = APIRouter(tags=["documents"])
 
@@ -32,15 +32,18 @@ def get_tailored_cv(application_id: int, service: TailoredCvServiceDep) -> Tailo
     response_model=TailoredCvRead,
     status_code=status.HTTP_201_CREATED,
 )
-def tailor_cv(application_id: int, service: TailoredCvServiceDep) -> TailoredCvRead:
-    return service.generate(application_id)
+def tailor_cv(
+    application_id: int, service: TailoredCvServiceDep, data: TailorRequest | None = None
+) -> TailoredCvRead:
+    data = data or TailorRequest()
+    return service.generate(application_id, data.cv_id, data.style)
 
 
 @router.put("/applications/{application_id}/tailored-cv", response_model=TailoredCvRead)
 def update_tailored_cv(
     application_id: int, data: TailoredCvUpdate, service: TailoredCvServiceDep
 ) -> TailoredCvRead:
-    return service.update(application_id, data.content)
+    return service.update(application_id, data.content, data.style)
 
 
 @router.delete("/applications/{application_id}/tailored-cv", status_code=status.HTTP_204_NO_CONTENT)
@@ -76,9 +79,18 @@ def save_documents(
     cvs: TailoredCvServiceDep,
     letters: LetterServiceDep,
     documents: DocumentsServiceDep,
+    on_apply: bool = False,
 ) -> SavedDocuments:
-    """Saves this job's tailored CV and starred cover letter to the folder right now."""
-    return SavedDocuments(folders=letters.save_documents(application_id, cvs, documents))
+    """Saves this job's tailored CV and starred cover letter as PDFs.
+
+    `on_apply` is the automatic save when a job is marked as applied: it does nothing when
+    that setting is off or there's nothing to save.
+    """
+    if on_apply and not (
+        documents.auto_save and (cvs.find(application_id) or letters.has_letters(application_id))
+    ):
+        return SavedDocuments(files=[])
+    return SavedDocuments(files=letters.save_documents(application_id, cvs, documents))
 
 
 @router.get("/settings/documents", response_model=DocumentSettingsRead)
@@ -102,9 +114,8 @@ def open_documents_folder(
     """Opens the folder in File Explorer (this computer only: the server is local)."""
     folder = None
     if application_id is not None:
-        application = cvs.applications.get(application_id)
         has_cv = cvs.find(application_id) is not None
-        folder = documents.cv_dir(application) if has_cv else documents.letter_dir(application)
+        folder = documents.cv_dir if has_cv else documents.letter_dir
         if not folder.exists():
             folder = None
     return OpenFolderResult(folder=documents.open_folder(folder))

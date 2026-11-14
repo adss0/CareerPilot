@@ -11,6 +11,9 @@ export const getProfile = () => apiGet<Profile>("/profile");
 export const saveProfile = (details: ProfileDetails) =>
   apiSend<Profile>("PUT", "/profile", details);
 
+export const saveMainLetter = (text: string) =>
+  apiSend<Profile>("PUT", "/profile", { main_cover_letter: text });
+
 export const listCvs = () => apiGet<Cv[]>("/cvs");
 
 export function uploadCv(file: File, useAi: boolean): Promise<CvParseResult> {

@@ -1,8 +1,8 @@
 // ViewModel: one application and its cover letters (write, edit, versions, export).
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
-import { savedToast } from "@/features/documents/useTailoredCvViewModel";
 import { fetchHealth } from "@/features/health/api";
 import { getProfile } from "@/features/profile/api";
 import { errorText } from "@/lib/apiClient";
@@ -125,18 +125,18 @@ export function useApplicationDetailViewModel(applicationId: number): Applicatio
       setDraft(null);
       setViewingId(created.id);
       refresh();
-      savedToast(`Version ${created.version} written.`, applicationId, created.saved_to ?? null);
+      toast.success(`Version ${created.version} written.`);
     },
     onError,
   });
 
   const saveMutation = useMutation({
     mutationFn: (changes: Parameters<typeof updateLetter>[1]) => updateLetter(letter!.id, changes),
-    onSuccess: (saved) => {
+    onSuccess: () => {
       setError(null);
       setDraft(null);
       refresh();
-      savedToast("Letter saved.", applicationId, saved.saved_to ?? null);
+      toast.success("Letter saved.");
     },
     onError,
   });

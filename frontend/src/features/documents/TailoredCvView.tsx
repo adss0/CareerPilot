@@ -16,15 +16,57 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 
 import { PreviewDialog } from "@/features/apply/PreviewDialog";
 
-import { tailoredCvExportUrl } from "./api";
+import { CV_STYLE_LABELS, tailoredCvExportUrl, type CvStyle } from "./api";
 import { AtsReportView } from "./AtsReportView";
 import type { TailoredCvViewModel } from "./useTailoredCvViewModel";
 
 const lines = (text: string) => Math.min(8, Math.max(2, text.split("\n").length + 1));
+
+/** Which uploaded CV to build from, and which layout to use. */
+export function CvChoices({ vm, disabled }: { vm: TailoredCvViewModel; disabled?: boolean }) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      <label className="grid gap-1 text-xs font-medium">
+        Based on
+        <NativeSelect
+          aria-label="CV to base it on"
+          disabled={disabled}
+          value={vm.sourceCvId ?? ""}
+          onChange={(e) => vm.setSourceCvId(e.target.value ? Number(e.target.value) : null)}
+        >
+          <option value="">My main CV (my profile)</option>
+          {vm.cvs
+            .filter((cv) => !cv.is_default && cv.has_text)
+            .map((cv) => (
+              <option key={cv.id} value={cv.id}>
+                {cv.label}
+              </option>
+            ))}
+        </NativeSelect>
+      </label>
+      <label className="grid gap-1 text-xs font-medium">
+        Layout
+        <NativeSelect
+          aria-label="CV layout"
+          disabled={disabled}
+          value={vm.style}
+          onChange={(e) => vm.setStyle(e.target.value as CvStyle)}
+        >
+          {Object.entries(CV_STYLE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </NativeSelect>
+      </label>
+    </div>
+  );
+}
 
 export function TailoredCvView(vm: TailoredCvViewModel) {
   const [previewing, setPreviewing] = useState(false);
@@ -47,8 +89,8 @@ export function TailoredCvView(vm: TailoredCvViewModel) {
           </CardTitle>
           <CardDescription>
             The AI rewrites your summary and bullet points and puts the most relevant skills,
-            experience and projects first. It only uses what's in your profile: it never adds jobs,
-            skills or results. When there's a tailored CV, it's sent instead of your uploaded one.
+            experience and projects first, and keeps it to one page. It only uses what's in your
+            profile: it never adds jobs, skills or results.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -66,6 +108,15 @@ export function TailoredCvView(vm: TailoredCvViewModel) {
               {vm.error}
             </p>
           )}
+          <div className="max-w-xl">
+            <CvChoices vm={vm} disabled={vm.isTailoring || vm.isSaving} />
+          </div>
+          {cv && cv.pages > 1 && (
+            <p role="alert" className="text-warning-foreground text-sm font-medium">
+              This CV runs to {cv.pages} pages. Shorten or remove a few bullet points to get it back
+              to one.
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             <Button onClick={vm.tailor} disabled={vm.isTailoring || !vm.aiConfigured}>
               {vm.isTailoring ? <Loader2 className="animate-spin" /> : <Wand2 />}
@@ -79,11 +130,6 @@ export function TailoredCvView(vm: TailoredCvViewModel) {
                 <Button variant="outline" asChild>
                   <a href={tailoredCvExportUrl(vm.applicationId, "pdf")} download>
                     <FileDown /> PDF
-                  </a>
-                </Button>
-                <Button variant="outline" asChild>
-                  <a href={tailoredCvExportUrl(vm.applicationId, "docx")} download>
-                    <FileDown /> Word
                   </a>
                 </Button>
                 <Button variant="outline" onClick={vm.saveToFolder}>
@@ -146,6 +192,10 @@ export function TailoredCvView(vm: TailoredCvViewModel) {
             <CardContent className="space-y-5 text-sm">
               <label className="grid gap-1.5">
                 <span className="font-medium">Profile summary</span>
+                <span className="text-muted-foreground text-xs">
+                  Shown only if your main CV has a Profile section and the layout follows it. Jake's
+                  Resume has no profile paragraph.
+                </span>
                 <Textarea
                   rows={4}
                   value={form.summary}
@@ -238,6 +288,7 @@ export function TailoredCvView(vm: TailoredCvViewModel) {
           title="CV preview"
           kind="cv"
           content={form}
+          style={vm.style}
           onClose={() => setPreviewing(false)}
         />
       )}

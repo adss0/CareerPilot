@@ -34,4 +34,6 @@ def test_cv_preview_uses_unsaved_content(client):
     response = client.post("/api/preview/cv", json={"content": content})
     assert response.status_code == 200
     text = text_of(response.content)
-    assert "edited a moment ago" in text and "Built APIs" in text and "Python, SQL" in text
+    assert "Built APIs" in text and "Python, SQL" in text
+    # Jake's Resume has no profile paragraph, and bullets read back as real bullets.
+    assert "edited a moment ago" not in text and "\x7f" not in text

@@ -1,4 +1,10 @@
-import type { ApplicationStatus, LetterJob, StageKind, Tone } from "./types";
+import type { ApplicationStatus, LetterJob, Sponsorship, StageKind, Tone } from "./types";
+
+export const SPONSORSHIP_LABELS: Record<Sponsorship, string> = {
+  unsure: "Unsure",
+  yes: "Yes",
+  no: "No",
+};
 
 export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   imported: "To apply",

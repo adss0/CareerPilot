@@ -12,11 +12,13 @@ export function PreviewDialog({
   title,
   kind,
   content,
+  style,
   onClose,
 }: {
   title: string;
   kind: "letter" | "cv";
   content: unknown; // the letter's text, or the CV's content
+  style?: string; // the CV's layout
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -52,7 +54,7 @@ export function PreviewDialog({
           title={title}
           url={`${API_BASE}/preview/${kind}`}
           version="draft"
-          body={{ content }}
+          body={style ? { content, style } : { content }}
         />
       </div>
     </div>

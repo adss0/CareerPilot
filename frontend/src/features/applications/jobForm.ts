@@ -1,7 +1,7 @@
 import { parseServerDate } from "@/lib/dates";
 
 import type { ApplicationInput } from "./api";
-import type { Application, ApplicationStatus } from "./types";
+import type { Application, ApplicationStatus, Sponsorship } from "./types";
 
 export interface JobFormValues {
   company: string;
@@ -14,6 +14,7 @@ export interface JobFormValues {
   job_description: string;
   notes: string;
   status: ApplicationStatus;
+  sponsorship: Sponsorship | ""; // "" = work it out from the job ad
   priority: number;
   cv_id: string; // "" = use the default CV
   interview_at: string; // datetime-local value, "" = none
@@ -29,7 +30,8 @@ export const EMPTY_JOB: JobFormValues = {
   contact_email: "",
   job_description: "",
   notes: "",
-  status: "imported",
+  status: "sent", // most jobs added by hand have already been applied for
+  sponsorship: "",
   priority: 0,
   cv_id: "",
   interview_at: "",
@@ -54,6 +56,7 @@ export function toJobValues(a: Application): JobFormValues {
     job_description: a.job_description,
     notes: a.notes,
     status: a.status,
+    sponsorship: a.sponsorship,
     priority: a.priority,
     cv_id: a.cv_id === null ? "" : String(a.cv_id),
     interview_at: a.interview_at ? toLocalInput(a.interview_at) : "",
@@ -67,6 +70,7 @@ export function toJobInput(values: JobFormValues): ApplicationInput {
     role: values.role.trim(),
     job_url: values.job_url.trim(),
     contact_email: values.contact_email.trim(),
+    sponsorship: values.sponsorship || undefined,
     cv_id: values.cv_id ? Number(values.cv_id) : null,
     interview_at: values.interview_at ? new Date(values.interview_at).toISOString() : null,
   };

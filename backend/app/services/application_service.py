@@ -16,7 +16,8 @@ from app.schemas.application import (
 )
 from app.services.excel_export import build_applications_workbook
 from app.services.recycle_bin import RecycleBin
-from app.services.tracker import due_label, next_step, tracker_summary
+from app.services.sponsorship import detect_sponsorship
+from app.services.tracker import GROUPS, due_label, next_step, tracker_summary
 
 # Fields that may be cleared with null; null for any other field is ignored.
 NULLABLE_FIELDS = {
@@ -34,8 +35,14 @@ class ApplicationService:
         self.session = session
         self.repo = ApplicationRepository(session)
 
-    def search(self, **filters) -> tuple[list[Application], int]:
-        return self.repo.search(**filters)
+    def search(self, *, group: str | None = None, **filters) -> tuple[list[Application], int]:
+        """`group` is one of the totals above the tracker (applied, interviews...)."""
+        if not group:
+            return self.repo.search(**filters)
+        limit, offset = filters.pop("limit", 50), filters.pop("offset", 0)
+        everything, _ = self.repo.search(**filters, limit=100_000, offset=0)
+        matching = [a for a in everything if GROUPS[group](a)]
+        return matching[offset : offset + limit], len(matching)
 
     def to_read(self, applications: list[Application]) -> list[ApplicationRead]:
         """Read models including each application's letter count and match score."""
@@ -71,6 +78,7 @@ class ApplicationService:
         values = data.model_dump()
         values["contact_email"] = values["contact_email"] or ""
         values["stages"] = [stage.model_dump(mode="json") for stage in data.stages]
+        values["sponsorship"] = data.sponsorship or detect_sponsorship(data.job_description)
         self._check_cv(values["cv_id"])
         application = self.repo.add(Application(**values))
         self._record_status(application, None, application.status)
@@ -95,6 +103,14 @@ class ApplicationService:
             ]
         if "cv_id" in changes:
             self._check_cv(changes["cv_id"])
+
+        # A new job ad may say what the old one didn't (the user's own choice is kept).
+        if (
+            "job_description" in changes
+            and "sponsorship" not in changes
+            and application.sponsorship == "unsure"
+        ):
+            changes["sponsorship"] = detect_sponsorship(changes["job_description"])
 
         old_status = application.status
         for field, value in changes.items():

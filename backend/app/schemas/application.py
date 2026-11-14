@@ -29,6 +29,9 @@ class Stage(BaseModel):
     note: str = Field(default="", max_length=100)  # e.g. a name for "other", or a time
 
 
+Sponsorship = Literal["yes", "no", "unsure"]
+
+
 def _blank_to_none(value):
     # Treat "" as "not provided" so optional email fields don't fail validation.
     return None if value == "" else value
@@ -51,6 +54,8 @@ class ApplicationBase(BaseModel):
     cv_id: int | None = None  # which CV to send; None = use the default CV
     application_deadline: str = Field(default="", max_length=100)
     stages: list[Stage] = Field(default_factory=list, max_length=20)
+    # None = work it out from the job ad ("unsure" when the ad doesn't say).
+    sponsorship: Sponsorship | None = None
 
     _clean_email = field_validator("contact_email", mode="before")(_blank_to_none)
 
@@ -81,6 +86,7 @@ class ApplicationUpdate(BaseModel):
     cv_id: int | None = None
     application_deadline: str | None = Field(default=None, max_length=100)
     stages: list[Stage] | None = Field(default=None, max_length=20)
+    sponsorship: Sponsorship | None = None
 
     _clean_email = field_validator("contact_email", mode="before")(_blank_to_none)
 
@@ -113,6 +119,7 @@ class ApplicationRead(BaseModel):
     stages: list[Stage]
     external_id: str
     job_summary: dict
+    sponsorship: Sponsorship = "unsure"
     letter_count: int = 0
     match_score: int | None = None  # from the selected cover letter
     next_step: str = ""  # what to do next, worked out from the status and the assessment

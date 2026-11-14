@@ -1,9 +1,12 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
 from app.schemas.ats import AtsReport
 from app.schemas.profile import EducationItem, ExperienceItem, ProjectItem
+
+CvStyle = Literal["own", "jake"]
 
 
 class TailoredContent(BaseModel):
@@ -25,9 +28,19 @@ class TailoredCvRead(BaseModel):
     edited: bool
     created_at: datetime
     updated_at: datetime | None
-    saved_to: str | None = None  # the folder the files were saved in, if saving worked
     ats: AtsReport | None = None  # how applicant-tracking systems will read it
+    style: CvStyle = "jake"
+    source_cv_id: int | None = None  # the uploaded CV it was based on
+    pages: int = 1
 
 
 class TailoredCvUpdate(BaseModel):
     content: TailoredContent
+    style: CvStyle | None = None
+
+
+class TailorRequest(BaseModel):
+    """Which uploaded CV to base it on (None = the main one) and which layout."""
+
+    cv_id: int | None = None
+    style: CvStyle | None = None

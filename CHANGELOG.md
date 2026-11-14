@@ -2,6 +2,30 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.7.0] - 2026-11-14
+
+### Added
+
+- **One-page CVs in the Jake's Resume layout:** the tailored CV is always one page. The AI is told to keep it short, the least relevant points are trimmed from the end if it still runs over, and the text shrinks slightly as a last step. Choose the layout (**your main CV's section order** or **Jake's Resume**) and which of your uploaded CVs it's **based on**.
+- **Main cover letter:** paste a letter you're happy with in Profile. New letters follow its structure, length and voice, rewritten for each job.
+- **Visa sponsorship:** a Yes / No / Unsure column in the tracker, read from the job ad when it says, and "Unsure" when it doesn't.
+- **Clickable totals:** click Applied, Rejected, Assessments done, In progress or Interviews above the tracker to see just those jobs.
+- **Add job from anywhere on the page:** an Add job button stays in the corner of the tracker. It opens a short form (Applied by default) that stays open for the next job, with **Add and build my CV** to go straight to the Apply page.
+- **Continue applying:** leave the Apply page to check your profile and a link in the sidebar brings you back. Editing the CV or letter from the Apply page now returns to it.
+- **A backup before every update:** when a new version changes the database, a full backup is saved first.
+
+### Changed
+
+- **Documents are saved only when you apply, as PDF only.** Clicking **I've applied** saves the CV and cover letter straight into `CVs` and `Cover Letters` (no folder per company, no Word copies, nothing saved for drafts).
+- **A calmer look:** a light sidebar, softer colours, lighter shadows and no glow. Dark mode is still there.
+- Adding a job by hand sets it to **Applied**.
+- Long job descriptions and job panels scroll inside their own box instead of stretching the page.
+- Find jobs explains what a job-board key is when none is saved, and says which board failed when one doesn't answer.
+
+### Fixed
+
+- **Bullet points in CV PDFs** read back as text in every PDF reader (the standard PDF bullet came out as a control character in some, which can confuse applicant-tracking systems).
+
 ## [1.6.0] - 2026-11-14
 
 ### Added
@@ -124,6 +148,7 @@ The first full release.
 
 - 174 backend tests (95% coverage; CI fails under 85%), 52 frontend tests, and an end-to-end browser test of import → letter → approve → send against a fake AI and a local test mail server.
 
+[1.7.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.7.0
 [1.6.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.6.0
 [1.5.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.5.0
 [1.4.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.4.0

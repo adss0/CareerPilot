@@ -11,6 +11,18 @@ export type ApplicationStatus =
   | "rejected"
   | "withdrawn";
 
+export type Sponsorship = "yes" | "no" | "unsure";
+
+/** One of the totals above the tracker; each is also a filter. */
+export type TrackerGroup =
+  | "to_apply"
+  | "applied"
+  | "in_progress"
+  | "assessments_done"
+  | "interviews"
+  | "offers"
+  | "rejected";
+
 export interface Application {
   id: number;
   company: string;
@@ -37,6 +49,7 @@ export interface Application {
   stages: Stage[];
   external_id: string;
   job_summary: Partial<JobSummary>;
+  sponsorship: Sponsorship;
   next_step: string;
   due_label: string; // e.g. "Closes in 3 days"
   due_level: "" | "soon" | "overdue";
@@ -129,7 +142,6 @@ export interface Letter {
   edited: boolean;
   created_at: string;
   updated_at: string | null;
-  saved_to?: string | null; // folder the Word + PDF copies were saved in
 }
 
 export interface LetterJob {

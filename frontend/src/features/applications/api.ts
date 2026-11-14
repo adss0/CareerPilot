@@ -10,6 +10,7 @@ import type {
   Letter,
   LetterJob,
   Tone,
+  TrackerGroup,
   TrackerSummary,
 } from "./types";
 
@@ -23,10 +24,12 @@ export function listApplications(params: {
   limit: number;
   offset: number;
   hideClosed?: boolean;
+  group?: TrackerGroup | "";
 }): Promise<ApplicationPage> {
   const query = new URLSearchParams({ limit: String(params.limit), offset: String(params.offset) });
   if (params.hideClosed) query.set("hide_closed", "true");
   if (params.status) query.set("status", params.status);
+  if (params.group) query.set("group", params.group);
   if (params.search?.trim()) query.set("search", params.search.trim());
   if (params.sort) query.set("sort", params.sort);
   return apiGet<ApplicationPage>(`/applications?${query}`);
@@ -52,6 +55,7 @@ export type ApplicationInput = Partial<
     | "interview_at"
     | "application_deadline"
     | "stages"
+    | "sponsorship"
   >
 >;
 
