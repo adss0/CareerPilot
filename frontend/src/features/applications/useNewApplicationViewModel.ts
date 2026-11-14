@@ -31,7 +31,7 @@ export function useNewApplicationViewModel(): NewApplicationViewModel {
     onSuccess: (created) => {
       void queryClient.invalidateQueries({ queryKey: ["applications"] });
       toast.success(`Added ${created.company}.`);
-      navigate(`/applications/${created.id}`);
+      navigate("/applications");
     },
     onError: (e) => toast.error(errorText(e)),
   });

@@ -90,7 +90,13 @@ class LetterService:
             raise BadRequestError(PROFILE_TOO_EMPTY)
 
         written = write_letter(
-            self.ai, profile, application, tone, instructions, highlights or []
+            self.ai,
+            profile,
+            application,
+            tone,
+            instructions,
+            highlights or [],
+            example=ProfileService(self.session).get().main_cover_letter,
         )  # may raise AIError
 
         self.repo.unselect_all(application_id)
@@ -116,7 +122,7 @@ class LetterService:
                 application_id, ApplicationUpdate(status=ApplicationStatus.DRAFTED)
             )
         self.session.refresh(letter)
-        return self._with_saved(to_read(letter), profile)
+        return to_read(letter)
 
     def update(self, letter_id: int, data: LetterUpdate) -> LetterRead:
         letter = self.get(letter_id)
@@ -137,8 +143,7 @@ class LetterService:
         self.session.add(letter)
         self.session.commit()
         self.session.refresh(letter)
-        read = to_read(letter)
-        return self._with_saved(read, self._profile()) if letter.is_selected else read
+        return to_read(letter)
 
     def delete(self, letter_id: int) -> None:
         letter = self.get(letter_id)
@@ -163,10 +168,10 @@ class LetterService:
         return content, filename, media_type
 
     def save_documents(self, application_id: int, cvs, documents: DocumentsService) -> list[str]:
-        """Saves the tailored CV and the starred letter as Word + PDF. Returns the folders."""
+        """Saves the tailored CV and the starred letter as PDFs. Returns the files."""
         application = self.applications.get(application_id)
         profile = self._profile()
-        folders: list[str] = []
+        files: list[str] = []
         tailored = cvs.find(application_id)
         letters = self.repo.for_application(application_id)
         letter = next((x for x in letters if x.is_selected), letters[0] if letters else None)
@@ -175,22 +180,15 @@ class LetterService:
         try:
             if tailored is not None:
                 content = TailoredContent(**tailored.content)
-                folders.append(str(documents.save_cv(application, content, profile)))
+                layout = cvs.layout(tailored.style)
+                files.append(str(documents.save_cv(application, content, profile, layout)))
             if letter is not None:
-                folders.append(str(documents.save_letter(application, letter.content, profile)))
+                files.append(str(documents.save_letter(application, letter.content, profile)))
         except OSError as exc:
             raise BadRequestError(
-                "Couldn't save the files. If one is open in Word, close it and try again."
+                "Couldn't save the files. If one is open in another app, close it and try again."
             ) from exc
-        return folders
-
-    def _with_saved(self, read: LetterRead, profile: ProfileDetails) -> LetterRead:
-        application = self.applications.get(read.application_id)
-        documents = DocumentsService(self.session)
-        read.saved_to = documents.try_auto_save(
-            documents.save_letter, application, read.content, profile
-        )
-        return read
+        return files
 
     def _profile(self) -> ProfileDetails:
         return ProfileDetails(

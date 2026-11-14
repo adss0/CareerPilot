@@ -4,6 +4,7 @@ Interview stages (online test, video interview, assessment centre...) drive most
 next upcoming stage is what you do next, and its date is what's due.
 """
 
+from collections.abc import Callable
 from datetime import date
 
 from app.models import Application, ApplicationStatus
@@ -92,34 +93,38 @@ def next_step(application: Application, today: date | None = None) -> str:
     return "Wait for a reply"
 
 
-def tracker_summary(applications: list[Application]) -> TrackerSummary:
-    def count(statuses: set[ApplicationStatus]) -> int:
-        return sum(a.status in statuses for a in applications)
-
-    open_ = [a for a in applications if a.status not in CLOSED | NOT_APPLIED]
-    return TrackerSummary(
-        total=len(applications),
-        to_apply=count(NOT_APPLIED),
-        # Applied and still waiting (like a tracker's "Applied" column: rejections are separate).
-        applied=count(WAITING),
-        # Still alive and moving: a stage coming up, a reply, or an interview.
-        in_progress=sum(
-            next_stage(a) is not None
-            or a.status in {ApplicationStatus.REPLIED, ApplicationStatus.INTERVIEW}
-            for a in open_
-        ),
-        assessments_done=sum(
-            any(s.kind in TESTS and s.result != "upcoming" for s in stages(a)) for a in applications
-        ),
-        # Reached an interview: an interview stage, or the Interview/Offer status.
-        interviews=sum(
-            a.status in {ApplicationStatus.INTERVIEW, ApplicationStatus.OFFER}
-            or any(s.kind in INTERVIEWS for s in stages(a))
-            for a in applications
-        ),
-        offers=count({ApplicationStatus.OFFER}),
-        rejected=count({ApplicationStatus.REJECTED}),
+def _in_progress(a: Application) -> bool:
+    """Still alive and moving: a stage coming up, a reply, or an interview."""
+    return a.status not in CLOSED | NOT_APPLIED and (
+        next_stage(a) is not None
+        or a.status in {ApplicationStatus.REPLIED, ApplicationStatus.INTERVIEW}
     )
+
+
+def _reached_interview(a: Application) -> bool:
+    return a.status in {ApplicationStatus.INTERVIEW, ApplicationStatus.OFFER} or any(
+        s.kind in INTERVIEWS for s in stages(a)
+    )
+
+
+# The totals above the tracker. Each is also a filter for the list underneath.
+GROUPS: dict[str, Callable[[Application], bool]] = {
+    "to_apply": lambda a: a.status in NOT_APPLIED,
+    # Applied and still waiting (like a tracker's "Applied" column: rejections are separate).
+    "applied": lambda a: a.status in WAITING,
+    "in_progress": _in_progress,
+    "assessments_done": lambda a: any(
+        s.kind in TESTS and s.result != "upcoming" for s in stages(a)
+    ),
+    "interviews": _reached_interview,
+    "offers": lambda a: a.status == ApplicationStatus.OFFER,
+    "rejected": lambda a: a.status == ApplicationStatus.REJECTED,
+}
+
+
+def tracker_summary(applications: list[Application]) -> TrackerSummary:
+    counts = {name: sum(map(rule, applications)) for name, rule in GROUPS.items()}
+    return TrackerSummary(total=len(applications), **counts)
 
 
 def _when(days: int) -> str:

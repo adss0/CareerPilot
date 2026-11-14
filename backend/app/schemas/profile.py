@@ -57,6 +57,7 @@ class ProfileUpdate(BaseModel):
     experience: list[ExperienceItem] | None = Field(default=None, max_length=30)
     education: list[EducationItem] | None = Field(default=None, max_length=20)
     projects: list[ProjectItem] | None = Field(default=None, max_length=30)
+    main_cover_letter: str | None = Field(default=None, max_length=10_000)
 
     @field_validator("email", mode="before")
     @classmethod
@@ -68,4 +69,6 @@ class ProfileRead(ProfileDetails):
     model_config = ConfigDict(from_attributes=True)
 
     has_cv: bool
+    # The user's own cover letter. New letters follow its structure and voice.
+    main_cover_letter: str = ""
     updated_at: datetime

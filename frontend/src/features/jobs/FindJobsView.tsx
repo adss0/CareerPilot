@@ -40,11 +40,13 @@ function SetupCard() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <KeyRound className="text-primary size-4" /> Connect a job board (free)
+          <KeyRound className="text-primary size-4" /> No job board is connected yet
         </CardTitle>
         <CardDescription>
-          CareerPilot lists jobs from job boards' official free APIs. Get a key from one or more,
-          then paste it in Settings → Keys & passwords.
+          Searching needs a free key from at least one job board (it's how the board lets
+          CareerPilot list its jobs). Open a board below, sign up, copy the key it gives you and
+          paste it in Settings → Keys & passwords. You only do this once: the key is kept on this
+          computer. You can also search the sites on the right without any key.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
@@ -222,7 +224,7 @@ function JobRow({
 function DetailsPanel({ vm }: { vm: FindJobsViewModel }) {
   const d = vm.details;
   return (
-    <Card className="lg:sticky lg:top-6">
+    <Card className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
       <CardHeader className="gap-1">
         <div className="flex items-start justify-between gap-2">
           <div>
@@ -303,7 +305,7 @@ function DetailsPanel({ vm }: { vm: FindJobsViewModel }) {
 
             <details className="text-sm">
               <summary className="cursor-pointer font-semibold">Full job description</summary>
-              <p className="text-muted-foreground mt-2 max-h-96 overflow-y-auto whitespace-pre-wrap">
+              <p className="text-muted-foreground mt-2 max-h-72 overflow-y-auto rounded-lg border p-3 whitespace-pre-wrap">
                 {d.description || "The board didn't share a description."}
               </p>
             </details>
@@ -320,7 +322,7 @@ export function FindJobsView(vm: FindJobsViewModel) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight">Find jobs</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Find jobs</h1>
         <p className="text-muted-foreground mt-1">
           Jobs from UK job boards, summarised for you. Pick one to get a tailored CV and cover
           letter, then apply on the employer's site.
@@ -374,11 +376,17 @@ export function FindJobsView(vm: FindJobsViewModel) {
           {vm.error}
         </p>
       )}
-      {result?.problems.map((p) => (
-        <p key={p} role="status" className="text-warning-foreground text-sm">
-          {p}
-        </p>
-      ))}
+      {result && result.problems.length > 0 && (
+        <div
+          role="status"
+          className="border-warning-border bg-warning text-warning-foreground rounded-lg border px-4 py-2.5 text-sm"
+        >
+          {result.problems.map((p) => (
+            <p key={p}>{p}</p>
+          ))}
+          {result.jobs.length > 0 && <p>The jobs below are from the boards that did answer.</p>}
+        </div>
+      )}
 
       <div
         className={cn(

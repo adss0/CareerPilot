@@ -25,7 +25,7 @@ from app.api import (
 from app.api import settings as settings_api
 from app.api.deps import get_email_queue, get_reply_checker
 from app.core.config import get_settings
-from app.core.db import run_migrations
+from app.core.db import needs_upgrade, run_migrations
 from app.core.errors import BadRequestError, NotFoundError
 from app.core.security import LocalSecurityMiddleware
 from app.integrations.ai import AIError, AIRateLimitError
@@ -35,7 +35,10 @@ from app.services.spreadsheet_reader import SpreadsheetError
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     get_settings().db_file.parent.mkdir(parents=True, exist_ok=True)  # first run: no folder yet
-    backup.get_backup_service().apply_pending()  # a restore staged before the restart
+    backups = backup.get_backup_service()
+    backups.apply_pending()  # a restore staged before the restart
+    if needs_upgrade(get_settings().db_file):
+        backups.save_backup("before-update")  # a new version is about to change the data
     run_migrations()  # also upgrades a backup made by an older version
     email_queue = get_email_queue()
     email_queue.start()  # sends approved emails in the background

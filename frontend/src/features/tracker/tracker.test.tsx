@@ -36,6 +36,7 @@ const job = (overrides: Partial<Application> = {}): Application => ({
   stages: [{ kind: "online_test", date: "2026-11-25", result: "upcoming", note: "" }],
   external_id: "",
   job_summary: {},
+  sponsorship: "unsure",
   next_step: "Do the assessment by 25 Nov",
   due_label: "",
   due_level: "",
@@ -61,6 +62,8 @@ function trackerVm(overrides: Partial<TrackerViewModel> = {}): TrackerViewModel 
     error: null,
     search: "",
     status: "",
+    group: "",
+    setGroup: vi.fn(),
     sort: "created_at",
     hideClosed: false,
     selected: null,
@@ -163,6 +166,36 @@ describe("TrackerView", () => {
   });
 });
 
+describe("totals and sponsorship", () => {
+  it("filters by a total when it's clicked, and clears it when clicked again", () => {
+    const vm = trackerVm();
+    const { rerender } = renderIn(<TrackerView {...vm} />);
+    fireEvent.click(screen.getByRole("button", { name: /Rejected/ }));
+    expect(vm.setGroup).toHaveBeenLastCalledWith("rejected");
+    expect(vm.setStatus).toHaveBeenLastCalledWith("");
+
+    const filtered = trackerVm({ group: "rejected" });
+    rerender(
+      <MemoryRouter>
+        <TrackerView {...filtered} />
+      </MemoryRouter>,
+    );
+    const tile = screen.getByRole("button", { name: /Rejected/ });
+    expect(tile).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(tile);
+    expect(filtered.setGroup).toHaveBeenLastCalledWith("");
+  });
+
+  it("has a sponsorship column that saves straight away", () => {
+    const vm = trackerVm();
+    renderIn(<TrackerView {...vm} />);
+    const select = screen.getByLabelText("Visa sponsorship for Acme Ltd – Graduate Developer");
+    expect(select).toHaveValue("unsure");
+    fireEvent.change(select, { target: { value: "yes" } });
+    expect(vm.update).toHaveBeenCalledWith(1, { sponsorship: "yes" });
+  });
+});
+
 describe("deleting", () => {
   it("deletes selected rows", () => {
     const vm = trackerVm({ checked: new Set([1]) });
@@ -252,7 +285,7 @@ describe("FindJobsView", () => {
         {...findVm({ result: { jobs: [], boards: [], problems: [], needs_setup: true } })}
       />,
     );
-    expect(screen.getByText("Connect a job board (free)")).toBeInTheDocument();
+    expect(screen.getByText("No job board is connected yet")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Jooble" })).toBeInTheDocument();
   });
 

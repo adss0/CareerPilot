@@ -25,13 +25,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { BoardView } from "@/features/applications/BoardView";
-import { STATUS_LABELS, statusVariant } from "@/features/applications/labels";
-import type { Application, ApplicationStatus } from "@/features/applications/types";
+import { SPONSORSHIP_LABELS, STATUS_LABELS, statusVariant } from "@/features/applications/labels";
+import type {
+  Application,
+  ApplicationStatus,
+  Sponsorship,
+  TrackerGroup,
+} from "@/features/applications/types";
 import { JobSummaryView } from "@/features/jobs/JobSummaryView";
 import { API_BASE } from "@/lib/apiClient";
 import { cn } from "@/lib/utils";
 
 import { jobLink } from "./jobLink";
+import { QuickAddJob } from "./QuickAddJob";
 import { StagesCell } from "./StagesCell";
 import type { TrackerViewModel } from "./useTrackerViewModel";
 
@@ -49,27 +55,47 @@ function statusTone(status: ApplicationStatus): string {
 
 function Totals({ vm }: { vm: TrackerViewModel }) {
   const s = vm.summary;
-  const tiles = [
-    ["Total applications", s?.total, "bg-foreground"],
-    ["Applied", s?.applied, "bg-info"],
-    ["Rejected", s?.rejected, "bg-destructive"],
-    ["Assessments done", s?.assessments_done, "bg-success"],
-    ["In progress", s?.in_progress, "bg-warning-border"],
-    ["Interviews", s?.interviews, "bg-primary"],
-  ] as const;
+  const tiles: [string, number | undefined, string, TrackerGroup | ""][] = [
+    ["Total applications", s?.total, "bg-foreground/70", ""],
+    ["Applied", s?.applied, "bg-info", "applied"],
+    ["Rejected", s?.rejected, "bg-destructive", "rejected"],
+    ["Assessments done", s?.assessments_done, "bg-success", "assessments_done"],
+    ["In progress", s?.in_progress, "bg-warning-border", "in_progress"],
+    ["Interviews", s?.interviews, "bg-primary", "interviews"],
+  ];
+  // Each total is a button: click it to see just those jobs, click again for all of them.
   return (
-    <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-      {tiles.map(([label, value, bar]) => (
-        <div
-          key={label}
-          className="bg-card shadow-card relative overflow-hidden rounded-xl border px-4 py-3"
-        >
-          <span className={cn("absolute inset-y-0 left-0 w-1", bar)} aria-hidden />
-          <dt className="text-muted-foreground text-xs font-semibold">{label}</dt>
-          <dd className="text-3xl font-extrabold tracking-tight tabular-nums">{value ?? "–"}</dd>
-        </div>
-      ))}
-    </dl>
+    <div
+      role="group"
+      aria-label="Totals: click one to filter"
+      className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"
+    >
+      {tiles.map(([label, value, bar, group]) => {
+        const active = vm.group === group && (group !== "" || !vm.status);
+        return (
+          <button
+            key={label}
+            type="button"
+            aria-pressed={active}
+            title={group ? `Show only: ${label}` : "Show every job"}
+            onClick={() => {
+              vm.setStatus("");
+              vm.setGroup(vm.group === group ? "" : group);
+            }}
+            className={cn(
+              "bg-card shadow-card hover:border-primary/50 relative overflow-hidden rounded-xl border px-4 py-3 text-left transition-colors",
+              active && group !== "" && "border-primary ring-primary/30 ring-2",
+            )}
+          >
+            <span className={cn("absolute inset-y-0 left-0 w-1", bar)} aria-hidden />
+            <span className="text-muted-foreground block text-xs font-semibold">{label}</span>
+            <span className="block text-2xl font-bold tracking-tight tabular-nums">
+              {value ?? "–"}
+            </span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -77,8 +103,8 @@ function TrackerTable({ vm }: { vm: TrackerViewModel }) {
   const cell = "px-2 py-1.5 align-middle";
   return (
     <div className="bg-card shadow-card overflow-x-auto rounded-2xl border">
-      <table className="w-full min-w-[900px] text-sm">
-        <thead className="bg-sidebar text-left text-xs tracking-wide text-white uppercase">
+      <table className="w-full min-w-[1000px] text-sm">
+        <thead className="bg-muted text-muted-foreground text-left text-xs tracking-wide uppercase">
           <tr>
             <th className={cn(cell, "w-10 pl-4")}>
               <input
@@ -93,6 +119,7 @@ function TrackerTable({ vm }: { vm: TrackerViewModel }) {
             <th className={cn(cell, "font-medium")}>Role</th>
             <th className={cn(cell, "w-36 font-medium")}>Application deadline</th>
             <th className={cn(cell, "w-36 font-medium")}>Status</th>
+            <th className={cn(cell, "w-28 font-medium")}>Sponsorship</th>
             <th className={cn(cell, "min-w-56 font-medium")}>Stages</th>
             <th className={cn(cell, "pr-4 font-medium")}>Next step</th>
           </tr>
@@ -155,6 +182,25 @@ function TrackerTable({ vm }: { vm: TrackerViewModel }) {
                 </NativeSelect>
               </td>
               <td className={cell} onClick={(e) => e.stopPropagation()}>
+                <NativeSelect
+                  aria-label={`Visa sponsorship for ${a.company} – ${a.role}`}
+                  className={cn(
+                    "h-8",
+                    a.sponsorship === "yes" && "text-success font-semibold",
+                    a.sponsorship === "no" && "text-destructive font-semibold",
+                    a.sponsorship === "unsure" && "text-muted-foreground",
+                  )}
+                  value={a.sponsorship}
+                  onChange={(e) => vm.update(a.id, { sponsorship: e.target.value as Sponsorship })}
+                >
+                  {Object.entries(SPONSORSHIP_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </td>
+              <td className={cell} onClick={(e) => e.stopPropagation()}>
                 <StagesCell
                   stages={a.stages}
                   label={`${a.company} – ${a.role}`}
@@ -183,17 +229,12 @@ function TrackerTable({ vm }: { vm: TrackerViewModel }) {
 function SelectionBar({ vm }: { vm: TrackerViewModel }) {
   if (vm.checked.size === 0) return null;
   return (
-    <div className="bg-sidebar text-sidebar-foreground shadow-lift sticky top-3 z-20 flex flex-wrap items-center gap-3 rounded-xl px-4 py-2.5 text-sm">
-      <span className="font-semibold text-white">{vm.checked.size} selected</span>
+    <div className="bg-card shadow-lift sticky top-3 z-20 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-2.5 text-sm">
+      <span className="font-semibold">{vm.checked.size} selected</span>
       <Button size="sm" variant="destructive" onClick={vm.deleteChecked}>
         <Trash2 /> Delete selected
       </Button>
-      <Button
-        size="sm"
-        variant="ghost"
-        className="hover:bg-white/10 hover:text-white"
-        onClick={vm.clearChecked}
-      >
+      <Button size="sm" variant="ghost" onClick={vm.clearChecked}>
         Clear
       </Button>
     </div>
@@ -299,7 +340,7 @@ function SidePanel({ vm, job }: { vm: TrackerViewModel; job: Application }) {
   const summary = job.job_summary ?? {};
   const hasSummary = Boolean(summary.summary);
   return (
-    <Card className="lg:sticky lg:top-6">
+    <Card className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
       <CardHeader className="gap-1">
         <div className="flex items-start justify-between gap-2">
           <div>
@@ -316,6 +357,7 @@ function SidePanel({ vm, job }: { vm: TrackerViewModel; job: Application }) {
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <Badge variant={statusVariant(job.status)}>{STATUS_LABELS[job.status]}</Badge>
           {job.salary && <Badge variant="outline">{job.salary}</Badge>}
+          <Badge variant="outline">Sponsorship: {SPONSORSHIP_LABELS[job.sponsorship]}</Badge>
         </div>
         {job.next_step && (
           <p className="pt-1 text-sm">
@@ -390,13 +432,19 @@ function SidePanel({ vm, job }: { vm: TrackerViewModel; job: Application }) {
 
 export function TrackerView(vm: TrackerViewModel) {
   const [confirmAll, setConfirmAll] = useState(false);
+  const [adding, setAdding] = useState(false);
   const empty =
-    !vm.isLoading && vm.items.length === 0 && !vm.search && !vm.status && !vm.hideClosed;
+    !vm.isLoading &&
+    vm.items.length === 0 &&
+    !vm.search &&
+    !vm.status &&
+    !vm.group &&
+    !vm.hideClosed;
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Applications</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Applications</h1>
           <p className="text-muted-foreground">
             Your job tracker. Change any cell and it saves straight away.
           </p>
@@ -407,10 +455,8 @@ export function TrackerView(vm: TrackerViewModel) {
               <Search /> Find jobs
             </Link>
           </Button>
-          <Button variant="outline" asChild>
-            <Link to="/applications/new">
-              <Plus /> Add job
-            </Link>
+          <Button variant="outline" onClick={() => setAdding(true)}>
+            <Plus /> Add job
           </Button>
           <Button variant="outline" asChild>
             <Link to="/import">
@@ -426,6 +472,16 @@ export function TrackerView(vm: TrackerViewModel) {
       </div>
 
       <Totals vm={vm} />
+
+      {adding && <QuickAddJob onClose={() => setAdding(false)} />}
+      {/* Always on screen, however far down a long list you are. */}
+      <Button
+        className="shadow-lift fixed right-6 bottom-6 z-30 rounded-full"
+        size="lg"
+        onClick={() => setAdding(true)}
+      >
+        <Plus /> Add job
+      </Button>
 
       {vm.showBin && <RecycleBin vm={vm} />}
       {confirmAll && <DeleteEverything vm={vm} onClose={() => setConfirmAll(false)} />}
@@ -460,7 +516,10 @@ export function TrackerView(vm: TrackerViewModel) {
               <NativeSelect
                 aria-label="Filter by status"
                 value={vm.status}
-                onChange={(e) => vm.setStatus(e.target.value as ApplicationStatus | "")}
+                onChange={(e) => {
+                  vm.setGroup("");
+                  vm.setStatus(e.target.value as ApplicationStatus | "");
+                }}
               >
                 <option value="">All statuses</option>
                 {STATUSES.map(([value, label]) => (

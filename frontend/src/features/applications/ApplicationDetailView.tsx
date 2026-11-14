@@ -1,5 +1,5 @@
 // View: one job, its cover letters, and how well the profile matches it.
-import { ArrowLeft, ExternalLink, Loader2, PenLine, Sparkles } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, PenLine, Send, Sparkles } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
@@ -52,20 +52,27 @@ export function ApplicationDetailView({
   }
 
   const a = vm.application;
+  // Opened from the Apply page (to edit the CV or letter)? Then that's where Back goes.
+  const fromApply = searchParams.get("from") === "apply";
   const safeLink = /^https?:\/\//i.test(a.job_url) ? a.job_url : null;
 
   return (
     <div className="max-w-6xl space-y-6">
       <div className="space-y-2">
         <Link
-          to="/applications"
+          to={fromApply ? `/applications/${a.id}/apply` : "/applications"}
           className="text-muted-foreground inline-flex items-center gap-1 text-sm hover:underline"
         >
-          <ArrowLeft className="size-4" /> Applications
+          <ArrowLeft className="size-4" /> {fromApply ? "Back to Apply" : "Applications"}
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl font-extrabold tracking-tight">{a.role}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{a.role}</h1>
           <Badge variant={statusVariant(a.status)}>{STATUS_LABELS[a.status]}</Badge>
+          <Button size="sm" variant="outline" className="ml-auto" asChild>
+            <Link to={`/applications/${a.id}/apply`}>
+              <Send /> Apply page
+            </Link>
+          </Button>
         </div>
         <p className="text-muted-foreground">
           {a.company}

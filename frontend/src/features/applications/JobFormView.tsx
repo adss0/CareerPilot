@@ -5,8 +5,8 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 
 import type { JobFormValues } from "./jobForm";
-import { STATUS_LABELS } from "./labels";
-import type { ApplicationStatus } from "./types";
+import { SPONSORSHIP_LABELS, STATUS_LABELS } from "./labels";
+import type { ApplicationStatus, Sponsorship } from "./types";
 
 interface JobFormViewProps {
   values: JobFormValues;
@@ -70,6 +70,19 @@ export function JobFormView({ values, problems, cvs, onChange }: JobFormViewProp
           ))}
         </NativeSelect>
       </Field>
+      <Field label="Visa sponsorship">
+        <NativeSelect
+          value={values.sponsorship}
+          onChange={(e) => onChange({ sponsorship: e.target.value as Sponsorship | "" })}
+        >
+          {values.sponsorship === "" && <option value="">Work it out from the job ad</option>}
+          {Object.entries(SPONSORSHIP_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </NativeSelect>
+      </Field>
       <Field label="Priority">
         <NativeSelect
           value={values.priority}
@@ -103,6 +116,7 @@ export function JobFormView({ values, problems, cvs, onChange }: JobFormViewProp
       <Field label="Job description" wide>
         <Textarea
           rows={8}
+          className="max-h-72 overflow-y-auto"
           value={values.job_description}
           placeholder="Paste the job advert here. The AI uses it to tailor your letter."
           onChange={(e) => onChange({ job_description: e.target.value })}
