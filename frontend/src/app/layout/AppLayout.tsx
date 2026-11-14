@@ -15,6 +15,8 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { useTheme, type ThemeChoice } from "@/app/themeContext";
 import { readApplying } from "@/features/apply/applying";
+import { useAddJobDialog } from "@/features/tracker/addJob";
+import { QuickAddJob } from "@/features/tracker/QuickAddJob";
 import { useDesktopNotifications } from "@/features/tracking/useDesktopNotifications";
 import { cn } from "@/lib/utils";
 
@@ -111,9 +113,11 @@ function ContinueApplying() {
 export function AppLayout() {
   const notifications = useDesktopNotifications();
   const unseen = notifications?.unseen_replies ?? 0;
+  const [addingJob, closeAddJob] = useAddJobDialog();
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <UpdateNotifier />
+      {addingJob && <QuickAddJob onClose={closeAddJob} />}
       <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border flex flex-col border-b md:sticky md:top-0 md:h-screen md:w-60 md:shrink-0 md:border-r md:border-b-0">
         <div className="flex items-center justify-between gap-2 px-5 py-5">
           <Logo />

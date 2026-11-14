@@ -34,8 +34,10 @@ export function MainLetterView() {
           <FileText className="size-4" /> Main cover letter
         </CardTitle>
         <CardDescription>
-          Paste a cover letter you're happy with. Every new letter then follows its structure,
-          length and voice, rewritten for each job. Leave it empty to let the AI choose.
+          Paste your own cover letter or template. Every new letter keeps your paragraphs and
+          wording, fills any gaps you've left in [square brackets] from the job ad, picks one of any
+          options you've listed, and leaves out notes to yourself. Leave it empty to let the AI
+          write from scratch.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">

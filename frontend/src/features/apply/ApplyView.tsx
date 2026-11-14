@@ -30,6 +30,7 @@ import { CvChoices } from "@/features/documents/TailoredCvView";
 import { jobLink } from "@/features/tracker/jobLink";
 import { cn } from "@/lib/utils";
 
+import { AutofillView } from "./AutofillView";
 import { PdfPreview } from "./PdfPreview";
 import type { ApplyViewModel } from "./useApplyViewModel";
 
@@ -363,8 +364,8 @@ export function ApplyView(vm: ApplyViewModel) {
         done={applied}
         description={
           <>
-            Opens the job in your browser. Websites don't let other apps type into their forms, so
-            your details are below with copy buttons: one click each.
+            Opens the job in your browser. Set up the auto-fill button once to fill forms in a
+            click, or use the copy buttons below.
           </>
         }
       >
@@ -378,6 +379,7 @@ export function ApplyView(vm: ApplyViewModel) {
             This job has no link, so this opens a web search for it.
           </p>
         )}
+        {profile && <AutofillView profile={profile} />}
         <div className="rounded-lg border px-3 py-1">
           <CopyRow label="Full name" value={profile?.full_name ?? ""} onCopy={vm.copy} />
           <CopyRow label="Email" value={profile?.email ?? ""} onCopy={vm.copy} />

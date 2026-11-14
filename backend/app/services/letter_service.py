@@ -96,7 +96,7 @@ class LetterService:
             tone,
             instructions,
             highlights or [],
-            example=ProfileService(self.session).get().main_cover_letter,
+            template=self._main_letter(),
         )  # may raise AIError
 
         self.repo.unselect_all(application_id)
@@ -190,6 +190,9 @@ class LetterService:
             ) from exc
         return files
 
+    def _main_letter(self) -> str:
+        return ProfileService(self.session).get().main_cover_letter
+
     def _profile(self) -> ProfileDetails:
         return ProfileDetails(
             **ProfileService(self.session)
@@ -199,5 +202,7 @@ class LetterService:
 
     def _check(self, text: str, profile: ProfileDetails, application_id: int) -> list[str]:
         application = self.applications.get(application_id)
-        profile_text = json.dumps(profile_for_prompt(profile), ensure_ascii=False)
+        # The main cover letter is the user's own words, so its facts count as theirs.
+        facts = json.dumps(profile_for_prompt(profile), ensure_ascii=False)
+        profile_text = f"{facts} {self._main_letter()}"
         return check_letter(text, profile_text=profile_text, job_text=job_text(application))

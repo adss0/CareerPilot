@@ -7,6 +7,7 @@ import type {
   ApplicationStatus,
   BinItem,
   DueItem,
+  DuplicateJob,
   Letter,
   LetterJob,
   Tone,
@@ -58,6 +59,9 @@ export type ApplicationInput = Partial<
     | "sponsorship"
   >
 >;
+
+export const findDuplicates = (job: { company: string; role: string; job_url: string }) =>
+  apiGet<DuplicateJob[]>(`/applications/duplicates?${new URLSearchParams(job)}`);
 
 export const getDue = (days = 7) => apiGet<DueItem[]>(`/applications/due?days=${days}`);
 

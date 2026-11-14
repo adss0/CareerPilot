@@ -31,6 +31,7 @@ from app.schemas.jobs import (
 from app.services.application_service import ApplicationService
 from app.services.import_service import normalize_url
 from app.services.job_summary import extract_job, summarize_job
+from app.services.sponsorship import detect_sponsorship
 from app.services.tailored_cv_service import load_profile
 
 NO_AI = "AI isn't set up yet. Add your Gemini key in Settings to summarise jobs."
@@ -241,6 +242,7 @@ class JobService:
             salary=(found.get("salary") or "")[:100],
             application_deadline=(found.get("deadline") or "")[:100],
             source="pasted",
+            sponsorship=detect_sponsorship(text),
             job_summary=summary.model_dump() if summary else {},
             status=ApplicationStatus.IMPORTED,
         )
@@ -266,6 +268,7 @@ class JobService:
             location=details.location[:200],
             salary=details.salary[:100],
             source=details.source,
+            sponsorship=detect_sponsorship(details.description),
             external_id=job_id[:100],
             application_deadline=details.closes[:100],
             job_summary=summary.model_dump() if summary else {},

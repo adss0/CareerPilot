@@ -55,6 +55,15 @@ export interface Application {
   due_level: "" | "soon" | "overdue";
 }
 
+/** A job already in the tracker that looks like the one being added. */
+export interface DuplicateJob {
+  id: number;
+  company: string;
+  role: string;
+  status: ApplicationStatus;
+  same_link: boolean;
+}
+
 export interface DueItem {
   application_id: number;
   company: string;

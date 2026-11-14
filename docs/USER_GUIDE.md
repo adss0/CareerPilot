@@ -121,11 +121,15 @@ Open a job and go to the **Cover letter** tab.
 
 **ATS check:** every tailored CV gets a score out of 100 and a checklist showing how applicant-tracking systems will read it: whether the PDF reads back as text, which of the job's keywords it covers (and which ones are in your profile but missing from this CV), contact details, sections, length, bullet points, numbers and dates. It runs again every time you tailor or save.
 
-**Preview:** the **Preview** button on the cover letter and the tailored CV shows the finished PDF, including changes you haven't saved yet.
+**Preview:** the Tailored CV tab shows the finished PDF beside the editor and redraws it as you type, with a warning if it runs past one page. The **Preview** button on the cover letter and the CV opens the same PDF larger.
 
 **Downloads:** every download shows a message when it's done. In the desktop app the file is saved in your Downloads folder, with **Open** and **Show in folder** buttons.
 
-**Main cover letter:** paste a cover letter you're happy with in **Profile → Main cover letter**. Every new letter follows its structure, length and voice.
+**Main cover letter:** paste your own cover letter or template in **Profile → Main cover letter**. Every new letter keeps your paragraphs and wording. Gaps you leave in `[square brackets]` are filled from the job ad, one of any options you list is chosen, and notes to yourself are left out.
+
+**Auto-fill on the employer's site:** on the Apply page, open **Fill the employer's form automatically** and follow the four steps once to add an auto-fill button to your browser's bookmarks bar. Click it on any application form to fill in your details. It only fills empty boxes and never submits. A few sites block it, and dropdowns, uploads and written questions are still yours to do.
+
+**Adding jobs quickly:** press **Ctrl+N** on any page. Type the company and role, or paste the job's link and click **Read the job**. If the job is already in your tracker, you're shown the existing one first.
 
 **Sponsorship:** each job has a Visa sponsorship value (Yes, No or Unsure). It's read from the job ad when the ad says, and you can change it in the tracker.
 

@@ -65,7 +65,10 @@ describe("Preview", () => {
       />,
     );
     await waitFor(() =>
-      expect(screen.getByTitle("Cover letter preview")).toHaveAttribute("src", "blob:preview"),
+      expect(screen.getByTitle("Cover letter preview")).toHaveAttribute(
+        "src",
+        "blob:preview#navpanes=0&view=FitH",
+      ),
     );
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("/api/preview/letter");

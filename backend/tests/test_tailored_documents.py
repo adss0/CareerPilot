@@ -178,16 +178,33 @@ def test_letters_are_saved_with_highlights(client, ai, make_application, documen
     ]
 
 
-def test_the_main_cover_letter_guides_new_letters(client, ai, make_application):
-    mine = "Dear Hiring Manager,\n\nI build things people use.\n\nYours sincerely,\nJane"
+def test_the_main_cover_letter_is_filled_in_as_written(client, ai, make_application):
+    mine = (
+        "Dear [Hiring Manager],\n\nI am writing to apply for the [job title] role at [Company]. "
+        "I am Treasurer of the Chess Society.\n\nYours faithfully,\nJane"
+    )
     saved = client.put("/api/profile", json={**PROFILE, "main_cover_letter": mine}).json()
     assert saved["main_cover_letter"] == mine
-    ai["provider"] = FakeAI(ai_reply())
+    letter = (
+        "Dear Hiring Manager,\n\nI am writing to apply for the Junior Developer role at Acme "
+        "Ltd. I am Treasurer of the Chess Society.\n\nYours faithfully,\nJane Example"
+    )
+    ai["provider"] = FakeAI({**ai_reply(), "letter": letter})
     application = make_application()
-    client.post(f"/api/applications/{application['id']}/letters", json={})
+    written = client.post(f"/api/applications/{application['id']}/letters", json={}).json()
     system, prompt = ai["provider"].calls[0]
-    assert f"<example_letter>\n{mine}\n</example_letter>" in prompt
-    assert "Follow its\n  structure" in system
+    assert f"<my_letter>\n{mine}\n</my_letter>" in prompt
+    # The template's own rules replace the from-scratch ones (length, sign-off, "no clichés").
+    assert "Fill every gap written in [square brackets]" in system
+    assert "250-350 words" not in system and "Kind regards" not in system
+    # Facts from the user's own letter aren't flagged as made up.
+    assert not [flag for flag in written["flags"] if "Treasurer" in flag or "Chess" in flag]
+
+    # Without a main cover letter the AI chooses the structure.
+    client.put("/api/profile", json={"main_cover_letter": ""})
+    client.post(f"/api/applications/{application['id']}/letters", json={})
+    system, prompt = ai["provider"].calls[1]
+    assert "250-350 words" in system and "<my_letter>" not in prompt
 
 
 def test_auto_save_can_be_turned_off_and_folder_changed(

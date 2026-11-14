@@ -16,6 +16,7 @@ from app.schemas.application import (
     DeleteAll,
     DeleteAllResult,
     DueItem,
+    DuplicateJob,
     StatusHistoryRead,
     TrackerSummary,
 )
@@ -75,6 +76,17 @@ def bulk_update_applications(
 
 
 # Declared before "/{application_id}" so "export" isn't read as an id.
+@router.get("/duplicates", response_model=list[DuplicateJob])
+def find_duplicates(
+    service: ApplicationServiceDep,
+    company: Annotated[str, Query(max_length=200)] = "",
+    role: Annotated[str, Query(max_length=200)] = "",
+    job_url: Annotated[str, Query(max_length=1000)] = "",
+) -> list[DuplicateJob]:
+    """Asked before a job is added, so the same job isn't applied for twice."""
+    return service.duplicates(company, role, job_url)
+
+
 @router.get("/summary", response_model=TrackerSummary)
 def get_tracker_summary(service: ApplicationServiceDep) -> TrackerSummary:
     return service.tracker_summary()

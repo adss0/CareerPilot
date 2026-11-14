@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -10,6 +10,7 @@ import { ApplicationDetailView } from "@/features/applications/ApplicationDetail
 import { readApplying, rememberApplying } from "@/features/apply/applying";
 import { MainLetterView } from "@/features/profile/MainLetterView";
 
+import { openAddJob, useAddJobDialog } from "./addJob";
 import { QuickAddJob } from "./QuickAddJob";
 
 // An in-memory localStorage (the test browser has none).
@@ -43,25 +44,48 @@ function renderApp(ui: ReactElement, path = "/") {
   );
 }
 
-describe("Add a job from the tracker", () => {
+const DUPLICATE = {
+  id: 3,
+  company: "Acme Ltd",
+  role: "Developer",
+  status: "sent",
+  same_link: false,
+};
+
+/** A fake API: what /duplicates finds, and a record of every other request. */
+function fakeApi(duplicates: unknown[] = []) {
+  const sent: { url: string; method: string; body: Record<string, unknown> }[] = [];
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+    const url = String(input);
+    if (url.includes("/applications/duplicates")) return json(duplicates);
+    const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {};
+    sent.push({ url, method: init?.method ?? "GET", body });
+    const status = url.endsWith("/jobs/paste") ? "imported" : (body.status ?? "sent");
+    return json({ id: 9, company: "Acme Ltd", role: "Developer", status });
+  });
+  return sent;
+}
+
+const type = (label: string, value: string) =>
+  fireEvent.change(screen.getByLabelText(label), { target: { value } });
+
+describe("Add a job", () => {
   it("adds it as Applied and stays open for the next one", async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, "fetch")
-      .mockImplementation(async () => json({ id: 5, company: "Acme Ltd", status: "sent" }, 201));
+    const sent = fakeApi();
     renderApp(<QuickAddJob onClose={vi.fn()} />);
     expect(screen.getByLabelText("Status")).toHaveValue("sent");
 
     fireEvent.click(screen.getByRole("button", { name: "Add job" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Type the company and the role.");
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Type the company and the role");
+    expect(sent).toEqual([]);
 
-    fireEvent.change(screen.getByLabelText("Company"), { target: { value: " Acme Ltd " } });
-    fireEvent.change(screen.getByLabelText("Role"), { target: { value: "Developer" } });
+    type("Company", " Acme Ltd ");
+    type("Role", "Developer");
     fireEvent.click(screen.getByRole("button", { name: "Add job" }));
     await waitFor(() => expect(screen.getByLabelText("Company")).toHaveValue(""));
-    const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe("/api/applications");
-    expect(JSON.parse(String(init?.body))).toMatchObject({
+    expect(sent).toHaveLength(1);
+    expect(sent[0].url).toBe("/api/applications");
+    expect(sent[0].body).toMatchObject({
       company: "Acme Ltd",
       role: "Developer",
       status: "sent",
@@ -70,20 +94,76 @@ describe("Add a job from the tracker", () => {
   });
 
   it("adds a job to apply for and opens its Apply page", async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, "fetch")
-      .mockImplementation(async () => json({ id: 9, company: "Acme Ltd", status: "imported" }));
+    const sent = fakeApi();
     renderApp(
       <Routes>
         <Route path="/" element={<QuickAddJob onClose={vi.fn()} />} />
         <Route path="/applications/9/apply" element={<p>The Apply page</p>} />
       </Routes>,
     );
-    fireEvent.change(screen.getByLabelText("Company"), { target: { value: "Acme Ltd" } });
-    fireEvent.change(screen.getByLabelText("Role"), { target: { value: "Developer" } });
+    type("Company", "Acme Ltd");
+    type("Role", "Developer");
     fireEvent.click(screen.getByRole("button", { name: "Add and build my CV" }));
     expect(await screen.findByText("The Apply page")).toBeInTheDocument();
-    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body)).status).toBe("imported");
+    expect(sent[0].body.status).toBe("imported");
+  });
+
+  it("warns about a job that's already in the tracker, and adds it only if asked again", async () => {
+    const sent = fakeApi([DUPLICATE]);
+    renderApp(<QuickAddJob onClose={vi.fn()} />);
+    type("Company", "Acme Ltd");
+    type("Role", "Developer");
+    fireEvent.click(screen.getByRole("button", { name: "Add job" }));
+
+    const warning = await screen.findByRole("alert");
+    expect(warning).toHaveTextContent("You already have this job in your tracker");
+    expect(screen.getByRole("link", { name: "Developer at Acme Ltd" })).toHaveAttribute(
+      "href",
+      "/applications/3",
+    );
+    expect(warning).toHaveTextContent("(Applied)");
+    expect(sent).toEqual([]); // nothing was added
+
+    fireEvent.click(screen.getByRole("button", { name: "Add anyway" }));
+    await waitFor(() => expect(sent).toHaveLength(1));
+    expect(sent[0].url).toBe("/api/applications");
+  });
+
+  it("reads the job from a pasted link and gives it the chosen status", async () => {
+    const sent = fakeApi();
+    renderApp(<QuickAddJob onClose={vi.fn()} />);
+    const read = screen.getByRole("button", { name: "Read the job" });
+    expect(read).toBeDisabled(); // no link yet
+    type("Job link", "https://example.com/jobs/1");
+    fireEvent.click(read);
+    await waitFor(() => expect(sent).toHaveLength(2));
+    expect(sent[0]).toMatchObject({
+      url: "/api/jobs/paste",
+      body: { url: "https://example.com/jobs/1", text: "" },
+    });
+    // The page is read as "To apply"; the dialog's status (Applied) is then set.
+    expect(sent[1]).toMatchObject({
+      url: "/api/applications/9",
+      method: "PATCH",
+      body: { status: "sent" },
+    });
+  });
+
+  it("opens with Ctrl+N on any page, or from a button", () => {
+    function Host() {
+      const [open, close] = useAddJobDialog();
+      return open ? <QuickAddJob onClose={close} /> : <p>Closed</p>;
+    }
+    renderApp(<Host />);
+    fireEvent.keyDown(window, { key: "n", ctrlKey: true });
+    expect(screen.getByRole("dialog", { name: "Add a job" })).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.getByText("Closed")).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "n" }); // plain typing doesn't open it
+    expect(screen.getByText("Closed")).toBeInTheDocument();
+    act(() => openAddJob());
+    expect(screen.getByRole("dialog", { name: "Add a job" })).toBeInTheDocument();
   });
 });
 
