@@ -46,7 +46,7 @@ export interface CalendarEvent {
   company: string;
   role: string;
   label?: string; // e.g. "Online test"
-  result?: string; // a stage's result: upcoming / passed / failed
+  result?: string; // a stage's result: upcoming / done / passed / failed
 }
 
 export const draftFollowUp = (applicationId: number) =>

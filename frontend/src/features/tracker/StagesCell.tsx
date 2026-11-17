@@ -1,5 +1,6 @@
 // View: the "Stages" cell of the sheet. Each hiring stage is a small chip
-// (green ✓ passed, red ✗ failed, amber upcoming with its date); + adds one.
+// (amber upcoming with its date, blue done and waiting for the result, green ✓ passed,
+// red ✗ failed); + adds one.
 // Clicking a chip opens a small editor: kind, date, result and a note.
 import { Check, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -13,9 +14,12 @@ import { cn } from "@/lib/utils";
 
 const RESULTS: [StageResult, string][] = [
   ["upcoming", "Upcoming"],
+  ["done", "Done"],
   ["passed", "Passed"],
   ["failed", "Didn't pass"],
 ];
+
+const RESULT_NAMES = Object.fromEntries(RESULTS) as Record<StageResult, string>;
 
 /** The kind most people have next, given what's already there. */
 function nextKind(stages: Stage[]): StageKind {
@@ -36,10 +40,11 @@ function stageName(stage: Stage): string {
 function chipTone(result: StageResult): string {
   if (result === "passed") return "border-success/30 bg-success/12 text-success";
   if (result === "failed") return "border-destructive/30 bg-destructive/10 text-destructive";
+  if (result === "done") return "border-info/30 bg-info/10 text-info";
   return "border-warning-border bg-warning text-warning-foreground";
 }
 
-const EDITOR_WIDTH = 288; // w-72
+const EDITOR_WIDTH = 320; // w-80
 const EDITOR_HEIGHT = 230;
 
 /** Where to show the editor: under the cell, or above it near the bottom of the window. It's
@@ -93,7 +98,7 @@ function StageEditor({
       aria-label={label}
       style={anchor ? editorPosition(anchor) : undefined}
       className={cn(
-        "bg-card shadow-lift z-50 w-72 space-y-2 rounded-xl border p-3 text-sm",
+        "bg-card shadow-lift z-50 w-80 space-y-2 rounded-xl border p-3 text-sm",
         anchor ? "fixed" : "absolute top-full left-0 mt-1",
       )}
     >
@@ -132,7 +137,7 @@ function StageEditor({
             aria-checked={stage.result === value}
             onClick={() => setStage({ ...stage, result: value })}
             className={cn(
-              "flex-1 rounded-md px-2 py-1 text-xs font-semibold",
+              "flex-1 rounded-md px-1 py-1 text-xs font-semibold whitespace-nowrap",
               stage.result === value ? "bg-card shadow-xs" : "text-muted-foreground",
             )}
           >
@@ -183,7 +188,7 @@ export function StagesCell({
           type="button"
           onClick={(e) => open(index, e.currentTarget)}
           title={`${stageName(stage)}${stage.date ? ` · ${shortDate(stage.date)}` : ""}`}
-          aria-label={`${stageName(stage)}, ${stage.result}${stage.date ? `, ${shortDate(stage.date)}` : ""}. Edit`}
+          aria-label={`${stageName(stage)}, ${RESULT_NAMES[stage.result]}${stage.date ? `, ${shortDate(stage.date)}` : ""}. Edit`}
           className={cn(
             "inline-flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-xs font-semibold whitespace-nowrap",
             chipTone(stage.result),
@@ -194,6 +199,7 @@ export function StagesCell({
             : STAGE_SHORT[stage.kind]}
           {stage.result === "passed" && " ✓"}
           {stage.result === "failed" && " ✗"}
+          {stage.result === "done" && " done"}
           {stage.result === "upcoming" && stage.date && ` ${shortDate(stage.date)}`}
         </button>
       ))}

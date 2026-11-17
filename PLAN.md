@@ -379,6 +379,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 - [x] 17.2 **Live CV preview** beside the editor (`X-Pages` header on `/api/preview/cv`).
 - [x] 17.3 **Add job from anywhere**: Ctrl+N, read a job from its link, `GET /api/applications/duplicates`.
 - [x] 17.4 **Main cover letter as a template**: its own prompt rules (`FROM_TEMPLATE` in `letter_writer.py`).
+- [x] 17.5 **Stage result "done"**: taken and waiting for the result, between upcoming and passed / didn't pass.
 
 ---
 
@@ -431,3 +432,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-14 | **Phase 15 (v1.6) done.** An ATS check and score on every tailored CV, preview mode for CVs and letters, download confirmations with Open / Show in folder, and an Updates section. 289 backend + 79 frontend + 7 E2E tests. |
 | 2026-11-14 | **Phase 16 (v1.7) done.** One-page CVs in the Jake's Resume layout, a main cover letter, sponsorship, PDFs saved only on apply, clickable totals, quick add, continue applying, a calmer theme, and a backup before updates. 299 backend + 86 frontend + 7 E2E tests. |
 | 2026-11-14 | **Phase 17 (v1.8) done.** Browser auto-fill for application forms, the PDF beside the CV editor, Ctrl+N and read-from-link in Add job, a duplicate warning, and the main cover letter followed as written. 301 backend + 92 frontend + 7 E2E tests. |
+| 2026-11-15 | Stages get a **Done** result (taken, waiting for the result) between Upcoming and Passed / Didn't pass. 302 backend + 92 frontend tests. |

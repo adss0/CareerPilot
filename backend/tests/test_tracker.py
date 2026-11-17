@@ -43,6 +43,7 @@ def job(status="sent", stages=(), deadline="", interview=None):
         (job("sent", [stage(when=date(2026, 11, 1))]), "Online test was due 1 Nov: update it"),
         (job("sent", [stage()]), "Do the online test"),
         (job("sent", [stage(result="passed")]), "Wait for news after the online test"),
+        (job("sent", [stage(result="done")]), "Wait for the online test result"),
         (
             job("sent", [stage(result="passed"), stage("video", date(2026, 12, 2))]),
             "Video interview on 2 Dec",
@@ -84,17 +85,18 @@ def test_tracker_summary_and_columns(client, make_application):
         {"status": "sent"},
         {"status": "interview"},
         {"status": "imported", "application_deadline": "Rolling"},
+        {"status": "sent", "stages": [stage(result="done")]},  # taken, result not back yet
     ]
     for row in rows:
         make_application(**row)
 
     summary = client.get("/api/applications/summary").json()
     assert summary == {
-        "total": 6,
+        "total": 7,
         "to_apply": 1,
-        "applied": 3,  # waiting for an answer: not the rejection or the interview
-        "in_progress": 2,  # the upcoming online test and the interview
-        "assessments_done": 2,
+        "applied": 4,  # waiting for an answer: not the rejection or the interview
+        "in_progress": 3,  # the upcoming test, the test waiting for its result, the interview
+        "assessments_done": 3,
         "interviews": 2,  # a video interview stage, and the Interview status
         "offers": 0,
         "rejected": 1,

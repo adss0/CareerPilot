@@ -74,6 +74,8 @@ def next_step(application: Application, today: date | None = None) -> str:
     done = stages(application)
     if done and done[-1].result == "failed":
         return f"Didn't pass the {stage_name(done[-1]).lower()}: update the status"
+    if done and done[-1].result == "done":
+        return f"Wait for the {stage_name(done[-1]).lower()} result"
     if status == ApplicationStatus.INTERVIEW:
         when = application.interview_at
         return (
@@ -94,9 +96,11 @@ def next_step(application: Application, today: date | None = None) -> str:
 
 
 def _in_progress(a: Application) -> bool:
-    """Still alive and moving: a stage coming up, a reply, or an interview."""
+    """Still alive and moving: a stage coming up or waiting for its result, a reply, or an
+    interview."""
     return a.status not in CLOSED | NOT_APPLIED and (
         next_stage(a) is not None
+        or any(s.result == "done" for s in stages(a))
         or a.status in {ApplicationStatus.REPLIED, ApplicationStatus.INTERVIEW}
     )
 

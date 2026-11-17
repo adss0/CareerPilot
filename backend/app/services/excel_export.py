@@ -101,7 +101,7 @@ def safe_cell(value: object) -> object:
     return value
 
 
-RESULT_MARKS = {"passed": " ✓", "failed": " ✗", "upcoming": ""}
+RESULT_MARKS = {"passed": " ✓", "failed": " ✗", "done": " (done)", "upcoming": ""}
 
 
 def stages_text(application: Application) -> str:
