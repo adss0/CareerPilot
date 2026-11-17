@@ -118,11 +118,18 @@ describe("TrackerView", () => {
     expect(screen.getByText("Do the assessment by 25 Nov")).toBeInTheDocument();
 
     // The online test chip opens its editor; marking it passed saves the stages.
-    fireEvent.click(screen.getByRole("button", { name: /Online test, upcoming/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Online test, Upcoming/ }));
     fireEvent.click(screen.getByRole("radio", { name: "Passed" }));
     fireEvent.click(screen.getByRole("button", { name: /Save/ }));
     expect(vm.update).toHaveBeenCalledWith(1, {
       stages: [{ kind: "online_test", date: "2026-11-25", result: "passed", note: "" }],
+    });
+    // "Done" is the in-between: taken, waiting for the result.
+    fireEvent.click(screen.getByRole("button", { name: /Online test, Upcoming/ }));
+    fireEvent.click(screen.getByRole("radio", { name: "Done" }));
+    fireEvent.click(screen.getByRole("button", { name: /Save/ }));
+    expect(vm.update).toHaveBeenLastCalledWith(1, {
+      stages: [{ kind: "online_test", date: "2026-11-25", result: "done", note: "" }],
     });
     // + adds the next stage most people have: a video interview.
     fireEvent.click(screen.getByRole("button", { name: /Add a stage for Acme Ltd/ }));

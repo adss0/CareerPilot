@@ -44,6 +44,7 @@ function EventChip({ event }: { event: CalendarEvent }) {
       {event.company}
       {event.result === "passed" && " ✓"}
       {event.result === "failed" && " ✗"}
+      {event.result === "done" && " (done)"}
     </Link>
   );
 }

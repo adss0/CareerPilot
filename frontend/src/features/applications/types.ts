@@ -82,7 +82,8 @@ export type StageKind =
   | "assessment_centre"
   | "final"
   | "other";
-export type StageResult = "upcoming" | "passed" | "failed";
+// done: taken, and waiting for the result.
+export type StageResult = "upcoming" | "done" | "passed" | "failed";
 
 /** One step of the hiring process (backend/app/schemas/application.py). */
 export interface Stage {

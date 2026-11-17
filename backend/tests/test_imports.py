@@ -243,7 +243,7 @@ def test_imports_tracker_status_and_keeps_other_columns_in_notes(client, session
     assert acme.application_deadline == "Rolling"
     # The tracker's pre-assessment becomes an "Online test" stage.
     assert acme.stages == [
-        {"kind": "online_test", "date": "2026-11-25", "result": "passed", "note": ""}
+        {"kind": "online_test", "date": "2026-11-25", "result": "done", "note": ""}
     ]
     assert acme.notes == ""
     assert apps["Initech"].stages[0]["result"] == "upcoming"

@@ -2,6 +2,12 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.8.1] - 2026-11-17
+
+### Added
+
+- **Stages have an in-between result:** **Done** means you've taken it (an online test, say) and are waiting for the result, next to Upcoming, Passed and Didn't pass. Next step says "Wait for the online test result". Imported trackers that say "Done" now become Done rather than Passed.
+
 ## [1.8.0] - 2026-11-14
 
 ### Added
@@ -162,6 +168,7 @@ The first full release.
 
 - 174 backend tests (95% coverage; CI fails under 85%), 52 frontend tests, and an end-to-end browser test of import → letter → approve → send against a fake AI and a local test mail server.
 
+[1.8.1]: https://github.com/adss0/CareerPilot/releases/tag/v1.8.1
 [1.8.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.8.0
 [1.7.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.7.0
 [1.6.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.6.0

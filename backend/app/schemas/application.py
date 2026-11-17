@@ -25,7 +25,8 @@ class Stage(BaseModel):
 
     kind: StageKind
     date: Day | None = None  # (the field is called date, so the type is aliased)
-    result: Literal["upcoming", "passed", "failed"] = "upcoming"
+    # done: taken, and waiting for the result.
+    result: Literal["upcoming", "done", "passed", "failed"] = "upcoming"
     note: str = Field(default="", max_length=100)  # e.g. a name for "other", or a time
 
 

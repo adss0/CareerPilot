@@ -193,7 +193,13 @@ class ImportService:
             if due_text and due is None:
                 extra.append(("Assessment deadline", due_text))
             if assessment or due:
-                result = "passed" if assessment == "done" else "upcoming"
+                # "Done" means taken, not passed: only "Passed" counts as a pass.
+                if assessment != "done":
+                    result = "upcoming"
+                elif "pass" in assessment_text.casefold():
+                    result = "passed"
+                else:
+                    result = "done"
                 values["stages"] = [
                     {
                         "kind": "online_test",

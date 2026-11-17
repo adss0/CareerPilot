@@ -57,4 +57,4 @@ class CalendarEvent(BaseModel):
     company: str
     role: str
     label: str = ""  # e.g. "Online test" for a stage
-    result: str = ""  # a stage's result: upcoming / passed / failed
+    result: str = ""  # a stage's result: upcoming / done / passed / failed
