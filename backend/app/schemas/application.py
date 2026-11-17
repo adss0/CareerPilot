@@ -127,6 +127,16 @@ class ApplicationRead(BaseModel):
     due_level: Literal["", "soon", "overdue"] = ""
 
 
+class DuplicateJob(BaseModel):
+    """A job already in the tracker that looks like the one being added."""
+
+    id: int
+    company: str
+    role: str
+    status: ApplicationStatus
+    same_link: bool  # matched by its link (otherwise by company and role)
+
+
 class BinItem(BaseModel):
     id: int
     company: str

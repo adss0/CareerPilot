@@ -11,6 +11,7 @@ from app.schemas.application import (
     ApplicationUpdate,
     BulkApplicationAction,
     BulkApplicationResult,
+    DuplicateJob,
     Stage,
     TrackerSummary,
 )
@@ -30,6 +31,15 @@ NULLABLE_FIELDS = {
 }
 
 
+def _same(text: str) -> str:
+    """Company and role names compared without case or extra spaces."""
+    return " ".join(text.casefold().split())
+
+
+def _same_link(url: str) -> str:
+    return url.strip().casefold().split("#")[0].rstrip("/")
+
+
 class ApplicationService:
     def __init__(self, session: Session):
         self.session = session
@@ -43,6 +53,24 @@ class ApplicationService:
         everything, _ = self.repo.search(**filters, limit=100_000, offset=0)
         matching = [a for a in everything if GROUPS[group](a)]
         return matching[offset : offset + limit], len(matching)
+
+    def duplicates(self, company: str, role: str, job_url: str) -> list[DuplicateJob]:
+        """Jobs already in the tracker with the same link, or the same company and role."""
+        link, name = _same_link(job_url), (_same(company), _same(role))
+        found = []
+        for job in self.repo.all():
+            same_link = bool(link) and _same_link(job.job_url) == link
+            if same_link or (all(name) and (_same(job.company), _same(job.role)) == name):
+                found.append(
+                    DuplicateJob(
+                        id=job.id,
+                        company=job.company,
+                        role=job.role,
+                        status=job.status,
+                        same_link=same_link,
+                    )
+                )
+        return found
 
     def to_read(self, applications: list[Application]) -> list[ApplicationRead]:
         """Read models including each application's letter count and match score."""

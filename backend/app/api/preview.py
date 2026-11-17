@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 from app.api.deps import SessionDep
 from app.schemas.tailored_cv import CvStyle, TailoredContent
-from app.services.cv_export import build_cv_pdf
+from app.services.cv_export import render_cv
 from app.services.letter_export import PDF_MEDIA_TYPE, build_pdf
 from app.services.tailored_cv_service import TailoredCvService, load_profile
 
@@ -22,12 +22,11 @@ class CvPreview(BaseModel):
     style: CvStyle | None = None
 
 
-def _pdf(content: bytes) -> Response:
-    return Response(
-        content=content,
-        media_type=PDF_MEDIA_TYPE,
-        headers={"Content-Disposition": 'inline; filename="preview.pdf"'},
-    )
+def _pdf(content: bytes, pages: int | None = None) -> Response:
+    headers = {"Content-Disposition": 'inline; filename="preview.pdf"'}
+    if pages is not None:
+        headers["X-Pages"] = str(pages)  # so the editor can warn about a second page
+    return Response(content=content, media_type=PDF_MEDIA_TYPE, headers=headers)
 
 
 @router.post("/letter", response_class=Response)
@@ -38,4 +37,4 @@ def preview_letter(data: LetterPreview, session: SessionDep) -> Response:
 @router.post("/cv", response_class=Response)
 def preview_cv(data: CvPreview, session: SessionDep) -> Response:
     layout = TailoredCvService(session).layout(data.style or "")
-    return _pdf(build_cv_pdf(data.content, load_profile(session), layout))
+    return _pdf(*render_cv(data.content, load_profile(session), layout))

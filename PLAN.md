@@ -20,6 +20,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 7 | **Tracking:** status history, follow-up reminders, reply detection, stats | ✅ Done |
 | 8 | **Desktop app:** installable Windows app (Tauri) | ✅ Done |
 | 9 | **Polish & v1.0 release:** full tests, docs, installer on GitHub Releases | ✅ Done (tag & publish left to you) |
+| 17 | **v1.8 Auto-fill, live CV preview, quick add, duplicates:** a browser auto-fill button, the PDF beside the editor, Ctrl+N, read a job from its link, duplicate warning, main cover letter followed as written | ✅ Done |
 | 16 | **v1.7 One-page CVs, main cover letter, sponsorship, calmer look:** Jake's Resume layout, save PDFs on apply, clickable totals, quick add, continue applying | ✅ Done |
 | 15 | **v1.6 ATS check, preview, downloads, updates:** an ATS score on every CV, preview mode, download confirmations, an Updates section | ✅ Done |
 | 14 | **v1.5 Calendar, reminders, start-up, Gemini, icon:** stages and closing dates on the calendar, coming-up reminders, a start-up screen, Gemini model fallback, a new icon | ✅ Done |
@@ -372,6 +373,15 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 ---
 
+## Phase 17: Auto-fill, live CV preview, quick add and duplicates (v1.8)
+
+- [x] 17.1 **Auto-fill bookmark** (`features/apply/autofill.ts`): a self-contained function plus the profile, as a `javascript:` link. Fills empty fields it recognises; never submits.
+- [x] 17.2 **Live CV preview** beside the editor (`X-Pages` header on `/api/preview/cv`).
+- [x] 17.3 **Add job from anywhere**: Ctrl+N, read a job from its link, `GET /api/applications/duplicates`.
+- [x] 17.4 **Main cover letter as a template**: its own prompt rules (`FROM_TEMPLATE` in `letter_writer.py`).
+
+---
+
 ## Future ideas (after v1)
 
 - Job scraping from public job boards' RSS/APIs into the tracker
@@ -420,3 +430,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-13 | **Phase 14 (v1.5) done.** The calendar fills itself in from interview stages and closing dates, coming-up reminders, a start-up screen (jobs no longer look missing while the engine starts), Gemini model fallback tested with a real key, and a new icon. |
 | 2026-11-14 | **Phase 15 (v1.6) done.** An ATS check and score on every tailored CV, preview mode for CVs and letters, download confirmations with Open / Show in folder, and an Updates section. 289 backend + 79 frontend + 7 E2E tests. |
 | 2026-11-14 | **Phase 16 (v1.7) done.** One-page CVs in the Jake's Resume layout, a main cover letter, sponsorship, PDFs saved only on apply, clickable totals, quick add, continue applying, a calmer theme, and a backup before updates. 299 backend + 86 frontend + 7 E2E tests. |
+| 2026-11-14 | **Phase 17 (v1.8) done.** Browser auto-fill for application forms, the PDF beside the CV editor, Ctrl+N and read-from-link in Add job, a duplicate warning, and the main cover letter followed as written. 301 backend + 92 frontend + 7 E2E tests. |

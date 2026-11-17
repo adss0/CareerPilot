@@ -2,6 +2,20 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.8.0] - 2026-11-14
+
+### Added
+
+- **Auto-fill for employers' application forms:** the Apply page makes an auto-fill button for your browser's bookmarks bar. Click it on an application form and it fills your name, email, phone, location, LinkedIn, GitHub, university and degree. It only fills empty boxes and never submits.
+- **Edit your CV beside the finished PDF:** the Tailored CV tab shows a live preview next to the editor that redraws as you type and says when it runs past one page.
+- **Ctrl+N adds a job from any page**, and the Add job form can **read a job from its link**: paste the link and the company, role, description, deadline and sponsorship are filled in.
+- **Duplicate warning:** adding a job you already have (the same link, or the same company and role) shows the existing one first.
+
+### Fixed
+
+- **The main cover letter is now followed as written.** It was treated as a style example: the opening line and sign-off were replaced, it was cut to 350 words, and anything not in the profile was dropped. It is now treated as your own letter or template: your paragraphs and wording are kept, gaps in [square brackets] are filled from the job ad, one of any listed options is chosen, and notes to yourself are left out.
+- Jobs added from Find jobs or from a pasted link now get their sponsorship read from the ad.
+
 ## [1.7.0] - 2026-11-14
 
 ### Added
@@ -148,6 +162,7 @@ The first full release.
 
 - 174 backend tests (95% coverage; CI fails under 85%), 52 frontend tests, and an end-to-end browser test of import → letter → approve → send against a fake AI and a local test mail server.
 
+[1.8.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.8.0
 [1.7.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.7.0
 [1.6.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.6.0
 [1.5.0]: https://github.com/adss0/CareerPilot/releases/tag/v1.5.0

@@ -61,7 +61,7 @@ def create_app() -> FastAPI:
         allow_credentials=False,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         allow_headers=["Content-Type", "X-CareerPilot"],
-        expose_headers=["Content-Disposition"],
+        expose_headers=["Content-Disposition", "X-Pages"],
     )
 
     @app.exception_handler(NotFoundError)

@@ -37,7 +37,7 @@ import { API_BASE } from "@/lib/apiClient";
 import { cn } from "@/lib/utils";
 
 import { jobLink } from "./jobLink";
-import { QuickAddJob } from "./QuickAddJob";
+import { openAddJob } from "./addJob";
 import { StagesCell } from "./StagesCell";
 import type { TrackerViewModel } from "./useTrackerViewModel";
 
@@ -432,7 +432,6 @@ function SidePanel({ vm, job }: { vm: TrackerViewModel; job: Application }) {
 
 export function TrackerView(vm: TrackerViewModel) {
   const [confirmAll, setConfirmAll] = useState(false);
-  const [adding, setAdding] = useState(false);
   const empty =
     !vm.isLoading &&
     vm.items.length === 0 &&
@@ -455,7 +454,7 @@ export function TrackerView(vm: TrackerViewModel) {
               <Search /> Find jobs
             </Link>
           </Button>
-          <Button variant="outline" onClick={() => setAdding(true)}>
+          <Button variant="outline" onClick={openAddJob} title="Ctrl+N">
             <Plus /> Add job
           </Button>
           <Button variant="outline" asChild>
@@ -473,12 +472,12 @@ export function TrackerView(vm: TrackerViewModel) {
 
       <Totals vm={vm} />
 
-      {adding && <QuickAddJob onClose={() => setAdding(false)} />}
       {/* Always on screen, however far down a long list you are. */}
       <Button
         className="shadow-lift fixed right-6 bottom-6 z-30 rounded-full"
         size="lg"
-        onClick={() => setAdding(true)}
+        title="Ctrl+N"
+        onClick={openAddJob}
       >
         <Plus /> Add job
       </Button>

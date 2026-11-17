@@ -10,7 +10,7 @@ import {
   Trash2,
   Wand2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -19,13 +19,59 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 
+import { PdfPreview } from "@/features/apply/PdfPreview";
 import { PreviewDialog } from "@/features/apply/PreviewDialog";
+import { API_BASE } from "@/lib/apiClient";
 
-import { CV_STYLE_LABELS, tailoredCvExportUrl, type CvStyle } from "./api";
+import { CV_STYLE_LABELS, tailoredCvExportUrl, type CvStyle, type TailoredContent } from "./api";
 import { AtsReportView } from "./AtsReportView";
 import type { TailoredCvViewModel } from "./useTailoredCvViewModel";
 
 const lines = (text: string) => Math.min(8, Math.max(2, text.split("\n").length + 1));
+
+/** The value, once it has stopped changing for a moment (so typing doesn't redraw the PDF). */
+function useSettled<T>(value: T, delayMs = 600): T {
+  const [settled, setSettled] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(value), delayMs);
+    return () => clearTimeout(timer);
+  }, [value, delayMs]);
+  return settled;
+}
+
+/** The finished PDF, redrawn as you type, with a warning when it runs past one page. */
+function LivePreview({ form, style }: { form: TailoredContent; style: CvStyle }) {
+  const settled = useSettled(form);
+  const [pages, setPages] = useState(1);
+  return (
+    <Card className="xl:sticky xl:top-6">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Eye className="text-primary size-4" /> Live preview
+        </CardTitle>
+        <span
+          role="status"
+          className={
+            pages > 1 ? "text-warning-foreground text-sm font-semibold" : "text-success text-sm"
+          }
+        >
+          {pages > 1 ? `${pages} pages: shorten it to fit one` : "Fits on one page"}
+        </span>
+      </CardHeader>
+      <CardContent>
+        <PdfPreview
+          title="Live CV preview"
+          url={`${API_BASE}/preview/cv`}
+          version="live"
+          body={{ content: settled, style }}
+          live
+          onPages={setPages}
+          className="h-[calc(100vh-11rem)] min-h-96"
+        />
+      </CardContent>
+    </Card>
+  );
+}
 
 /** Which uploaded CV to build from, and which layout to use. */
 export function CvChoices({ vm, disabled }: { vm: TailoredCvViewModel; disabled?: boolean }) {
@@ -70,6 +116,7 @@ export function CvChoices({ vm, disabled }: { vm: TailoredCvViewModel; disabled?
 
 export function TailoredCvView(vm: TailoredCvViewModel) {
   const [previewing, setPreviewing] = useState(false);
+  const { cv, form } = vm;
   if (vm.isLoading) {
     return (
       <p className="text-muted-foreground flex items-center gap-2 text-sm">
@@ -77,10 +124,8 @@ export function TailoredCvView(vm: TailoredCvViewModel) {
       </p>
     );
   }
-  const { cv, form } = vm;
-
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className={cv ? "max-w-[1500px] space-y-6" : "max-w-4xl space-y-6"}>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -181,106 +226,110 @@ export function TailoredCvView(vm: TailoredCvViewModel) {
             </div>
           )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Edit</CardTitle>
-              <CardDescription>
-                {cv.model_used}
-                {cv.edited && " · edited by you"} · one bullet point per line
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5 text-sm">
-              <label className="grid gap-1.5">
-                <span className="font-medium">Profile summary</span>
-                <span className="text-muted-foreground text-xs">
-                  Shown only if your main CV has a Profile section and the layout follows it. Jake's
-                  Resume has no profile paragraph.
-                </span>
-                <Textarea
-                  rows={4}
-                  value={form.summary}
-                  onChange={(e) => vm.edit({ summary: e.target.value })}
-                />
-              </label>
-              <label className="grid gap-1.5">
-                <span className="font-medium">Skills (most relevant first, comma separated)</span>
-                <Input
-                  value={form.skills.join(", ")}
-                  onChange={(e) =>
-                    vm.edit({
-                      skills: e.target.value
-                        .split(",")
-                        .map((s) => s.trimStart())
-                        .filter((s, i, all) => s || i === all.length - 1),
-                    })
-                  }
-                />
-              </label>
+          {/* Edit on the left, the finished PDF on the right. */}
+          <div className="grid items-start gap-6 xl:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Edit</CardTitle>
+                <CardDescription>
+                  {cv.model_used}
+                  {cv.edited && " · edited by you"} · one bullet point per line
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5 text-sm">
+                <label className="grid gap-1.5">
+                  <span className="font-medium">Profile summary</span>
+                  <span className="text-muted-foreground text-xs">
+                    Shown only if your main CV has a Profile section and the layout follows it.
+                    Jake's Resume has no profile paragraph.
+                  </span>
+                  <Textarea
+                    rows={4}
+                    value={form.summary}
+                    onChange={(e) => vm.edit({ summary: e.target.value })}
+                  />
+                </label>
+                <label className="grid gap-1.5">
+                  <span className="font-medium">Skills (most relevant first, comma separated)</span>
+                  <Input
+                    value={form.skills.join(", ")}
+                    onChange={(e) =>
+                      vm.edit({
+                        skills: e.target.value
+                          .split(",")
+                          .map((s) => s.trimStart())
+                          .filter((s, i, all) => s || i === all.length - 1),
+                      })
+                    }
+                  />
+                </label>
 
-              {form.experience.length > 0 && (
-                <section className="space-y-3">
-                  <h3 className="font-medium">Experience</h3>
-                  {form.experience.map((e, i) => (
-                    <label key={`${e.title}-${e.company}-${i}`} className="grid gap-1.5">
-                      <span>
-                        <span className="font-medium">{e.title}</span>
-                        <span className="text-muted-foreground">
-                          {e.company && ` · ${e.company}`}
-                          {(e.start || e.end) &&
-                            ` · ${[e.start, e.end].filter(Boolean).join(" – ")}`}
+                {form.experience.length > 0 && (
+                  <section className="space-y-3">
+                    <h3 className="font-medium">Experience</h3>
+                    {form.experience.map((e, i) => (
+                      <label key={`${e.title}-${e.company}-${i}`} className="grid gap-1.5">
+                        <span>
+                          <span className="font-medium">{e.title}</span>
+                          <span className="text-muted-foreground">
+                            {e.company && ` · ${e.company}`}
+                            {(e.start || e.end) &&
+                              ` · ${[e.start, e.end].filter(Boolean).join(" – ")}`}
+                          </span>
                         </span>
-                      </span>
-                      <Textarea
-                        rows={lines(e.summary)}
-                        value={e.summary}
-                        onChange={(ev) => vm.editExperience(i, ev.target.value)}
-                      />
-                    </label>
-                  ))}
-                </section>
-              )}
-
-              {form.projects.length > 0 && (
-                <section className="space-y-3">
-                  <h3 className="font-medium">Projects</h3>
-                  {form.projects.map((p, i) => (
-                    <label key={`${p.name}-${i}`} className="grid gap-1.5">
-                      <span className="font-medium">{p.name}</span>
-                      <Textarea
-                        rows={lines(p.summary)}
-                        value={p.summary}
-                        onChange={(ev) => vm.editProject(i, ev.target.value)}
-                      />
-                    </label>
-                  ))}
-                </section>
-              )}
-
-              {form.education.length > 0 && (
-                <p className="text-muted-foreground">
-                  Education is copied from your profile as it is:{" "}
-                  {form.education.map((e) => e.qualification).join(", ")}.
-                </p>
-              )}
-
-              <div className="flex flex-wrap gap-2">
-                {vm.isDirty && (
-                  <>
-                    <Button onClick={vm.save} disabled={vm.isSaving}>
-                      {vm.isSaving && <Loader2 className="animate-spin" />}
-                      Save changes
-                    </Button>
-                    <Button variant="outline" onClick={vm.discard} disabled={vm.isSaving}>
-                      Discard
-                    </Button>
-                  </>
+                        <Textarea
+                          rows={lines(e.summary)}
+                          value={e.summary}
+                          onChange={(ev) => vm.editExperience(i, ev.target.value)}
+                        />
+                      </label>
+                    ))}
+                  </section>
                 )}
-                <Button variant="ghost" className="ml-auto" onClick={vm.remove}>
-                  <Trash2 /> Delete tailored CV
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+
+                {form.projects.length > 0 && (
+                  <section className="space-y-3">
+                    <h3 className="font-medium">Projects</h3>
+                    {form.projects.map((p, i) => (
+                      <label key={`${p.name}-${i}`} className="grid gap-1.5">
+                        <span className="font-medium">{p.name}</span>
+                        <Textarea
+                          rows={lines(p.summary)}
+                          value={p.summary}
+                          onChange={(ev) => vm.editProject(i, ev.target.value)}
+                        />
+                      </label>
+                    ))}
+                  </section>
+                )}
+
+                {form.education.length > 0 && (
+                  <p className="text-muted-foreground">
+                    Education is copied from your profile as it is:{" "}
+                    {form.education.map((e) => e.qualification).join(", ")}.
+                  </p>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  {vm.isDirty && (
+                    <>
+                      <Button onClick={vm.save} disabled={vm.isSaving}>
+                        {vm.isSaving && <Loader2 className="animate-spin" />}
+                        Save changes
+                      </Button>
+                      <Button variant="outline" onClick={vm.discard} disabled={vm.isSaving}>
+                        Discard
+                      </Button>
+                    </>
+                  )}
+                  <Button variant="ghost" className="ml-auto" onClick={vm.remove}>
+                    <Trash2 /> Delete tailored CV
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+            <LivePreview form={form} style={vm.style} />
+          </div>
         </>
       )}
       {previewing && form && (

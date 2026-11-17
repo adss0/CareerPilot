@@ -191,3 +191,41 @@ def test_a_database_from_an_older_version_is_noticed(tmp_path):
     with closing(sqlite3.connect(db_file)) as db:
         columns = {row[1] for row in db.execute("PRAGMA table_info(application)")}
     assert "sponsorship" in columns
+
+
+# ---------- duplicates ----------
+
+
+def test_a_job_already_in_the_tracker_is_found_before_adding_it_again(client, make_application):
+    first = make_application(
+        company="Acme Ltd", role="Junior Developer", job_url="https://example.com/jobs/1/"
+    )
+    make_application(company="Other Co", role="Analyst")
+
+    def find(**params) -> list[dict]:
+        return client.get("/api/applications/duplicates", params=params).json()
+
+    # The same company and role, however it's typed.
+    assert find(company="  acme   LTD ", role="junior developer") == [
+        {
+            "id": first["id"],
+            "company": "Acme Ltd",
+            "role": "Junior Developer",
+            "status": "imported",
+            "same_link": False,
+        }
+    ]
+    # The same link (a trailing slash or #section doesn't matter), whatever it's called.
+    by_link = find(company="Acme", role="Dev", job_url="https://EXAMPLE.com/jobs/1#apply")
+    assert [d["same_link"] for d in by_link] == [True]
+    assert find(company="Acme Ltd", role="Senior Developer") == []
+    assert find(company="Acme Ltd") == [] and find() == []
+
+
+def test_cv_preview_says_how_many_pages(client):
+    client.put("/api/profile", json={"full_name": "Jane Example"})
+    content, _profile = long_cv()
+    response = client.post("/api/preview/cv", json={"content": content.model_dump()})
+    assert int(response.headers["x-pages"]) > 1
+    short = client.post("/api/preview/cv", json={"content": {"skills": ["Python"]}})
+    assert short.headers["x-pages"] == "1"
