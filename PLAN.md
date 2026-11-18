@@ -383,6 +383,15 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 
 ---
 
+## Phase 18: Strict CI and automatic updates (v1.9)
+
+- [x] 18.1 **CI fixed**: the E2E test expected the old lowercase stage labels and had been failing on `main` since 1.8.1.
+- [x] 18.2 **Stricter CI** (`.github/workflows/ci.yml`): version check (`scripts/check_version.py`), zero lint warnings, a separate type check, coverage gate 92%, `RuntimeWarning` as errors, cached Playwright browsers, cancel superseded runs, timeouts, an advisory dependency audit, and one **CI passed** check for branch protection. Dependabot monthly.
+- [x] 18.3 **Releases publish themselves** (`.github/workflows/desktop.yml`): after CI passes on `main`, a version with no release yet is built, tagged and published (not a draft) with `latest.json` and the changelog as notes.
+- [x] 18.4 **The app updates itself** (`app/layout/UpdateNotifier.tsx`): installs at start, asks when found mid-session, re-checks every 6 hours, switch in Settings → Updates.
+
+---
+
 ## Future ideas (after v1)
 
 - Job scraping from public job boards' RSS/APIs into the tracker
@@ -433,3 +442,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-14 | **Phase 16 (v1.7) done.** One-page CVs in the Jake's Resume layout, a main cover letter, sponsorship, PDFs saved only on apply, clickable totals, quick add, continue applying, a calmer theme, and a backup before updates. 299 backend + 86 frontend + 7 E2E tests. |
 | 2026-11-14 | **Phase 17 (v1.8) done.** Browser auto-fill for application forms, the PDF beside the CV editor, Ctrl+N and read-from-link in Add job, a duplicate warning, and the main cover letter followed as written. 301 backend + 92 frontend + 7 E2E tests. |
 | 2026-11-15 | Stages get a **Done** result (taken, waiting for the result) between Upcoming and Passed / Didn't pass. 302 backend + 92 frontend tests. |
+| 2026-11-18 | **Phase 18 (v1.9) done.** Fixed the E2E test that had CI red on `main`, a stricter CI with one required "CI passed" check, releases published automatically after CI passes on `main`, and the app installing updates by itself. 302 backend + 96 frontend + 7 E2E tests. |

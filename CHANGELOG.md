@@ -2,6 +2,18 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.9.0] - 2026-11-18
+
+### Added
+
+- **The desktop app updates itself.** When it opens and finds a new version it installs it and restarts, with a backup first if the update changes the database. While it's open it checks again every few hours, but then asks before restarting. Turn it off in **Settings → Updates**.
+- **New versions are published by themselves:** merging a version bump into `main` builds the installer and publishes the release once every check has passed. Releases used to be left as drafts, which installed apps couldn't see, so they never found an update.
+- **Stricter checks on every change:** CI now checks that the version matches in every file, fails on lint warnings, type-checks separately, raises the coverage gate to 92%, audits dependencies, and ends in one "CI passed" check that has to be green before merging. Dependabot opens monthly update PRs.
+
+### Fixed
+
+- The end-to-end test still expected the old lowercase stage labels, so CI had been failing on `main` since 1.8.1.
+
 ## [1.8.1] - 2026-11-17
 
 ### Added

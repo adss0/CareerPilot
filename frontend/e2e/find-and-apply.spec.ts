@@ -47,12 +47,12 @@ test("import a tracker spreadsheet with a title and totals above the table", asy
   await page.getByRole("link", { name: "Applications" }).click();
   await expect(page.getByLabel("Status for Initech – Tech Graduate")).toHaveValue("sent");
   // The sheet's Pre-assessment + Deadline became an "Online test" stage.
-  await expect(page.getByRole("button", { name: /Online test, upcoming, 25 Nov/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Online test, Upcoming, 25 Nov/ })).toBeVisible();
   await expect(page.getByText("Do the online test by 25 Nov")).toBeVisible();
-  await expect(page.getByRole("button", { name: /Online test, passed/ })).toBeVisible(); // Umbrella
+  await expect(page.getByRole("button", { name: /Online test, Done/ })).toBeVisible(); // Umbrella: "Done" is taken, not passed
 
   // Mark the test passed and add a video interview: the next step follows the stages.
-  await page.getByRole("button", { name: /Online test, upcoming, 25 Nov/ }).click();
+  await page.getByRole("button", { name: /Online test, Upcoming, 25 Nov/ }).click();
   await page.getByRole("radio", { name: "Passed" }).click();
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Wait for news after the online test")).toBeVisible();

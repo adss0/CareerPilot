@@ -2,6 +2,25 @@
 // Only runs inside the desktop app; in a browser these do nothing.
 import { isDesktop } from "@/lib/desktop";
 
+const AUTO_KEY = "careerpilot.autoUpdate";
+
+/** Install updates without asking (on unless turned off in Settings → Updates). */
+export function autoUpdateEnabled(): boolean {
+  try {
+    return localStorage.getItem(AUTO_KEY) !== "off";
+  } catch {
+    return true;
+  }
+}
+
+export function setAutoUpdate(on: boolean): void {
+  try {
+    localStorage.setItem(AUTO_KEY, on ? "on" : "off");
+  } catch {
+    // storage blocked: stays on the default
+  }
+}
+
 export interface AvailableUpdate {
   version: string;
   notes: string;

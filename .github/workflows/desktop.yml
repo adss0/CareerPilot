@@ -1,25 +1,76 @@
 name: Desktop app
 
-# Builds the Windows installer. Runs on PRs that touch the app, on demand, and on version tags
-# (a tag like v1.0.0 also creates a draft GitHub Release with the installer attached).
+# Builds the Windows installer and publishes releases.
+# - PRs that touch the app: build and smoke-test the installer (not required to merge).
+# - After CI passes on main: if the version in tauri.conf.json has no release yet, build it,
+#   tag it vX.Y.Z and publish the release. Installed apps find it through latest.json and
+#   update themselves. Merging without a version bump publishes nothing.
 on:
   pull_request:
     paths: ["backend/**", "frontend/**", "desktop/**", ".github/workflows/desktop.yml"]
-  push:
-    tags: ["v*"]
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: desktop-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  plan:
+    # Works out the version, and whether this run publishes a release.
+    # Only CI runs for pushes to main in this repository count (never a fork's PR).
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      publish: ${{ steps.plan.outputs.publish }}
+      sha: ${{ steps.plan.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          version=$(python3 scripts/check_version.py)
+          publish=false
+          if [ "$EVENT" = "workflow_run" ]; then
+            if gh release view "v$version" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              echo "v$version is already released: nothing to publish."
+            else
+              publish=true
+              echo "v$version is new: building and publishing it."
+            fi
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
   windows:
+    needs: plan
+    if: github.event_name != 'workflow_run' || needs.plan.outputs.publish == 'true'
     runs-on: windows-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
           cache: pip
@@ -58,9 +109,9 @@ jobs:
           New-Item -ItemType Directory -Force desktop/src-tauri/binaries | Out-Null
           Copy-Item backend/dist/careerpilot-server.exe desktop/src-tauri/binaries/careerpilot-server-x86_64-pc-windows-msvc.exe
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: |
             frontend/package-lock.json
@@ -95,7 +146,7 @@ jobs:
             npx tauri build --config '{"bundle":{"createUpdaterArtifacts":false}}'
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: CareerPilot-windows-installer
           path: |
@@ -105,46 +156,70 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: windows
+    needs: [plan, windows]
+    if: needs.plan.outputs.publish == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+      - uses: actions/download-artifact@v6
         with:
           name: CareerPilot-windows-installer
           path: installer
-      # latest.json tells installed apps there's a new version (only when the build was signed).
+      # The release notes are this version's section of the changelog.
+      - name: Release notes from the changelog
+        run: |
+          awk -v v="$VERSION" '
+            index($0, "## [" v "]") == 1 { on = 1; next }
+            on && index($0, "## [") == 1 { exit }
+            on { print }
+          ' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "CareerPilot $VERSION." > notes.md
+          cat notes.md
+      # latest.json tells installed apps there's a new version. Without it (an unsigned
+      # build) nothing would update, so the release stops here instead.
       - name: Write latest.json for auto-updates
-        shell: bash
         env:
-          TAG: ${{ github.ref_name }}
           REPO: ${{ github.repository }}
         run: |
           sig=$(ls installer/nsis/*-setup.exe.sig 2>/dev/null | head -1 || true)
-          if [ -z "$sig" ]; then echo "Unsigned build: no latest.json."; exit 0; fi
+          if [ -z "$sig" ]; then
+            echo "::error::The installer isn't signed (is TAURI_SIGNING_PRIVATE_KEY set?)."
+            exit 1
+          fi
           exe=$(basename "${sig%.sig}")
           python3 - "$sig" "$exe" <<'PY'
           import json, os, sys
           from datetime import datetime, timezone
           sig, exe = sys.argv[1], sys.argv[2]
-          tag, repo = os.environ["TAG"], os.environ["REPO"]
+          version, repo = os.environ["VERSION"], os.environ["REPO"]
           manifest = {
-              "version": tag.lstrip("v"),
-              "notes": f"CareerPilot {tag}: see the release notes on GitHub.",
+              "version": version,
+              "notes": open("notes.md", encoding="utf-8").read().strip(),
               "pub_date": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
               "platforms": {
                   "windows-x86_64": {
                       "signature": open(sig).read().strip(),
-                      "url": f"https://github.com/{repo}/releases/download/{tag}/{exe}",
+                      "url": f"https://github.com/{repo}/releases/download/v{version}/{exe}",
                   }
               },
           }
           json.dump(manifest, open("installer/latest.json", "w"), indent=2)
           PY
           cat installer/latest.json
+      # Published (not a draft) and marked latest: that's the address the app checks.
       - uses: softprops/action-gh-release@v2
         with:
-          draft: true
+          tag_name: v${{ env.VERSION }}
+          target_commitish: ${{ needs.plan.outputs.sha }}
+          name: CareerPilot ${{ env.VERSION }}
+          body_path: notes.md
+          draft: false
+          make_latest: "true"
           files: installer/**/*
