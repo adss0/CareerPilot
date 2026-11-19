@@ -74,7 +74,7 @@ jobs:
         run: |
           npx prettier --check ../extension
           node -e "JSON.parse(require('fs').readFileSync('../extension/manifest.json'))"
-          node --test ../extension/tests/
+          node --test "../extension/tests/*.test.js"
 
   e2e:
     # A real browser through import → AI letter → approve → send, against the real backend,
