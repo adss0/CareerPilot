@@ -8,7 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchHealth } from "@/features/health/api";
 import { isDesktop } from "@/lib/desktop";
-import { checkForUpdate, type AvailableUpdate } from "@/lib/updates";
+import {
+  autoUpdateEnabled,
+  checkForUpdate,
+  setAutoUpdate,
+  type AvailableUpdate,
+} from "@/lib/updates";
 
 type State =
   | { kind: "idle" }
@@ -21,6 +26,7 @@ type State =
 export function UpdatesView({ desktop = isDesktop() }: { desktop?: boolean }) {
   const health = useQuery({ queryKey: ["health"], queryFn: fetchHealth, retry: false });
   const [state, setState] = useState<State>({ kind: "idle" });
+  const [auto, setAuto] = useState(autoUpdateEnabled);
 
   const check = () => {
     setState({ kind: "checking" });
@@ -52,12 +58,30 @@ export function UpdatesView({ desktop = isDesktop() }: { desktop?: boolean }) {
         <CardDescription>
           You're on CareerPilot {health.data?.version ?? "…"}.{" "}
           {desktop
-            ? "It checks for a new version a few seconds after it opens, and only installs updates signed by the CareerPilot project."
+            ? "It checks for a new version a few seconds after it opens and every few hours, and only installs updates signed by the CareerPilot project."
             : "Updates are for the desktop app; in development, pull the latest code instead."}
         </CardDescription>
       </CardHeader>
       {desktop && (
         <CardContent className="space-y-3 text-sm">
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={auto}
+              onChange={(e) => {
+                setAuto(e.target.checked);
+                setAutoUpdate(e.target.checked);
+              }}
+            />
+            <span>
+              <span className="font-medium">Install updates automatically</span>
+              <span className="text-muted-foreground block">
+                When CareerPilot opens and finds a new version, it installs it and restarts. If it
+                finds one while you're working, it asks first.
+              </span>
+            </span>
+          </label>
           {state.kind === "available" ? (
             <div className="space-y-2">
               <p className="flex items-center gap-2 font-semibold">

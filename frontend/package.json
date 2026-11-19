@@ -1,15 +1,16 @@
 {
   "name": "careerpilot-frontend",
   "private": true,
-  "version": "1.8.1",
+  "version": "1.9.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "typecheck": "tsc -b",
     "test": "vitest run",
     "build:desktop": "tsc -b && vite build --mode desktop",
     "e2e": "playwright test",

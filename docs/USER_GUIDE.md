@@ -187,7 +187,7 @@ Backups from an older version of CareerPilot are upgraded automatically when res
 
 ### Updates
 
-The desktop app checks for a new version a few seconds after it starts, and **Settings → Updates** shows your version with a **Check for updates** button. When there is one, click **Update**: it downloads, installs and restarts. Updates are signed, so the app only installs ones published from the CareerPilot repository.
+The desktop app keeps itself up to date. A few seconds after it opens it checks for a new version and, if there is one, installs it and restarts by itself (about a minute; your data is backed up first if the update changes the database). While it's open it checks again every few hours, but then shows an **Update** button instead of restarting in the middle of your work. **Settings → Updates** shows your version, a **Check for updates** button, and an **Install updates automatically** switch if you'd rather be asked every time. Updates are signed, so the app only installs ones published from the CareerPilot repository.
 
 ## 10. Troubleshooting
 
