@@ -1,5 +1,6 @@
 """Sends queued emails in the background: one at a time, a daily cap, random gaps between."""
 
+import logging
 import random
 import threading
 from collections.abc import Callable
@@ -15,6 +16,8 @@ from app.models.tables import utcnow
 from app.schemas.email import QueueStatus
 from app.services.email_service import EmailService
 from app.services.email_settings_service import EmailSettingsService
+
+logger = logging.getLogger(__name__)
 
 
 def _naive(value: datetime) -> datetime:
@@ -120,5 +123,5 @@ class EmailQueue:
             try:
                 self.tick()
             except Exception:  # keep the worker alive; the next tick tries again
-                pass
+                logger.exception("The email queue failed")
             self._stop.wait(self.env.email_queue_interval_seconds)

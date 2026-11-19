@@ -9,7 +9,6 @@ import type {
   DueItem,
   DuplicateJob,
   Letter,
-  LetterJob,
   Tone,
   TrackerGroup,
   TrackerSummary,
@@ -133,15 +132,3 @@ export const deleteLetter = (id: number) => apiSend<null>("DELETE", `/letters/${
 
 export const letterExportUrl = (id: number, format: "pdf" | "docx") =>
   `${API_BASE}/letters/${id}/export?format=${format}`;
-
-export const startBulkLetters = (body: {
-  application_ids: number[];
-  tone: Tone;
-  instructions: string;
-  skip_existing: boolean;
-}) => apiSend<LetterJob>("POST", "/letters/bulk", body);
-
-export const getLetterJob = (id: string) => apiGet<LetterJob>(`/letters/jobs/${id}`);
-
-export const cancelLetterJob = (id: string) =>
-  apiSend<LetterJob>("POST", `/letters/jobs/${id}/cancel`);

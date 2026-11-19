@@ -19,7 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { formatDateTime } from "@/lib/dates";
 
 import type { EmailLog } from "./api";
-import type { ApplyViewModel } from "./useApplyViewModel";
+import type { EmailApplyViewModel } from "./useEmailApplyViewModel";
 
 const STATUS: Record<
   EmailLog["status"],
@@ -32,7 +32,7 @@ const STATUS: Record<
   cancelled: { label: "Cancelled", variant: "outline" },
 };
 
-export function ApplyView(vm: ApplyViewModel) {
+export function EmailApplyView(vm: EmailApplyViewModel) {
   const p = vm.preview;
 
   return (

@@ -52,16 +52,6 @@ export interface EmailLog {
   created_at: string;
 }
 
-export interface QueueStatus {
-  ready: boolean;
-  problems: string[];
-  queued: number;
-  sent_today: number;
-  daily_limit: number;
-  test_mode: boolean;
-  next_send_at: string | null;
-}
-
 export const getEmailSettings = () => apiGet<EmailSettingsRead>("/settings/email");
 export const updateEmailSettings = (changes: Partial<EmailSettings>) =>
   apiSend<EmailSettingsRead>("PUT", "/settings/email", changes);
@@ -74,15 +64,8 @@ export const sendEmail = (applicationId: number) =>
   apiSend<EmailLog>("POST", `/applications/${applicationId}/email/send`, { confirm: true });
 export const markApplied = (applicationId: number) =>
   apiSend<null>("POST", `/applications/${applicationId}/mark-applied`);
-export const sendMany = (applicationIds: number[]) =>
-  apiSend<{ queued: number; skipped: { application_id: number; reason: string }[] }>(
-    "POST",
-    "/emails/bulk",
-    { application_ids: applicationIds, confirm: true },
-  );
 
 export const listEmails = (applicationId?: number) =>
   apiGet<EmailLog[]>(applicationId ? `/emails?application_id=${applicationId}` : "/emails");
-export const getQueueStatus = () => apiGet<QueueStatus>("/emails/queue");
 export const cancelEmail = (id: number) => apiSend<EmailLog>("POST", `/emails/${id}/cancel`);
 export const retryEmail = (id: number) => apiSend<EmailLog>("POST", `/emails/${id}/retry`);

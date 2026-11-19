@@ -42,7 +42,6 @@ class GroqProvider:
             "/chat/completions",
             body,
             label="Groq",
-            key_hint="GROQ_API_KEY",
             model=self.model,
         )
         try:

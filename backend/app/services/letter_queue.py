@@ -1,5 +1,6 @@
 """Writes many cover letters in the background, one at a time, within free-tier rate limits."""
 
+import logging
 import queue
 import threading
 import time
@@ -15,6 +16,8 @@ from app.models.tables import utcnow
 from app.schemas.letters import BulkFailure, BulkLetterRequest, LetterJobRead
 from app.services.application_service import ApplicationService
 from app.services.letter_service import LetterService
+
+logger = logging.getLogger(__name__)
 
 RATE_LIMIT_RETRIES = 3
 RATE_LIMIT_WAIT_SECONDS = 15  # doubles on each retry: 15s, 30s, 60s
@@ -111,6 +114,7 @@ class LetterQueue:
             try:
                 self._run(job)
             except Exception as exc:  # never let one job kill the worker
+                logger.exception("Bulk letter job %s failed", job.id)
                 job.status = "failed"
                 job.message = f"Unexpected error: {exc}"
 

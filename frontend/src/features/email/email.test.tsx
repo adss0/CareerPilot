@@ -1,12 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 
 import type { EmailPreview, EmailSettingsRead } from "./api";
-import { ApplyView } from "./ApplyView";
+import { EmailApplyView } from "./EmailApplyView";
 import { EmailSettingsView } from "./EmailSettingsView";
-import { QueueBannerView } from "./QueueBannerView";
-import type { ApplyViewModel } from "./useApplyViewModel";
+import type { EmailApplyViewModel } from "./useEmailApplyViewModel";
 
 const preview: EmailPreview = {
   to: "hiring@example.org",
@@ -20,7 +18,7 @@ const preview: EmailPreview = {
   warnings: ["Test mode is on: this will go to me@example.com, not the employer."],
 };
 
-const applyVm = (overrides: Partial<ApplyViewModel> = {}): ApplyViewModel => ({
+const applyVm = (overrides: Partial<EmailApplyViewModel> = {}): EmailApplyViewModel => ({
   preview,
   logs: [],
   hasContactEmail: true,
@@ -41,10 +39,10 @@ const applyVm = (overrides: Partial<ApplyViewModel> = {}): ApplyViewModel => ({
   ...overrides,
 });
 
-describe("ApplyView", () => {
+describe("EmailApplyView", () => {
   it("shows where a test email really goes and needs approval", () => {
     const vm = applyVm();
-    render(<ApplyView {...vm} />);
+    render(<EmailApplyView {...vm} />);
     expect(screen.getByText("me@example.com")).toBeInTheDocument();
     expect(screen.getByText(/instead of hiring@example.org/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Approve & send" })).toBeDisabled();
@@ -54,14 +52,14 @@ describe("ApplyView", () => {
 
   it("enables sending once approved", () => {
     const vm = applyVm({ approved: true });
-    render(<ApplyView {...vm} />);
+    render(<EmailApplyView {...vm} />);
     fireEvent.click(screen.getByRole("button", { name: "Approve & send" }));
     expect(vm.send).toHaveBeenCalled();
   });
 
   it("explains what blocks sending", () => {
     render(
-      <ApplyView
+      <EmailApplyView
         {...applyVm({
           preview: { ...preview, can_send: false, problems: ["Write a cover letter first."] },
         })}
@@ -73,7 +71,7 @@ describe("ApplyView", () => {
 
   it("offers assisted apply for website-only jobs", () => {
     const vm = applyVm({ hasContactEmail: false });
-    render(<ApplyView {...vm} />);
+    render(<EmailApplyView {...vm} />);
     expect(screen.queryByText("Send by email")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Open the job posting/ })).toHaveAttribute(
       "rel",
@@ -102,50 +100,10 @@ describe("ApplyView", () => {
         },
       ],
     });
-    render(<ApplyView {...vm} />);
+    render(<EmailApplyView {...vm} />);
     expect(screen.getByText("Couldn't connect.")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Retry/ }));
     expect(vm.retry).toHaveBeenCalledWith(2);
-  });
-});
-
-describe("QueueBannerView", () => {
-  it("shows queue progress and the daily limit", () => {
-    render(
-      <MemoryRouter>
-        <QueueBannerView
-          status={{
-            ready: true,
-            problems: [],
-            queued: 3,
-            sent_today: 20,
-            daily_limit: 20,
-            test_mode: true,
-            next_send_at: null,
-          }}
-        />
-      </MemoryRouter>,
-    );
-    expect(screen.getByRole("status")).toHaveTextContent("3 emails waiting to send");
-    expect(screen.getByRole("status")).toHaveTextContent("daily limit reached");
-    expect(screen.getByRole("status")).toHaveTextContent("Test mode");
-  });
-
-  it("is hidden when nothing is queued", () => {
-    const { container } = render(
-      <QueueBannerView
-        status={{
-          ready: true,
-          problems: [],
-          queued: 0,
-          sent_today: 0,
-          daily_limit: 20,
-          test_mode: true,
-          next_send_at: null,
-        }}
-      />,
-    );
-    expect(container).toBeEmptyDOMElement();
   });
 });
 

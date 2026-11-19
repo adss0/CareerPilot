@@ -3,8 +3,8 @@ import { useParams } from "react-router-dom";
 
 import { TailoredCvView } from "@/features/documents/TailoredCvView";
 import { useTailoredCvViewModel } from "@/features/documents/useTailoredCvViewModel";
-import { ApplyView } from "@/features/email/ApplyView";
-import { useApplyViewModel } from "@/features/email/useApplyViewModel";
+import { EmailApplyView } from "@/features/email/EmailApplyView";
+import { useEmailApplyViewModel } from "@/features/email/useEmailApplyViewModel";
 import { FollowUpView } from "@/features/tracking/FollowUpView";
 import { useFollowUpViewModel } from "@/features/tracking/useFollowUpViewModel";
 
@@ -19,7 +19,7 @@ export function ApplicationDetailPage() {
   const vm = useApplicationDetailViewModel(applicationId);
   const tailoredCv = useTailoredCvViewModel(applicationId);
   const details = useJobDetailsViewModel(applicationId);
-  const apply = useApplyViewModel(applicationId);
+  const apply = useEmailApplyViewModel(applicationId);
   const followUp = useFollowUpViewModel(applicationId);
   return (
     <ApplicationDetailView
@@ -29,7 +29,7 @@ export function ApplicationDetailPage() {
       apply={
         <div className="space-y-6">
           <FollowUpView {...followUp} />
-          <ApplyView {...apply} />
+          <EmailApplyView {...apply} />
         </div>
       }
     />
