@@ -176,7 +176,7 @@ class JobService:
     def remove_from_shortlist(self, job_id: str) -> None:
         starred = self._starred(job_id)
         if starred is None:
-            raise NotFoundError("Shortlisted job", job_id)  # type: ignore[arg-type]
+            raise NotFoundError("Shortlisted job", job_id)
         self.session.delete(starred)
         self.session.commit()
 
@@ -314,7 +314,7 @@ class JobService:
         if listing is None:
             starred = self._starred(job_id)
             if starred is None:
-                raise NotFoundError("Job", job_id)  # type: ignore[arg-type]
+                raise NotFoundError("Job", job_id)
             listing = self._from_saved(starred)
         return listing
 

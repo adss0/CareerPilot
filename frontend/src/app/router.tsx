@@ -1,13 +1,13 @@
-import { ApplyPage } from "@/features/apply/ApplyPage";
-import { FindJobsPage } from "@/features/jobs/FindJobsPage";
 import { createBrowserRouter, createHashRouter } from "react-router-dom";
 
 import { AppLayout } from "@/app/layout/AppLayout";
 import { ApplicationDetailPage } from "@/features/applications/ApplicationDetailPage";
 import { ApplicationsPage } from "@/features/applications/ApplicationsPage";
 import { NewApplicationPage } from "@/features/applications/NewApplicationPage";
+import { ApplyPage } from "@/features/apply/ApplyPage";
 import { DashboardPage } from "@/features/dashboard/DashboardPage";
 import { ImportPage } from "@/features/imports/ImportPage";
+import { FindJobsPage } from "@/features/jobs/FindJobsPage";
 import { ProfilePage } from "@/features/profile/ProfilePage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { CalendarPage } from "@/features/tracking/CalendarPage";

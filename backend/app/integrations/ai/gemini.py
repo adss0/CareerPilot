@@ -66,7 +66,6 @@ class GeminiProvider:
             f"/models/{model}:generateContent",
             body,
             label="Gemini",
-            key_hint="GEMINI_API_KEY",
             model=model,
             timeout=timeout,
         )

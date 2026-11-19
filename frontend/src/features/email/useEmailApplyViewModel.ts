@@ -18,7 +18,7 @@ import {
   type EmailPreview,
 } from "./api";
 
-export interface ApplyViewModel {
+export interface EmailApplyViewModel {
   preview: EmailPreview | null;
   logs: EmailLog[];
   hasContactEmail: boolean;
@@ -40,7 +40,7 @@ export interface ApplyViewModel {
 
 const APPLIED = new Set(["sent", "followed_up", "interview", "offer", "rejected"]);
 
-export function useApplyViewModel(applicationId: number): ApplyViewModel {
+export function useEmailApplyViewModel(applicationId: number): EmailApplyViewModel {
   const queryClient = useQueryClient();
   const appQuery = useQuery({
     queryKey: ["applications", "detail", applicationId],

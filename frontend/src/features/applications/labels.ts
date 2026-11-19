@@ -1,4 +1,4 @@
-import type { ApplicationStatus, LetterJob, Sponsorship, StageKind, Tone } from "./types";
+import type { ApplicationStatus, Sponsorship, StageKind, Tone } from "./types";
 
 export const SPONSORSHIP_LABELS: Record<Sponsorship, string> = {
   unsure: "Unsure",
@@ -61,10 +61,3 @@ export function scoreLabel(score: number | null): string {
   if (score >= 50) return `${score} · fair`;
   return `${score} · weak`;
 }
-
-export function jobPercent(job: Pick<LetterJob, "processed" | "total">): number {
-  return job.total ? Math.round((job.processed / job.total) * 100) : 0;
-}
-
-export const isJobActive = (job: LetterJob | undefined | null) =>
-  job?.status === "queued" || job?.status === "running";

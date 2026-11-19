@@ -1,10 +1,10 @@
 """Follow-ups, reply detection, notifications and the calendar."""
 
+import logging
 import re
 import threading
 from collections.abc import Callable
 from datetime import UTC, datetime, time, timedelta
-from pathlib import Path
 
 from sqlmodel import Session, col, func, select
 
@@ -31,6 +31,8 @@ from app.services.email_settings_service import EmailSettingsService
 from app.services.import_service import parse_day
 from app.services.profile_service import ProfileService
 from app.services.tracker import NOT_APPLIED, due_items, stage_name, stages
+
+logger = logging.getLogger(__name__)
 
 TRACKING_KEY = "tracking"
 LOOKBACK_DAYS = 90
@@ -414,7 +416,7 @@ class TrackingService:
 class ReplyChecker:
     """Checks the inbox for replies in the background every few minutes."""
 
-    def __init__(self, session_factory: Callable[[], Session], env: Settings, cv_dir: Path):
+    def __init__(self, session_factory: Callable[[], Session], env: Settings):
         self.session_factory = session_factory
         self.env = env
         self._stop = threading.Event()
@@ -437,4 +439,4 @@ class ReplyChecker:
                 with self.session_factory() as session:
                     TrackingService(session, self.env).check_replies()
             except Exception:  # keep checking next time
-                pass
+                logger.exception("Checking for replies failed")

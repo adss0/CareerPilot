@@ -153,16 +153,3 @@ export interface Letter {
   created_at: string;
   updated_at: string | null;
 }
-
-export interface LetterJob {
-  id: string;
-  status: "queued" | "running" | "done" | "cancelled" | "failed";
-  total: number;
-  processed: number;
-  succeeded: number[];
-  skipped: number[];
-  failed: { application_id: number; company: string; error: string }[];
-  current: string | null;
-  message: string | null;
-  created_at: string;
-}

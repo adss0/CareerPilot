@@ -1,10 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { BulkJobView } from "./BulkJobView";
-import { jobPercent, scoreLabel, statusVariant } from "./labels";
+import { scoreLabel, statusVariant } from "./labels";
 import { LetterEditorView } from "./LetterEditorView";
-import type { Letter, LetterJob } from "./types";
+import type { Letter } from "./types";
 
 const letter: Letter = {
   id: 7,
@@ -25,19 +24,6 @@ const letter: Letter = {
   updated_at: null,
 };
 
-const job: LetterJob = {
-  id: "abc",
-  status: "running",
-  total: 4,
-  processed: 1,
-  succeeded: [1],
-  skipped: [],
-  failed: [],
-  current: "Acme Ltd: Developer",
-  message: null,
-  created_at: "2026-11-10T10:00:00",
-};
-
 describe("labels", () => {
   it("formats scores, statuses and progress", () => {
     expect(scoreLabel(null)).toBe("-");
@@ -45,8 +31,6 @@ describe("labels", () => {
     expect(scoreLabel(40)).toBe("40 · weak");
     expect(statusVariant("offer")).toBe("success");
     expect(statusVariant("rejected")).toBe("destructive");
-    expect(jobPercent({ processed: 1, total: 4 })).toBe(25);
-    expect(jobPercent({ processed: 0, total: 0 })).toBe(0);
   });
 });
 
@@ -90,34 +74,5 @@ describe("LetterEditorView", () => {
     expect(screen.queryByRole("link", { name: "PDF" })).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/Email subject/), { target: { value: "New" } });
     expect(props.onEdit).toHaveBeenCalledWith({ email_subject: "New" });
-  });
-});
-
-describe("BulkJobView", () => {
-  it("shows progress and lets you cancel a running job", () => {
-    const onCancel = vi.fn();
-    render(<BulkJobView job={job} onCancel={onCancel} onDismiss={vi.fn()} />);
-    expect(screen.getByText(/1 of 4/)).toBeInTheDocument();
-    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "25");
-    expect(screen.getByText("Now: Acme Ltd: Developer")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    expect(onCancel).toHaveBeenCalled();
-  });
-
-  it("lists failures when finished", () => {
-    render(
-      <BulkJobView
-        job={{
-          ...job,
-          status: "done",
-          processed: 4,
-          failed: [{ application_id: 3, company: "Globex", error: "Rate limit" }],
-        }}
-        onCancel={vi.fn()}
-        onDismiss={vi.fn()}
-      />,
-    );
-    expect(screen.getByText(/Finished: 1 written/)).toBeInTheDocument();
-    expect(screen.getByText("Globex: Rate limit")).toBeInTheDocument();
   });
 });

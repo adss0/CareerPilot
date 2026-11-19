@@ -31,7 +31,6 @@ def post_json(
     body: dict,
     *,
     label: str,
-    key_hint: str,
     model: str,
     timeout: float | None = None,
 ) -> dict:

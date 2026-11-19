@@ -134,7 +134,7 @@ def get_email_queue() -> EmailQueue:
 
 @lru_cache
 def get_reply_checker() -> ReplyChecker:
-    return ReplyChecker(lambda: Session(get_engine()), get_settings(), get_settings().cv_dir)
+    return ReplyChecker(lambda: Session(get_engine()), get_settings())
 
 
 ApplicationServiceDep = Annotated[ApplicationService, Depends(get_application_service)]
