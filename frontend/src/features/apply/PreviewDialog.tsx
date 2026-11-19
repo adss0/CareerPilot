@@ -3,6 +3,7 @@
 import { Eye, X } from "lucide-react";
 import { useEffect } from "react";
 
+import { Overlay } from "@/components/Overlay";
 import { Button } from "@/components/ui/button";
 import { API_BASE } from "@/lib/apiClient";
 
@@ -28,35 +29,37 @@ export function PreviewDialog({
   }, [onClose]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      onClick={onClose}
-    >
+    <Overlay>
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        className="bg-card shadow-lift flex max-h-full w-full max-w-4xl flex-col gap-3 rounded-2xl border p-4"
-        onClick={(e) => e.stopPropagation()}
+        className="motion-fade fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        onClick={onClose}
       >
-        <div className="flex items-center justify-between gap-3">
-          <p className="flex items-center gap-2 font-bold">
-            <Eye className="text-primary size-4" /> {title}
-          </p>
-          <p className="text-muted-foreground hidden text-xs sm:block">
-            Exactly what the PDF will look like, including changes you haven't saved.
-          </p>
-          <Button size="icon" variant="ghost" aria-label="Close preview" onClick={onClose}>
-            <X />
-          </Button>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+          className="motion-pop bg-card shadow-lift flex max-h-full w-full max-w-4xl flex-col gap-3 rounded-2xl border p-4"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <p className="flex items-center gap-2 font-bold">
+              <Eye className="text-primary size-4" /> {title}
+            </p>
+            <p className="text-muted-foreground hidden text-xs sm:block">
+              Exactly what the PDF will look like, including changes you haven't saved.
+            </p>
+            <Button size="icon" variant="ghost" aria-label="Close preview" onClick={onClose}>
+              <X />
+            </Button>
+          </div>
+          <PdfPreview
+            title={title}
+            url={`${API_BASE}/preview/${kind}`}
+            version="draft"
+            body={style ? { content, style } : { content }}
+          />
         </div>
-        <PdfPreview
-          title={title}
-          url={`${API_BASE}/preview/${kind}`}
-          version="draft"
-          body={style ? { content, style } : { content }}
-        />
       </div>
-    </div>
+    </Overlay>
   );
 }

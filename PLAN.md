@@ -391,6 +391,7 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 - [x] 18.4 **The app updates itself** (`app/layout/UpdateNotifier.tsx`): installs at start, asks when found mid-session, re-checks every 6 hours, switch in Settings → Updates.
 - [x] 18.5 **Save to CareerPilot extension** (`extension/`): Manifest V3, reads the open job page (JSON-LD JobPosting, else main text) and posts it to `/api/jobs/paste`, with a duplicate check. Tested with Node's test runner in CI.
 
+- [x] 18.6 **Motion (v1.10)**: tokens `--ease-out` / `--ease-in-out` and `.motion-*` classes in `index.css` (transform and opacity only, fades for reduced motion). Start-up screen sequence and fade-out over the app (`BackendGate.tsx`), page entrance, dashboard stagger, preview and stage-editor pop, button press. Window-positioned pop-ups render through `components/Overlay.tsx`.
 ---
 
 ## Future ideas (after v1)
@@ -445,3 +446,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-18 | **Phase 18 (v1.9) done.** Fixed the E2E test that had CI red on `main`, a stricter CI with one required "CI passed" check, releases published automatically after CI passes on `main`, and the app installing updates by itself. 302 backend + 96 frontend + 7 E2E tests. |
 | 2026-11-19 | **Code cleanup.** Removed UI nothing used (bulk-letter progress, the send-queue banner and their API calls), renamed the email `ApplyView` to `EmailApplyView` so it isn't confused with the Apply page, background workers log failures to the server log instead of hiding them, and unused parameters went. 302 backend + 92 frontend + 7 E2E tests. |
 | 2026-11-19 | **Save to CareerPilot extension** for Chrome and Edge: one click on a job page adds it to the tracker, with a duplicate warning. 11 extension tests, checked against a real backend. |
+| 2026-11-19 | **v1.10: motion.** A start-up sequence that fades into the app, page entrances, a dashboard stagger, pops for the preview and stage editor, button presses, all reduced to fades for "reduce motion". Fixed the stage editor closing on a small scroll. 302 backend + 94 frontend + 18 extension + 7 E2E tests. |

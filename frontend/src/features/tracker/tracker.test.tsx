@@ -106,6 +106,26 @@ describe("jobLink", () => {
   });
 });
 
+describe("Stage editor", () => {
+  it("stays open when a scroll leaves its chip in place, and closes when the chip moves", () => {
+    const vm = trackerVm();
+    renderIn(<TrackerView {...vm} />);
+    const chip = screen.getByRole("button", { name: /Online test, Upcoming/ });
+    let top = 100;
+    vi.spyOn(chip, "getBoundingClientRect").mockImplementation(
+      () => ({ top, left: 50, bottom: top + 20, right: 120, width: 70, height: 20 }) as DOMRect,
+    );
+    fireEvent.click(chip);
+    // Scrolling that brought the chip into view can arrive just after it opens.
+    fireEvent.scroll(window);
+    expect(screen.getByRole("radio", { name: "Passed" })).toBeInTheDocument();
+    // The chip scrolled away: close rather than float in the wrong place.
+    top = 300;
+    fireEvent.scroll(window);
+    expect(screen.queryByRole("radio", { name: "Passed" })).not.toBeInTheDocument();
+  });
+});
+
 describe("TrackerView", () => {
   it("shows the totals and the spreadsheet columns, and saves edits", () => {
     const vm = trackerVm();

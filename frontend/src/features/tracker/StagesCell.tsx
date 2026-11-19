@@ -3,13 +3,14 @@
 // red ✗ failed); + adds one.
 // Clicking a chip opens a small editor: kind, date, result and a note.
 import { Check, Plus, Trash2, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { STAGE_LABELS, STAGE_SHORT } from "@/features/applications/labels";
 import type { Stage, StageKind, StageResult } from "@/features/applications/types";
+import { Overlay } from "@/components/Overlay";
 import { cn } from "@/lib/utils";
 
 const RESULTS: [StageResult, string][] = [
@@ -49,11 +50,13 @@ const EDITOR_HEIGHT = 230;
 
 /** Where to show the editor: under the cell, or above it near the bottom of the window. It's
  * positioned on the window, so the sheet's horizontal scrolling can't cut it off. */
-function editorPosition(anchor: DOMRect): { top: number; left: number } {
+function editorPosition(anchor: DOMRect): CSSProperties {
   const below = window.innerHeight - anchor.bottom > EDITOR_HEIGHT + 8;
   return {
     top: below ? anchor.bottom + 4 : Math.max(8, anchor.top - EDITOR_HEIGHT - 4),
     left: Math.max(8, Math.min(anchor.left, window.innerWidth - EDITOR_WIDTH - 8)),
+    // It grows out of the chip that opened it.
+    transformOrigin: below ? "top left" : "bottom left",
   };
 }
 
@@ -62,6 +65,7 @@ function StageEditor({
   isNew,
   label,
   anchor,
+  trigger,
   onSave,
   onRemove,
   onClose,
@@ -70,6 +74,7 @@ function StageEditor({
   isNew: boolean;
   label: string;
   anchor: DOMRect | null;
+  trigger: HTMLElement | null; // the chip that opened it
   onSave: (stage: Stage) => void;
   onRemove: () => void;
   onClose: () => void;
@@ -83,23 +88,30 @@ function StageEditor({
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
-    window.addEventListener("scroll", onClose, true); // it's fixed: close rather than drift
+    // It's fixed to the window: if the chip scrolls away, close rather than drift. Only if it
+    // really moved: scrolling that brought the chip into view can arrive just after opening.
+    const onScroll = () => {
+      if (!anchor || !trigger) return;
+      const now = trigger.getBoundingClientRect();
+      if (Math.abs(now.top - anchor.top) > 2 || Math.abs(now.left - anchor.left) > 2) onClose();
+    };
+    window.addEventListener("scroll", onScroll, true);
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
-      window.removeEventListener("scroll", onClose, true);
+      window.removeEventListener("scroll", onScroll, true);
     };
-  }, [onClose]);
+  }, [onClose, anchor, trigger]);
 
-  return (
+  const editor = (
     <div
       ref={ref}
       role="dialog"
       aria-label={label}
       style={anchor ? editorPosition(anchor) : undefined}
       className={cn(
-        "bg-card shadow-lift z-50 w-80 space-y-2 rounded-xl border p-3 text-sm",
-        anchor ? "fixed" : "absolute top-full left-0 mt-1",
+        "motion-pop bg-card shadow-lift z-50 w-80 space-y-2 rounded-xl border p-3 text-sm",
+        anchor ? "fixed" : "absolute top-full left-0 mt-1 origin-top-left",
       )}
     >
       <NativeSelect
@@ -160,6 +172,8 @@ function StageEditor({
       </div>
     </div>
   );
+  // Positioned on the window, so it's drawn outside the page (see Overlay).
+  return anchor ? <Overlay>{editor}</Overlay> : editor;
 }
 
 export function StagesCell({
@@ -174,9 +188,11 @@ export function StagesCell({
   // null = closed, -1 = adding a new stage, otherwise the index being edited
   const [editing, setEditing] = useState<number | null>(null);
   const [anchor, setAnchor] = useState<DOMRect | null>(null);
+  const [trigger, setTrigger] = useState<HTMLElement | null>(null);
   const close = useCallback(() => setEditing(null), []);
   const open = (index: number, target: HTMLElement) => {
     setAnchor(target.getBoundingClientRect());
+    setTrigger(target);
     setEditing(index);
   };
 
@@ -217,6 +233,7 @@ export function StagesCell({
           key={editing}
           isNew={editing === -1}
           anchor={anchor}
+          trigger={trigger}
           label={editing === -1 ? `Add a stage for ${label}` : `Edit stage for ${label}`}
           initial={
             editing === -1

@@ -141,3 +141,114 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/*
+ * Motion. Only transform and opacity move (they stay smooth while the app is busy), entrances
+ * use a strong ease-out, and everything becomes a plain fade for "reduce motion".
+ * The startup screen gets the longest, richest motion because it's seen once per launch;
+ * things seen many times a day (pages, buttons) get short, quiet ones.
+ */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@keyframes cp-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes cp-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes cp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--rise, 8px));
+  }
+}
+
+@keyframes cp-pop {
+  from {
+    opacity: 0;
+    transform: scale(var(--pop-from, 0.96));
+  }
+}
+
+@keyframes cp-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+/* "backwards": the start state holds through any delay, and nothing is left behind
+   afterwards (a leftover transform would move fixed-position popovers inside). */
+.motion-page {
+  --rise: 4px;
+  animation: cp-rise 200ms var(--ease-out) backwards;
+}
+
+.motion-rise {
+  animation: cp-rise 240ms var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+
+.motion-pop {
+  animation: cp-pop 180ms var(--ease-out) backwards;
+}
+
+.motion-fade {
+  animation: cp-fade-in 200ms var(--ease-out) backwards;
+}
+
+/* Start-up screen. */
+.splash-logo {
+  --pop-from: 0.9;
+  animation: cp-pop 600ms var(--ease-out) backwards;
+}
+
+.splash-name {
+  animation: cp-rise 500ms var(--ease-out) 100ms backwards;
+}
+
+.splash-status {
+  /* Waits a moment, so a quick start never flashes the message. */
+  animation: cp-fade-in 300ms var(--ease-out) 350ms backwards;
+}
+
+.splash-progress {
+  animation: cp-progress 1.4s linear infinite;
+}
+
+.splash-exit {
+  animation: cp-fade-out 250ms var(--ease-out) forwards;
+  pointer-events: none;
+}
+
+/* The app arriving behind the start-up screen. */
+.shell-enter {
+  animation: cp-fade-in 350ms var(--ease-out) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-page,
+  .motion-rise,
+  .motion-pop,
+  .splash-logo,
+  .splash-name {
+    animation-name: cp-fade-in;
+  }
+  .splash-progress {
+    animation: none;
+    transform: none;
+    width: 100%;
+    opacity: 0.4;
+  }
+}
