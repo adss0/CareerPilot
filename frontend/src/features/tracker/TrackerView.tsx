@@ -34,6 +34,7 @@ import type {
 } from "@/features/applications/types";
 import { JobSummaryView } from "@/features/jobs/JobSummaryView";
 import { API_BASE } from "@/lib/apiClient";
+import { formatDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
 import { jobLink } from "./jobLink";
@@ -311,8 +312,8 @@ function RecycleBin({ vm }: { vm: TrackerViewModel }) {
                   <span className="font-semibold">{item.company}</span>
                   <span className="text-muted-foreground"> · {item.role}</span>
                   <span className="text-muted-foreground block text-xs">
-                    Deleted {new Date(item.deleted_at).toLocaleDateString("en-GB")} · gone for good
-                    on {new Date(item.expires_at).toLocaleDateString("en-GB")}
+                    Deleted {formatDate(item.deleted_at)} · gone for good on{" "}
+                    {formatDate(item.expires_at)}
                   </span>
                 </span>
                 <Button size="sm" variant="outline" onClick={() => vm.restore(item.id)}>

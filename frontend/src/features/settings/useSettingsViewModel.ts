@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { healthQueryOptions } from "@/features/health/api";
 import { errorText } from "@/lib/apiClient";
 
 import {
@@ -63,7 +64,7 @@ export function useSettingsViewModel(): SettingsViewModel {
       }),
     onSuccess: (updated) => {
       queryClient.setQueryData(["settings", "ai"], updated);
-      void queryClient.invalidateQueries({ queryKey: ["health"] });
+      void queryClient.invalidateQueries({ queryKey: healthQueryOptions.queryKey });
       setProvider(null);
       setModelDraft({});
       setGapDraft(null);

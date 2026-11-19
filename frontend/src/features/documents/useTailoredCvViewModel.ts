@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { fetchHealth } from "@/features/health/api";
+import { healthQueryOptions } from "@/features/health/api";
 import { listCvs } from "@/features/profile/api";
 import type { Cv } from "@/features/profile/types";
 import { errorText } from "@/lib/apiClient";
@@ -52,7 +52,7 @@ export function useTailoredCvViewModel(applicationId: number): TailoredCvViewMod
   const queryClient = useQueryClient();
   const key = ["tailored-cv", applicationId];
   const query = useQuery({ queryKey: key, queryFn: () => getTailoredCv(applicationId) });
-  const healthQuery = useQuery({ queryKey: ["health"], queryFn: fetchHealth, retry: false });
+  const healthQuery = useQuery(healthQueryOptions);
   const cvsQuery = useQuery({ queryKey: ["cvs"], queryFn: listCvs });
   const [draft, setDraft] = useState<TailoredContent | null>(null);
   // What to use the next time it's tailored (until then, what this CV was built with).

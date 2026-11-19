@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-import { fetchHealth } from "@/features/health/api";
+import { healthQueryOptions } from "@/features/health/api";
 import { errorText } from "@/lib/apiClient";
 
 import {
@@ -118,7 +118,7 @@ export function useFindJobsViewModel(): FindJobsViewModel {
     enabled: selectedId !== null,
     staleTime: 10 * 60_000,
   });
-  const healthQuery = useQuery({ queryKey: ["health"], queryFn: fetchHealth, retry: false });
+  const healthQuery = useQuery(healthQueryOptions);
 
   const summarizeMutation = useMutation({
     mutationFn: (id: string) => summarizeJob(id),

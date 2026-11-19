@@ -1,7 +1,7 @@
 // ViewModel: turns Model data into exactly what the View needs (state + actions).
 import { useQuery } from "@tanstack/react-query";
 
-import { fetchHealth } from "./api";
+import { healthQueryOptions } from "./api";
 import type { BackendStatus } from "./types";
 
 export interface HealthViewModel {
@@ -13,12 +13,7 @@ export interface HealthViewModel {
 }
 
 export function useHealthViewModel(): HealthViewModel {
-  const query = useQuery({
-    queryKey: ["health"],
-    queryFn: fetchHealth,
-    refetchInterval: 15_000,
-    retry: false,
-  });
+  const query = useQuery({ ...healthQueryOptions, refetchInterval: 15_000 });
 
   let status: BackendStatus = "checking";
   if (query.isSuccess && query.data.status === "ok") status = "online";

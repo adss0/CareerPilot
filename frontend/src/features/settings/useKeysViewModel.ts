@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { healthQueryOptions } from "@/features/health/api";
 import {
   getSecrets,
   setSecret,
@@ -56,7 +57,7 @@ export function useKeysViewModel(): KeysViewModel {
       queryClient.setQueryData(["settings", "secrets"], status);
       // AI and email settings show whether they're set up.
       void queryClient.invalidateQueries({ queryKey: ["settings"] });
-      void queryClient.invalidateQueries({ queryKey: ["health"] });
+      void queryClient.invalidateQueries({ queryKey: healthQueryOptions.queryKey });
       toast.success(value ? `${LABELS[name]} saved.` : `${LABELS[name]} removed.`);
     },
     onError: (e) => setError(errorText(e)),

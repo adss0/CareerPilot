@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { fetchHealth } from "@/features/health/api";
+import { healthQueryOptions } from "@/features/health/api";
 import { getProfile } from "@/features/profile/api";
 import { errorText } from "@/lib/apiClient";
 
@@ -82,7 +82,7 @@ export function useApplicationDetailViewModel(applicationId: number): Applicatio
     queryKey: ["letters", applicationId],
     queryFn: () => listLetters(applicationId),
   });
-  const healthQuery = useQuery({ queryKey: ["health"], queryFn: fetchHealth, retry: false });
+  const healthQuery = useQuery(healthQueryOptions);
   const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
   const [highlights, setHighlights] = useState<string[]>([]);
 
