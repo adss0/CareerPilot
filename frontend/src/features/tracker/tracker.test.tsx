@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { Application } from "@/features/applications/types";
 import { FindJobsView } from "@/features/jobs/FindJobsView";
 import type { FindJobsViewModel } from "@/features/jobs/useFindJobsViewModel";
+import { formatDate } from "@/lib/dates";
 
 import { jobLink } from "./jobLink";
 import { TrackerView } from "./TrackerView";
@@ -267,7 +268,8 @@ describe("deleting", () => {
     renderIn(<TrackerView {...vm} />);
     const bin = screen.getByRole("region", { name: "Recycle bin" });
     expect(bin).toHaveTextContent("Globex");
-    expect(bin).toHaveTextContent("13/12/2026");
+    // Shown in the computer's own date format.
+    expect(bin).toHaveTextContent(formatDate("2026-12-13T10:00:00Z"));
     fireEvent.click(screen.getByRole("button", { name: /Restore/ }));
     expect(vm.restore).toHaveBeenCalledWith(9);
     fireEvent.click(screen.getByRole("button", { name: "Delete Globex – Analyst for good" }));
