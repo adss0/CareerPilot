@@ -18,6 +18,8 @@ dist/
 *.sqlite3
 uploads/
 backend/data/
+# Backups the app makes (they contain the database and CVs)
+backend/backups/
 
 # OS / editors
 .DS_Store

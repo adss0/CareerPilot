@@ -1,6 +1,7 @@
 // View: the Profile page. Renders what the ViewModel gives it.
 import { CheckCircle2, Loader2, Sparkles, X } from "lucide-react";
 
+import { Overlay } from "@/components/Overlay";
 import { Button } from "@/components/ui/button";
 
 import { CvPanelView } from "./CvPanelView";
@@ -97,28 +98,30 @@ export function ProfileView(vm: ProfileViewModel) {
       )}
 
       {(vm.isDirty || vm.savedAt) && (
-        <div className="bg-card fixed inset-x-0 bottom-0 z-10 border-t shadow-lg md:left-60">
-          <div className="flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-3 md:px-8">
-            {vm.isDirty ? (
-              <>
-                <p className="text-sm font-medium">You have unsaved changes.</p>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={vm.discard} disabled={vm.isSaving}>
-                    Discard
-                  </Button>
-                  <Button onClick={vm.save} disabled={vm.isSaving}>
-                    {vm.isSaving && <Loader2 className="animate-spin" />}
-                    Save profile
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <p className="text-success flex items-center gap-2 text-sm font-medium">
-                <CheckCircle2 className="size-4" /> Profile saved.
-              </p>
-            )}
+        <Overlay>
+          <div className="bg-card fixed inset-x-0 bottom-0 z-10 border-t shadow-lg md:left-60">
+            <div className="flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-3 md:px-8">
+              {vm.isDirty ? (
+                <>
+                  <p className="text-sm font-medium">You have unsaved changes.</p>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={vm.discard} disabled={vm.isSaving}>
+                      Discard
+                    </Button>
+                    <Button onClick={vm.save} disabled={vm.isSaving}>
+                      {vm.isSaving && <Loader2 className="animate-spin" />}
+                      Save profile
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-success flex items-center gap-2 text-sm font-medium">
+                  <CheckCircle2 className="size-4" /> Profile saved.
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        </Overlay>
       )}
     </div>
   );
