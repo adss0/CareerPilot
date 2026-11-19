@@ -37,7 +37,7 @@ jobs:
       publish: ${{ steps.plan.outputs.publish }}
       sha: ${{ steps.plan.outputs.sha }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - id: plan
@@ -66,11 +66,11 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.plan.outputs.sha }}
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
@@ -109,7 +109,7 @@ jobs:
           New-Item -ItemType Directory -Force desktop/src-tauri/binaries | Out-Null
           Copy-Item backend/dist/careerpilot-server.exe desktop/src-tauri/binaries/careerpilot-server-x86_64-pc-windows-msvc.exe
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -146,7 +146,7 @@ jobs:
             npx tauri build --config '{"bundle":{"createUpdaterArtifacts":false}}'
           fi
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: CareerPilot-windows-installer
           path: |
@@ -165,10 +165,10 @@ jobs:
     env:
       VERSION: ${{ needs.plan.outputs.version }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.plan.outputs.sha }}
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           name: CareerPilot-windows-installer
           path: installer
@@ -214,7 +214,7 @@ jobs:
           PY
           cat installer/latest.json
       # Published (not a draft) and marked latest: that's the address the app checks.
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ env.VERSION }}
           target_commitish: ${{ needs.plan.outputs.sha }}
