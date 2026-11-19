@@ -69,6 +69,12 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      # The "Save to CareerPilot" browser extension: plain JavaScript, tested with Node.
+      - name: Browser extension
+        run: |
+          npx prettier --check ../extension
+          node -e "JSON.parse(require('fs').readFileSync('../extension/manifest.json'))"
+          node --test ../extension/tests/
 
   e2e:
     # A real browser through import → AI letter → approve → send, against the real backend,
