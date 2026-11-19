@@ -6,7 +6,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchHealth } from "@/features/health/api";
+import { healthQueryOptions } from "@/features/health/api";
 import { isDesktop } from "@/lib/desktop";
 import {
   autoUpdateEnabled,
@@ -24,7 +24,7 @@ type State =
   | { kind: "error"; message: string };
 
 export function UpdatesView({ desktop = isDesktop() }: { desktop?: boolean }) {
-  const health = useQuery({ queryKey: ["health"], queryFn: fetchHealth, retry: false });
+  const health = useQuery(healthQueryOptions);
   const [state, setState] = useState<State>({ kind: "idle" });
   const [auto, setAuto] = useState(autoUpdateEnabled);
 

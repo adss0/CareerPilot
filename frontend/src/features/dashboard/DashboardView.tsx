@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { BackendStatus } from "@/features/health/BackendStatus";
 import { useChartColors } from "@/lib/chartColors";
-import { formatDateTime } from "@/lib/dates";
+import { formatDate, formatDateTime } from "@/lib/dates";
 
 import type { Breakdown } from "./api";
 import { DueThisWeek } from "./DueThisWeek";
@@ -172,7 +172,7 @@ export function DashboardView(vm: DashboardViewModel) {
                       <span className="text-muted-foreground block truncate">{f.role}</span>
                     </Link>
                     <Badge variant={f.overdue ? "destructive" : "secondary"}>
-                      {f.overdue ? "Overdue" : new Date(f.follow_up_at).toLocaleDateString()}
+                      {f.overdue ? "Overdue" : formatDate(f.follow_up_at)}
                     </Badge>
                   </li>
                 ))}

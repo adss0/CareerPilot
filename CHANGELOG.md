@@ -2,6 +2,18 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.10.1] - 2026-11-19
+
+### Fixed
+
+- **Installing a new version can't wipe your data by accident.** Installing over an older version runs the old uninstaller, whose window has a "Delete the application data" box. If it's ticked, CareerPilot now asks once more before deleting your jobs, CVs, letters and keys, and "No" is the default. Updates never touch your data.
+- Releases now ship only the one Windows installer (`setup.exe`). The extra `.msi` installer kept its own record in Windows, so installing both could leave two copies.
+- Follow-up dates on the dashboard and dates in the recycle bin are read as UTC like everywhere else, so they can't show the wrong day late in the evening.
+
+### Changed
+
+- Dependency updates: FastAPI, uvicorn, Alembic, React 19.3, Tailwind 4.3, Vitest 5, Prettier 3.10, jsdom 31 and more. sqlmodel stays where it is, because newer versions refuse the dates already saved.
+
 ## [1.10.0] - 2026-11-19
 
 ### Added

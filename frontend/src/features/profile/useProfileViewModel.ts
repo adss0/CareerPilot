@@ -2,7 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
-import { fetchHealth } from "@/features/health/api";
+import { healthQueryOptions } from "@/features/health/api";
 import { errorText } from "@/lib/apiClient";
 
 import {
@@ -68,7 +68,7 @@ export function useProfileViewModel(): ProfileViewModel {
   const queryClient = useQueryClient();
   const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
   const cvsQuery = useQuery({ queryKey: ["cvs"], queryFn: listCvs });
-  const healthQuery = useQuery({ queryKey: ["health"], queryFn: fetchHealth, retry: false });
+  const healthQuery = useQuery(healthQueryOptions);
 
   // null = no unsaved edits; the form then shows the saved profile.
   const [draft, setDraft] = useState<ProfileDetails | null>(null);

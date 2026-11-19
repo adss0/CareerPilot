@@ -71,13 +71,17 @@ class CvService:
             text=text,
             is_default=not self.repo.exists(),
         )
+        self._save(cv)
+        return self._parse(cv, use_ai)
+
+    def _save(self, cv: CvDocument) -> None:
+        """Saves the record; if that fails, the file already written for it goes too."""
         try:
             self.repo.add(cv)
             self.session.commit()
         except Exception:
-            (self.storage_dir / stored_name).unlink(missing_ok=True)
+            (self.storage_dir / cv.stored_name).unlink(missing_ok=True)
             raise
-        return self._parse(cv, use_ai)
 
     def add_generated(self, filename: str, content: bytes, label: str, text: str) -> CvRead:
         """Stores a CV made by CareerPilot (a tailored CV) and makes it the main CV."""
@@ -94,12 +98,7 @@ class CvService:
             text=text,
             is_default=True,
         )
-        try:
-            self.repo.add(cv)
-            self.session.commit()
-        except Exception:
-            (self.storage_dir / stored_name).unlink(missing_ok=True)
-            raise
+        self._save(cv)
         return to_read(cv)
 
     def parse(self, cv_id: int, use_ai: bool) -> CvParseResult:
