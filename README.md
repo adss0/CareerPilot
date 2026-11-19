@@ -40,7 +40,7 @@ Applying for jobs is repetitive: copy the job details, rewrite a cover letter, a
 
 | | Feature |
 |---|---|
-| 🔎 | Find jobs on UK job boards (Reed, Adzuna, Jooble), each summarised by AI with salary and how well you match; a shortlist; one-click searches of Gradcracker, The Trackr, Bright Network, Prospects and TARGETjobs; add a job from any site |
+| 🔎 | Find jobs on UK job boards (Reed, Adzuna, Jooble), each summarised by AI with salary and how well you match; a shortlist; one-click searches of Gradcracker, The Trackr, Bright Network, Prospects and TARGETjobs; add a job from any site, or with one click from the [browser extension](extension/README.md) |
 | 🚀 | One-page Apply: tailored CV + cover letter, preview, download, then open the employer's site with your details ready to copy |
 | 📥 | Excel / CSV import (even your own tracker layout) with automatic column matching, status import and duplicate detection |
 | 👤 | CV upload and parsing into a reusable profile (multiple CV versions supported) |
@@ -54,7 +54,7 @@ Applying for jobs is repetitive: copy the job details, rewrite a cover letter, a
 | 🔔 | Follow-up reminders and AI-drafted follow-up emails |
 | 📬 | Reply detection from your inbox (IMAP) |
 | 🔁 | Export your tracker to Excel any time |
-| 🖥️ | Installable desktop app for Windows, with one-click signed auto-updates |
+| 🖥️ | Installable desktop app for Windows, that installs signed updates by itself |
 | 💾 | Backup and restore of all your data in one file |
 
 ---

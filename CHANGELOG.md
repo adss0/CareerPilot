@@ -2,6 +2,12 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Save to CareerPilot browser extension** (Chrome and Edge, in `extension/`): one click on any job page adds the job to your tracker. It reads the ad from the page you're on, so it works on sites you're signed in to like LinkedIn, fills in the company and role from the page's job record, and warns you if the job is already in your tracker. See [extension/README.md](extension/README.md).
+
 ## [1.9.0] - 2026-11-18
 
 ### Added

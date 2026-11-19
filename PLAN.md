@@ -389,13 +389,13 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 - [x] 18.2 **Stricter CI** (`.github/workflows/ci.yml`): version check (`scripts/check_version.py`), zero lint warnings, a separate type check, coverage gate 92%, `RuntimeWarning` as errors, cached Playwright browsers, cancel superseded runs, timeouts, an advisory dependency audit, and one **CI passed** check for branch protection. Dependabot monthly.
 - [x] 18.3 **Releases publish themselves** (`.github/workflows/desktop.yml`): after CI passes on `main`, a version with no release yet is built, tagged and published (not a draft) with `latest.json` and the changelog as notes.
 - [x] 18.4 **The app updates itself** (`app/layout/UpdateNotifier.tsx`): installs at start, asks when found mid-session, re-checks every 6 hours, switch in Settings → Updates.
+- [x] 18.5 **Save to CareerPilot extension** (`extension/`): Manifest V3, reads the open job page (JSON-LD JobPosting, else main text) and posts it to `/api/jobs/paste`, with a duplicate check. Tested with Node's test runner in CI.
 
 ---
 
 ## Future ideas (after v1)
 
 - Job scraping from public job boards' RSS/APIs into the tracker
-- Chrome extension: "Save this job to CareerPilot" from any job page
 - AI interview-prep questions per application
 - Multi-language letters
 - Optional cloud sync
@@ -444,3 +444,4 @@ The step-by-step plan for building CareerPilot, from an empty repo to an install
 | 2026-11-15 | Stages get a **Done** result (taken, waiting for the result) between Upcoming and Passed / Didn't pass. 302 backend + 92 frontend tests. |
 | 2026-11-18 | **Phase 18 (v1.9) done.** Fixed the E2E test that had CI red on `main`, a stricter CI with one required "CI passed" check, releases published automatically after CI passes on `main`, and the app installing updates by itself. 302 backend + 96 frontend + 7 E2E tests. |
 | 2026-11-19 | **Code cleanup.** Removed UI nothing used (bulk-letter progress, the send-queue banner and their API calls), renamed the email `ApplyView` to `EmailApplyView` so it isn't confused with the Apply page, background workers log failures to the server log instead of hiding them, and unused parameters went. 302 backend + 92 frontend + 7 E2E tests. |
+| 2026-11-19 | **Save to CareerPilot extension** for Chrome and Edge: one click on a job page adds it to the tracker, with a duplicate warning. 11 extension tests, checked against a real backend. |

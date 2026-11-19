@@ -92,6 +92,8 @@ Check every field and correct anything that's wrong. Letters only use facts from
 
 **Gradcracker, The Trackr, Bright Network, Prospects and TARGETjobs** have no public API. Under **Search on other sites**, one click searches the site for your keywords. Found a job there? Use **Add a job from any site**: paste its link and CareerPilot reads that page and fills in the company, role, salary, location, closing date and the ad, then opens the Apply page. If the site needs a login (LinkedIn, for example), paste the ad's text as well.
 
+**Save jobs from your browser in one click:** the **Save to CareerPilot** extension adds the job you're looking at, on any site, to your tracker. It reads the ad from the page itself, so it works on sites you're signed in to, like LinkedIn. To install it in Chrome or Edge, open `chrome://extensions` (or `edge://extensions`), turn on **Developer mode**, click **Load unpacked** and choose the `extension` folder from CareerPilot's code, then pin the button. With CareerPilot open, click the button on a job page and then **Save job**. It warns you if the job is already in your tracker.
+
 **Import your own tracker:** you can also bring in your existing spreadsheet.
 
 Open **Import** and upload an Excel (`.xlsx`, `.xls`) or CSV file with one job per row. There's a template on the same page.
