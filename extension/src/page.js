@@ -5,8 +5,14 @@ export function readPage() {
     (s) => s.textContent ?? "",
   );
   const main = document.querySelector("main, [role=main], article");
-  const text = (main ?? document.body)?.innerText ?? "";
-  return { url: location.href, title: document.title, jsonLd, text };
+  return {
+    url: location.href,
+    title: document.title,
+    jsonLd,
+    selection: String(window.getSelection() ?? ""),
+    mainText: main?.innerText ?? "",
+    text: document.body?.innerText ?? "",
+  };
 }
 
 /** A JobPosting description is HTML: its text, with line breaks (runs in the popup). */
