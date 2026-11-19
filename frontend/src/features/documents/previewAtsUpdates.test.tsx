@@ -52,7 +52,7 @@ describe("Preview", () => {
   it("previews the text on screen, unsaved edits included", async () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
-      .mockResolvedValue(new Response(new Blob(["%PDF"]), { status: 200 }));
+      .mockResolvedValue(new Response("%PDF", { status: 200 }));
     URL.createObjectURL = vi.fn().mockReturnValue("blob:preview");
     URL.revokeObjectURL = vi.fn();
     const onClose = vi.fn();
