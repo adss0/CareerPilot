@@ -114,9 +114,9 @@ export function useFollowUpViewModel(applicationId: number): FollowUpViewModel {
     followUpAt: application?.follow_up_at ?? null,
     canFollowUp: Boolean(
       application?.contact_email &&
-        applicationSent &&
-        !followUpWaiting &&
-        (application.status === "sent" || application.status === "followed_up"),
+      applicationSent &&
+      !followUpWaiting &&
+      (application.status === "sent" || application.status === "followed_up"),
     ),
     draft,
     approved,

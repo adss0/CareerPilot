@@ -75,13 +75,7 @@ export interface DueItem {
 }
 
 export type StageKind =
-  | "online_test"
-  | "video"
-  | "phone"
-  | "technical"
-  | "assessment_centre"
-  | "final"
-  | "other";
+  "online_test" | "video" | "phone" | "technical" | "assessment_centre" | "final" | "other";
 // done: taken, and waiting for the result.
 export type StageResult = "upcoming" | "done" | "passed" | "failed";
 
