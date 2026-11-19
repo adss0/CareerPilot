@@ -49,9 +49,9 @@ export function useSettingsViewModel(): SettingsViewModel {
   const gap = gapDraft ?? String(settings?.request_gap_seconds ?? "");
   const isDirty = Boolean(
     settings &&
-      (current !== settings.provider ||
-        (current && modelDraft[current] !== undefined && modelDraft[current] !== saved?.model) ||
-        (gapDraft !== null && Number(gapDraft) !== settings.request_gap_seconds)),
+    (current !== settings.provider ||
+      (current && modelDraft[current] !== undefined && modelDraft[current] !== saved?.model) ||
+      (gapDraft !== null && Number(gapDraft) !== settings.request_gap_seconds)),
   );
 
   const saveMutation = useMutation({

@@ -18,6 +18,10 @@ updates:
       python:
         patterns: ["*"]
         update-types: [minor, patch]
+    ignore:
+      # sqlmodel after 0.0.24 refuses dates without a time zone, and every date already saved
+      # in people's databases has none. Moving needs a migration, not a version bump.
+      - dependency-name: sqlmodel
 
   - package-ecosystem: npm
     directory: /frontend
