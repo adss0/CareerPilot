@@ -168,7 +168,7 @@ function JobRow({
   return (
     <li
       className={cn(
-        "bg-card group relative rounded-xl border shadow-card transition-all hover:-translate-y-px hover:shadow-lift",
+        "bg-card group relative rounded-xl border shadow-card transition-[box-shadow,transform] duration-200 ease-[var(--ease-out)] hover:-translate-y-px hover:shadow-lift",
         selected && "border-primary ring-primary/30 ring-2",
       )}
     >

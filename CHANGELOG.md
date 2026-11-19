@@ -2,11 +2,17 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.10.0] - 2026-11-19
 
 ### Added
 
+- **Smoother, calmer motion.** The start-up screen eases in (the logo, the name, then a slim progress bar) and fades away as the app settles in behind it. Pages arrive with a short fade, the dashboard's numbers come in one after another, the PDF preview and the stage editor open with a small pop, and buttons respond to a press. Everything stays short so the app never feels slow, and with Windows' "reduce motion" setting on it's simple fades only.
 - **Save to CareerPilot browser extension** (Chrome and Edge, in `extension/`): one click on any job page adds the job to your tracker. It reads the ad from the page you're on, so it works on sites you're signed in to like LinkedIn, fills in the company and role from the page's job record, and warns you if the job is already in your tracker. See [extension/README.md](extension/README.md).
+
+### Fixed
+
+- The stage editor in the tracker could close by itself if the table scrolled slightly as it opened. It now only closes when its chip really moves.
+- Pop-ups positioned on the window (the stage editor, the PDF preview, the profile's save bar) are drawn outside the page, so a page's animation can't put them in the wrong place.
 
 ## [1.9.0] - 2026-11-18
 

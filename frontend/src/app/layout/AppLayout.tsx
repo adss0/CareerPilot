@@ -111,6 +111,7 @@ function ContinueApplying() {
 }
 
 export function AppLayout() {
+  const { pathname } = useLocation();
   const notifications = useDesktopNotifications();
   const unseen = notifications?.unseen_replies ?? 0;
   const [addingJob, closeAddJob] = useAddJobDialog();
@@ -171,7 +172,10 @@ export function AppLayout() {
       <main className="min-w-0 flex-1 px-5 py-6 md:px-10 md:py-10">
         <div className="mx-auto max-w-[1400px]">
           <ComingUp items={notifications?.upcoming ?? []} />
-          <Outlet />
+          {/* Keyed by page, so each page arrives with a short fade and rise. */}
+          <div key={pathname} className="motion-page">
+            <Outlet />
+          </div>
         </div>
       </main>
     </div>

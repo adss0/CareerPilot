@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -50,6 +50,25 @@ describe("BackendGate", () => {
       timeout: 3000,
     });
     expect(calls).toBe(3);
+    // The start-up screen fades out over the app, then goes.
+    expect(screen.getByRole("status")).toHaveClass("splash-exit");
+    await waitFor(() => expect(screen.queryByRole("status")).not.toBeInTheDocument());
+  });
+
+  it("explains when the engine never starts", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(health, "fetchHealth").mockRejectedValue(new Error("down"));
+    render(
+      <BackendGate>
+        <p>Your jobs</p>
+      </BackendGate>,
+    );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(91_000);
+    });
+    expect(screen.getByText(/engine didn't start/)).toBeInTheDocument();
+    expect(screen.queryByText("Your jobs")).not.toBeInTheDocument();
+    vi.useRealTimers();
   });
 });
 

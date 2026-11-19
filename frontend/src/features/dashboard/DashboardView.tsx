@@ -1,4 +1,5 @@
 import { AlarmClock, FileSpreadsheet, Inbox, Lightbulb, Loader2 } from "lucide-react";
+import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -66,8 +67,12 @@ export function DashboardView(vm: DashboardViewModel) {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {vm.isLoading
           ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)
-          : vm.stats.map((stat) => (
-              <Card key={stat.label} className="gap-2">
+          : vm.stats.map((stat, i) => (
+              <Card
+                key={stat.label}
+                className="motion-rise gap-2"
+                style={{ "--i": i } as CSSProperties}
+              >
                 <CardHeader>
                   <CardDescription>{stat.label}</CardDescription>
                   <CardTitle className="text-3xl tabular-nums">{stat.value}</CardTitle>
