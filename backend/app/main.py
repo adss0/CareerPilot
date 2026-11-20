@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from app.api import (
     applications,
     backup,
+    changes,
     cvs,
     documents,
     downloads,
@@ -80,6 +81,7 @@ def create_app() -> FastAPI:
         return JSONResponse(status_code=code, content={"detail": str(exc)})
 
     app.include_router(health.router, prefix="/api")
+    app.include_router(changes.router, prefix="/api")
     app.include_router(applications.router, prefix="/api")
     app.include_router(imports.router, prefix="/api")
     app.include_router(cvs.router, prefix="/api")

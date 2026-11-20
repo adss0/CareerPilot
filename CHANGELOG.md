@@ -2,6 +2,12 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.10.2] - 2026-11-20
+
+### Fixed
+
+- **Jobs saved from the browser extension appear in the app straight away.** The app now notices anything saved outside its own window (the extension, the background email queue, replies found in your inbox) and refreshes the jobs list, dashboard, calendar and emails within a couple of seconds, with no reload. It only checks while the window is showing.
+
 ## [1.10.1] - 2026-11-19
 
 ### Fixed
