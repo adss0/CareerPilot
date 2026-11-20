@@ -187,7 +187,9 @@ jobs:
         env:
           REPO: ${{ github.repository }}
         run: |
-          sig=$(ls installer/nsis/*-setup.exe.sig 2>/dev/null | head -1 || true)
+          # Search, don't assume a folder: upload-artifact drops the folders the files share,
+          # so where they land depends on what else was uploaded.
+          sig=$(find installer -name '*-setup.exe.sig' | head -1)
           if [ -z "$sig" ]; then
             echo "::error::The installer isn't signed (is TAURI_SIGNING_PRIVATE_KEY set?)."
             exit 1
