@@ -5,11 +5,13 @@ sites put a schema.org "JobPosting" record in the page for search engines; when 
 title, company, salary and closing date come straight from it. Otherwise the page's text is used.
 
 Safety: only public http(s) addresses (never this computer or the local network), at most a few
-redirects, each checked again, and at most 3 MB.
+redirects, each checked again, and at most 3 MB. The address actually connected to is checked
+too: a site could answer the first lookup with a public address and the next with a local one.
 """
 
 import ipaddress
 import json
+import os
 import re
 import socket
 from collections.abc import Callable
@@ -46,6 +48,34 @@ def _resolve(host: str) -> list[str]:
     return [info[4][0] for info in socket.getaddrinfo(host, None)]
 
 
+def _require_global(address: str) -> None:
+    if not ipaddress.ip_address(address.split("%")[0]).is_global:
+        raise JobPageError("That link points to this computer or a private network.")
+
+
+def check_connected(response: httpx.Response) -> None:
+    """The address the page really came from (none when a proxy or a test answered)."""
+    stream = response.extensions.get("network_stream")
+    peer = stream.get_extra_info("server_addr") if stream is not None else None
+    if peer and not _uses_proxy():
+        _require_global(str(peer[0]))
+
+
+def _uses_proxy() -> bool:
+    # Through a proxy, the connection is to the proxy, which does its own lookup.
+    return any(
+        os.environ.get(name)
+        for name in (
+            "HTTPS_PROXY",
+            "HTTP_PROXY",
+            "ALL_PROXY",
+            "https_proxy",
+            "http_proxy",
+            "all_proxy",
+        )
+    )
+
+
 def check_public(url: str, resolve: Resolver = _resolve) -> None:
     parts = urlsplit(url)
     if parts.scheme not in ("http", "https") or not parts.hostname:
@@ -55,9 +85,7 @@ def check_public(url: str, resolve: Resolver = _resolve) -> None:
     except OSError as exc:
         raise JobPageError("That website couldn't be found. Check the link.") from exc
     for address in addresses:
-        ip = ipaddress.ip_address(address.split("%")[0])
-        if not ip.is_global:
-            raise JobPageError("That link points to this computer or a private network.")
+        _require_global(address)
 
 
 def fetch_job_page(
@@ -72,6 +100,7 @@ def fetch_job_page(
             check_public(current, resolve)
             try:
                 with client.stream("GET", current, follow_redirects=False) as response:
+                    check_connected(response)
                     if response.is_redirect and response.headers.get("location"):
                         current = urljoin(current, response.headers["location"])
                         continue

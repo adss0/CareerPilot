@@ -2,9 +2,10 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import JobServiceDep
+from app.core.security import require_app_header
 from app.schemas.application import ApplicationRead
 from app.schemas.jobs import JobDetailsRead, JobListingRead, JobSearchResult, PastedJob
 
@@ -13,7 +14,10 @@ router = APIRouter(tags=["jobs"])
 JobId = Annotated[str, Query(pattern=r"^(reed|adzuna|jooble|saved):[\w-]{1,60}$")]
 
 
-@router.get("/jobs/search", response_model=JobSearchResult)
+# Searching uses your job-board keys, so another website mustn't be able to set it off.
+@router.get(
+    "/jobs/search", response_model=JobSearchResult, dependencies=[Depends(require_app_header)]
+)
 def search_jobs(
     service: JobServiceDep,
     q: Annotated[str, Query(min_length=2, max_length=100)],
@@ -24,7 +28,9 @@ def search_jobs(
     return service.search(q, location, graduate, page)
 
 
-@router.get("/jobs/details", response_model=JobDetailsRead)
+@router.get(
+    "/jobs/details", response_model=JobDetailsRead, dependencies=[Depends(require_app_header)]
+)
 def job_details(id: JobId, service: JobServiceDep) -> JobDetailsRead:
     return service.details(id)
 

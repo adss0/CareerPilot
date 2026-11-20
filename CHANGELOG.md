@@ -2,6 +2,15 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.10.3] - 2026-11-20
+
+### Security
+
+- **Only documents can be saved to, or opened from, your Downloads folder.** The app saves CVs, letters, exports and backups there and can open them for you. It now refuses any other kind of file (programs, scripts, shortcuts, web pages, Office files with macros), so the feature could never be used to start a program.
+- **Other websites can't run job searches with your keys.** A page you visit could make the app search the job boards in the background (it couldn't see the results, but it used up your Reed, Adzuna and Jooble allowance). Searching and job details now only answer CareerPilot itself.
+- **Pasted job links can't be redirected to your own network.** The app already refused links to this computer or your home network; it now also checks the address it actually connected to, so a site can't pass the check and then switch its address to a local one.
+- The engine no longer accepts requests addressed to "testserver", a name only the tests use.
+
 ## [1.10.2] - 2026-11-20
 
 ### Fixed

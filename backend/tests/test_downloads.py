@@ -37,11 +37,37 @@ def test_saves_in_downloads_without_overwriting(client, folder: Path):
 
 @pytest.mark.parametrize(
     ("given", "saved"),
-    [("../../evil.exe", "evil.exe"), ('a:b*c?"d.pdf', "abcd.pdf"), ("...", "download")],
+    [
+        ("../../evil.pdf", "evil.pdf"),
+        ('a:b*c?"d.pdf', "abcd.pdf"),
+        (r"C:\x\Report.XLSX", "Report.XLSX"),
+    ],
 )
 def test_file_names_are_made_safe(client, folder: Path, given, saved):
     assert save(client, given).json()["name"] == saved
     assert (folder / saved).exists()
+
+
+@pytest.mark.parametrize(
+    "name",
+    ["evil.exe", "run.bat", "x.ps1", "page.html", "macro.docm", "link.lnk", "...", "CV.pdf.exe"],
+)
+def test_only_documents_are_saved(client, folder: Path, name):
+    response = save(client, name)
+    assert response.status_code == 400
+    assert not folder.exists() or not any(folder.iterdir())
+
+
+def test_opens_only_documents(client, folder: Path, monkeypatch):
+    opened: list = []
+    monkeypatch.setattr(downloads.sys, "platform", "win32")
+    monkeypatch.setattr(downloads.os, "startfile", opened.append, raising=False)
+    folder.mkdir(parents=True)
+    program = folder / "setup.exe"
+    program.write_bytes(b"MZ")  # e.g. downloaded by the browser, not by CareerPilot
+    response = client.post("/api/downloads/open", json={"path": str(program)})
+    assert response.status_code == 400
+    assert opened == []
 
 
 def test_opens_only_files_in_downloads(client, folder: Path, monkeypatch, tmp_path: Path):

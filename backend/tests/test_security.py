@@ -7,7 +7,7 @@ from app.main import app
 @pytest.fixture
 def bare(client) -> TestClient:
     """A client WITHOUT the X-CareerPilot header (like a request from another website)."""
-    return TestClient(app)
+    return TestClient(app, base_url="http://127.0.0.1")
 
 
 @pytest.mark.parametrize(
@@ -42,6 +42,8 @@ def test_requests_for_other_hosts_are_refused(client):
     # DNS rebinding: evil.example resolving to 127.0.0.1 still sends "Host: evil.example".
     response = client.get("/api/applications", headers={"Host": "evil.example:8000"})
     assert response.status_code == 400
+    # "testserver" (the test client's default name) is no exception in the real app.
+    assert client.get("/api/health", headers={"Host": "testserver"}).status_code == 400
     for host in ("localhost:8000", "127.0.0.1:8765", "[::1]:8000", "tauri.localhost"):
         assert client.get("/api/health", headers={"Host": host}).status_code == 200
 
@@ -68,3 +70,11 @@ def test_cors_only_for_known_origins(bare):
         "/api/applications", headers={"Origin": "https://evil.example", **preflight}
     )
     assert "access-control-allow-origin" not in evil.headers
+
+
+@pytest.mark.parametrize("path", ["/api/jobs/search?q=developer", "/api/jobs/details?id=reed:1"])
+def test_reads_that_use_your_keys_need_the_header(bare, path):
+    # e.g. <img src="http://127.0.0.1:8765/api/jobs/search?q=x"> on another site
+    response = bare.get(path)
+    assert response.status_code == 403
+    assert "X-CareerPilot" in response.json()["detail"]

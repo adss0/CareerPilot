@@ -156,3 +156,44 @@ def test_link_errors_are_shown(client, monkeypatch):
     assert response.status_code == 400
     assert "doesn't let apps read" in response.json()["detail"]
     assert client.post("/api/jobs/paste", json={}).status_code == 422
+
+
+class _Stream:
+    def __init__(self, address: str):
+        self.address = address
+
+    def get_extra_info(self, name: str):
+        return (self.address, 443) if name == "server_addr" else None
+
+
+@pytest.mark.parametrize(
+    ("connected", "ok"),
+    [("93.184.215.14", True), ("127.0.0.1", False), ("192.168.1.1", False), ("::1", False)],
+)
+def test_checks_the_address_it_really_connected_to(connected, ok, monkeypatch):
+    # DNS rebinding: the lookup said "public", but the connection went somewhere local.
+    for name in (
+        "HTTPS_PROXY",
+        "HTTP_PROXY",
+        "ALL_PROXY",
+        "https_proxy",
+        "http_proxy",
+        "all_proxy",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    page = (
+        "<html><body><main>"
+        + "A graduate developer job at Acme Ltd. " * 20
+        + "</main></body></html>"
+    )
+    transport = httpx.MockTransport(
+        lambda request: httpx.Response(
+            200, html=page, extensions={"network_stream": _Stream(connected)}
+        )
+    )
+    public = lambda host: ["93.184.215.14"]  # noqa: E731
+    if ok:
+        assert "Acme Ltd" in fetch_job_page("https://example.com/job", transport, public).text
+    else:
+        with pytest.raises(JobPageError, match="private network"):
+            fetch_job_page("https://example.com/job", transport, public)

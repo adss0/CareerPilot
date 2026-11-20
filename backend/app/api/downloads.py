@@ -1,8 +1,9 @@
 """Saving downloads in the desktop app: files go to the user's Downloads folder, and the app can
 open them or show them in File Explorer afterwards.
 
-Only files in the Downloads folder can be opened this way, so the endpoint can't be used to
-open anything else on the computer.
+Only files in the Downloads folder can be opened this way, and only the kinds of document the
+app makes (PDF, Word, Excel, CSV, text, a backup .zip). Opening a file runs whatever Windows
+links to its type, so a program or script could never be saved or started through here.
 """
 
 import os
@@ -20,6 +21,8 @@ from app.core.errors import BadRequestError
 router = APIRouter(prefix="/downloads", tags=["downloads"])
 
 MAX_BYTES = 50 * 1024 * 1024
+# What the app downloads: CVs, letters, exports, the import template and backups.
+DOCUMENT_TYPES = {".pdf", ".docx", ".xlsx", ".csv", ".txt", ".zip"}
 # FOLDERID_Downloads: the real Downloads folder, even if it was moved (e.g. to OneDrive).
 DOWNLOADS_GUID = "{374DE290-123F-4565-9164-39C4925E467B}"
 
@@ -62,6 +65,10 @@ def safe_name(name: str) -> str:
     return name or "download"
 
 
+def is_document(name: str) -> bool:
+    return Path(name).suffix.lower() in DOCUMENT_TYPES
+
+
 def unique_path(folder: Path, name: str) -> Path:
     """ "CV.pdf", then "CV (2).pdf", "CV (3).pdf"... never overwrites."""
     path = folder / name
@@ -88,12 +95,17 @@ class OpenDownload(BaseModel):
 async def save_download(
     file: Annotated[UploadFile, File()], filename: Annotated[str, Form()]
 ) -> SavedDownload:
+    name = safe_name(filename)
+    if not is_document(name):
+        raise BadRequestError(
+            "CareerPilot only saves documents (PDF, Word, Excel, CSV, text, zip)."
+        )
     content = await file.read(MAX_BYTES + 1)
     if len(content) > MAX_BYTES:
         raise BadRequestError("That file is too big to save.")
     folder = downloads_dir()
     folder.mkdir(parents=True, exist_ok=True)
-    path = unique_path(folder, safe_name(filename))
+    path = unique_path(folder, name)
     path.write_bytes(content)
     return SavedDownload(name=path.name, path=str(path), folder=str(folder))
 
@@ -104,6 +116,8 @@ def open_download(data: OpenDownload) -> None:
     path = Path(data.path).resolve()
     if path.parent != folder or not path.is_file():
         raise BadRequestError("That file isn't in your Downloads folder any more.")
+    if not is_document(path.name):
+        raise BadRequestError("CareerPilot only opens the documents it saved.")
     if sys.platform == "win32":
         if data.show_in_folder:
             subprocess.Popen(["explorer", "/select,", str(path)])  # noqa: S603, S607
