@@ -142,7 +142,7 @@ def client(
     )
     # Not used as a context manager, so startup migrations don't run against a real file.
     # Like the real frontend, every request carries the X-CareerPilot header.
-    yield TestClient(app, headers={"X-CareerPilot": "1"})
+    yield TestClient(app, base_url="http://127.0.0.1", headers={"X-CareerPilot": "1"})
     app.dependency_overrides.clear()
 
 

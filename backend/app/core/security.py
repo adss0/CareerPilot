@@ -6,16 +6,20 @@
    pre-flight, which CareerPilot refuses for unknown origins.
 2. DNS rebinding: a site could point its own domain at 127.0.0.1 and then read the API as
    "same origin". Only requests addressed to this computer's own names are accepted.
-3. Standard security headers on every response.
+3. Reading is allowed without the header (another site can't see the answer anyway), except
+   where reading costs something: job searches use the user's own API keys and quotas.
+4. Standard security headers on every response.
 """
 
+from fastapi import HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 CSRF_HEADER = "x-careerpilot"
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
-ALLOWED_HOSTS = {"localhost", "127.0.0.1", "[::1]", "tauri.localhost", "testserver"}
+ALLOWED_HOSTS = {"localhost", "127.0.0.1", "[::1]", "tauri.localhost"}
+MISSING_HEADER = "Missing the X-CareerPilot header (blocks cross-site requests)."
 
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
@@ -34,11 +38,15 @@ class LocalSecurityMiddleware(BaseHTTPMiddleware):
             return JSONResponse({"detail": "Requests must be addressed to this computer."}, 400)
 
         if request.method not in SAFE_METHODS and request.headers.get(CSRF_HEADER) != "1":
-            return JSONResponse(
-                {"detail": "Missing the X-CareerPilot header (blocks cross-site requests)."}, 403
-            )
+            return JSONResponse({"detail": MISSING_HEADER}, 403)
 
         response = await call_next(request)
         for name, value in SECURITY_HEADERS.items():
             response.headers.setdefault(name, value)
         return response
+
+
+def require_app_header(request: Request) -> None:
+    """For reads that cost something: only CareerPilot itself (or its extension) may ask."""
+    if request.headers.get(CSRF_HEADER) != "1":
+        raise HTTPException(status_code=403, detail=MISSING_HEADER)
