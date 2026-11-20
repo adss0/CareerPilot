@@ -123,7 +123,7 @@ jobs:
 
   audit:
     # Known security holes in the app's dependencies. Shown on every PR but not required: a
-    # new advisory with no fix yet shouldn't block unrelated work. Dependabot opens the fixes.
+    # new advisory with no fix yet shouldn't block unrelated work.
     runs-on: ubuntu-latest
     timeout-minutes: 10
     continue-on-error: true
