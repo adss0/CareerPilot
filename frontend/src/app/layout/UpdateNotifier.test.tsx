@@ -92,4 +92,35 @@ describe("automatic updates", () => {
     fireEvent.click(box);
     expect(updates.autoUpdateEnabled()).toBe(true);
   });
+  it("says why an update failed, so it can be fixed", async () => {
+    const install = vi.fn(() => Promise.reject("failed to open file: careerpilot-server.exe"));
+    vi.spyOn(updates, "checkForUpdate").mockResolvedValue(newVersion(install));
+    render(<UpdateNotifier />);
+    await wait(5_000);
+    expect(toast.error).toHaveBeenCalledWith(
+      "The update couldn't be installed. Try again later.",
+      expect.objectContaining({ description: "failed to open file: careerpilot-server.exe" }),
+    );
+  });
+
+  it("shows the reason in Settings → Updates too", async () => {
+    vi.useRealTimers();
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("{}"));
+    vi.spyOn(updates, "checkForUpdate").mockRejectedValue(new Error("signature mismatch"));
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <UpdatesView desktop />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Check for updates/ }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Couldn't check for updates. Are you online? (signature mismatch)",
+    );
+  });
+
+  it("keeps the reason short and copes with odd errors", () => {
+    expect(updates.updateErrorReason(new Error("x".repeat(500)))).toHaveLength(200);
+    expect(updates.updateErrorReason({ weird: true })).toBe("");
+    expect(updates.updateErrorReason("  offline  ")).toBe("offline");
+  });
 });

@@ -12,6 +12,7 @@ import {
   autoUpdateEnabled,
   checkForUpdate,
   setAutoUpdate,
+  updateErrorReason,
   type AvailableUpdate,
 } from "@/lib/updates";
 
@@ -23,6 +24,12 @@ type State =
   | { kind: "installing"; percent: number }
   | { kind: "error"; message: string };
 
+// The reason helps when asking for help ("signature", "network", "file in use"...).
+function withReason(message: string, error: unknown): string {
+  const reason = updateErrorReason(error);
+  return reason ? `${message} (${reason})` : `${message} Try again later.`;
+}
+
 export function UpdatesView({ desktop = isDesktop() }: { desktop?: boolean }) {
   const health = useQuery(healthQueryOptions);
   const [state, setState] = useState<State>({ kind: "idle" });
@@ -32,10 +39,10 @@ export function UpdatesView({ desktop = isDesktop() }: { desktop?: boolean }) {
     setState({ kind: "checking" });
     checkForUpdate()
       .then((update) => setState(update ? { kind: "available", update } : { kind: "latest" }))
-      .catch(() =>
+      .catch((error: unknown) =>
         setState({
           kind: "error",
-          message: "Couldn't check for updates. Are you online? Try again later.",
+          message: withReason("Couldn't check for updates. Are you online?", error),
         }),
       );
   };
@@ -44,8 +51,11 @@ export function UpdatesView({ desktop = isDesktop() }: { desktop?: boolean }) {
     setState({ kind: "installing", percent: 0 });
     update
       .install((percent) => setState({ kind: "installing", percent }))
-      .catch(() =>
-        setState({ kind: "error", message: "The update couldn't be installed. Try again later." }),
+      .catch((error: unknown) =>
+        setState({
+          kind: "error",
+          message: withReason("The update couldn't be installed.", error),
+        }),
       );
   };
 

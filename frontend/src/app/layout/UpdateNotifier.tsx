@@ -5,7 +5,12 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 
-import { autoUpdateEnabled, checkForUpdate, type AvailableUpdate } from "@/lib/updates";
+import {
+  autoUpdateEnabled,
+  checkForUpdate,
+  updateErrorReason,
+  type AvailableUpdate,
+} from "@/lib/updates";
 
 const FIRST_CHECK_MS = 5_000;
 const RECHECK_MS = 6 * 60 * 60 * 1000;
@@ -18,7 +23,13 @@ function install(update: AvailableUpdate) {
     .install((percent) =>
       toast.loading(`Updating CareerPilot to ${update.version}… ${percent}%`, { id }),
     )
-    .catch(() => toast.error("The update couldn't be installed. Try again later.", { id }));
+    .catch((error: unknown) =>
+      toast.error("The update couldn't be installed. Try again later.", {
+        id,
+        description: updateErrorReason(error) || undefined,
+        duration: 20_000,
+      }),
+    );
 }
 
 function offer(update: AvailableUpdate) {

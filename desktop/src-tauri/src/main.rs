@@ -63,6 +63,19 @@ fn stop_backend_command(app: tauri::AppHandle) {
 fn stop_backend(app: &tauri::AppHandle) {
     if let Some(backend) = app.try_state::<Backend>() {
         if let Some(child) = backend.0.lock().unwrap().take() {
+            // The bundled backend is a one-file build: the process started here is a small
+            // launcher, and the real server is its child. Killing only the launcher leaves the
+            // server running with its .exe locked, so an update couldn't replace it. Stop the
+            // whole tree, and wait for it, before the installer starts.
+            #[cfg(windows)]
+            {
+                use std::os::windows::process::CommandExt;
+                const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+                let _ = std::process::Command::new("taskkill")
+                    .args(["/F", "/T", "/PID", &child.pid().to_string()])
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .status();
+            }
             let _ = child.kill();
         }
     }
