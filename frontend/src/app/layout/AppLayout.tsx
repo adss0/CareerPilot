@@ -14,6 +14,7 @@ import {
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { useTheme, type ThemeChoice } from "@/app/themeContext";
+import { useLiveUpdates } from "@/app/useLiveUpdates";
 import { readApplying } from "@/features/apply/applying";
 import { useAddJobDialog } from "@/features/tracker/addJob";
 import { QuickAddJob } from "@/features/tracker/QuickAddJob";
@@ -112,6 +113,7 @@ function ContinueApplying() {
 
 export function AppLayout() {
   const { pathname } = useLocation();
+  useLiveUpdates();
   const notifications = useDesktopNotifications();
   const unseen = notifications?.unseen_replies ?? 0;
   const [addingJob, closeAddJob] = useAddJobDialog();
