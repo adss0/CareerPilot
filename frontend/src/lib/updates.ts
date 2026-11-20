@@ -21,6 +21,12 @@ export function setAutoUpdate(on: boolean): void {
   }
 }
 
+/** Why an update failed, for the message (the updater rejects with a plain string). */
+export function updateErrorReason(error: unknown): string {
+  const text = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  return text.trim().slice(0, 200);
+}
+
 export interface AvailableUpdate {
   version: string;
   notes: string;

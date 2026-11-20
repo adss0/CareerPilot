@@ -2,6 +2,13 @@
 
 All notable changes to CareerPilot. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.10.4] - 2026-11-20
+
+### Fixed
+
+- **Automatic updates install again.** The app's engine runs as two processes, and before an update the app stopped only one of them. The other kept its file in use, so the installer couldn't replace it: the update failed, the old version stayed, and the app didn't reopen. The installer now closes the whole engine before copying files (which also rescues apps still on an older version), and the app stops all of it before updating.
+- When an update fails, the message now says why (in the notification and in Settings → Updates) instead of only "try again later".
+
 ## [1.10.3] - 2026-11-20
 
 ### Security
